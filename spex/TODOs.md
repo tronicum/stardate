@@ -62,6 +62,7 @@ See `CLAUDE.md` for how the pieces fit together.
 - [ ] "Deutsche Bahn mode" for the traveling-salesman demo, for fun: random per-hop delays, occasional cancelled/skipped hops, maybe a "replacement bus" fallback edge — layered on top of `scripts/gen_traveling_salesman.py`'s existing hop generation
 
 ### Backlog (ideas discussed, not built — pruned to the ones actually worth doing next)
+- [ ] "Kevin Bacon" movie demo, for fun, much later: a movie's cast/crew (actors, producers, ...) as a graph. Needs real data (a public movie/cast dataset or API — nothing to shell out to locally like `brew`/`sqlite3`). Also the natural case for the DAG/shared-parent limitation below: the same actor appears in many movies, so this is a real forcing function for that work rather than a hypothetical one
 - [ ] Animated packet on branching trees (ps-tree, brew-deps) — today it only walks one branch (first-child-always); multiple simultaneous packets or a full DFS sweep would cover the whole tree
 - [ ] Layout polish: ring-stagger helps but capped rings can still overlap at some angles/zoom levels — worth a proper multi-ring rewrite if it keeps bothering us
 - [ ] Real line-edges in the viewer (replace point-trails with an actual WebGL line primitive)
