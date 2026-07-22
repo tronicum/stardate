@@ -143,6 +143,13 @@ async function main() {
   let packetT = 0;
   const packetA = new THREE.Vector3();
   const packetB = new THREE.Vector3();
+  const packetHitProjection = new THREE.Vector3();
+  // "Hit" flash: briefly show the same hover tooltip (label/metric/metadata)
+  // for whichever node the packet just reached, so the metric view isn't
+  // only reachable by mousing over a blob — the traveling packet surfaces it too.
+  const PACKET_HIT_FLASH_SECONDS = 1.2;
+  let packetHitNode: NodeLabel | null = null;
+  let packetHitTimer = 0;
   if (packetPath.length >= 2) {
     const geometry = new THREE.SphereGeometry(Math.max(diag * 0.01, 0.001), 16, 16);
     const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
@@ -153,9 +160,11 @@ async function main() {
   }
   animatePacketInput.addEventListener('input', () => {
     if (packetMesh) packetMesh.visible = animatePacketInput.checked;
+    if (!animatePacketInput.checked) packetHitTimer = 0;
   });
 
   function updatePacket(deltaSeconds: number) {
+    packetHitTimer = Math.max(0, packetHitTimer - deltaSeconds);
     if (!packetMesh || !animatePacketInput.checked) return;
     const numSegments = packetPath.length - 1;
     let a = packetPath[packetSegment];
@@ -172,10 +181,27 @@ async function main() {
       b = packetPath[packetSegment + 1];
       packetA.set(a.center[0], a.center[1], a.center[2]);
       packetB.set(b.center[0], b.center[1], b.center[2]);
+      packetHitNode = a; // the node the packet just reached
+      packetHitTimer = PACKET_HIT_FLASH_SECONDS;
     }
     packetMesh.position.lerpVectors(packetA, packetB, packetT);
     const pulse = 1 + 0.15 * Math.sin(performance.now() / 150);
     packetMesh.scale.setScalar(pulse);
+  }
+
+  // Reuses the same tooltip elements/positioning as the mouse-hover labels
+  // (see updateLabels below) — just driven by the packet's arrival instead
+  // of cursor proximity, and shown regardless of where the mouse is.
+  function updatePacketHitLabel() {
+    if (!showLabelsInput.checked || packetHitTimer <= 0 || !packetHitNode) return;
+    const el = labelEls.get(packetHitNode.id);
+    if (!el) return;
+    camera.updateMatrixWorld();
+    packetHitProjection.set(packetHitNode.center[0], packetHitNode.center[1], packetHitNode.center[2]).project(camera);
+    if (packetHitProjection.z < -1 || packetHitProjection.z > 1) return; // behind the camera
+    el.style.display = 'block';
+    el.style.left = `${(packetHitProjection.x * 0.5 + 0.5) * window.innerWidth}px`;
+    el.style.top = `${(-packetHitProjection.y * 0.5 + 0.5) * window.innerHeight}px`;
   }
 
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, Math.max(diag / 10000, 0.001), diag * 10);
@@ -348,6 +374,7 @@ async function main() {
       fpsAccumMs = 0;
     }
     updatePacket(deltaSeconds);
+    updatePacketHitLabel();
     updateHud(fps);
     if (CYCLE_MODE) {
       cycleCountdownEl.textContent = Math.max(0, Math.ceil((cycleDeadline - now) / 1000)).toString();
