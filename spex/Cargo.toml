@@ -1,0 +1,26 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/spex-core",
+    "crates/spex-io",
+    "crates/spex-tiler",
+    "crates/spex-server",
+    "crates/spex-graph",
+    "crates/spex-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+spex-core = { path = "crates/spex-core" }
+spex-io = { path = "crates/spex-io" }
+spex-tiler = { path = "crates/spex-tiler" }
+spex-server = { path = "crates/spex-server" }
+spex-graph = { path = "crates/spex-graph" }
+anyhow = "1"
+thiserror = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rand = "0.8"

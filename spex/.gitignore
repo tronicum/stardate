@@ -1,0 +1,19 @@
+# Rust build output
+/target
+
+# Point cloud pipeline: your own local input files, and generated tilesets
+/in
+/out
+
+# Graph pipeline: demos/ is local generated output (graph.json captures can
+# contain real data from this machine — network paths, process names/PIDs,
+# installed packages — so none of it goes into git history).
+/demos/
+
+# Viewer (Vite/TypeScript)
+/viewer/node_modules
+/viewer/dist
+
+# OS / editor cruft
+.DS_Store
+*.swp

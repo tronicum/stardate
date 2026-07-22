@@ -1,0 +1,8 @@
+[package]
+name = "spex-io"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+spex-core = { workspace = true }
+anyhow = { workspace = true }

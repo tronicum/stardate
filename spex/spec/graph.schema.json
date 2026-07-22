@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/graph.schema.json",
+  "title": "spex Graph (graph.json)",
+  "description": "The intermediate format every spex input adapter (trace, ps-tree, brew-deps, disk-usage, pstree-demo) produces and every view (graph-print, graph-layout) consumes. Trees/forests only: GraphNode.parent is a single optional id, not a general edge list — see docs/ARCHITECTURE.md.",
+  "type": "object",
+  "required": ["nodes"],
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "type": ["string", "null"],
+      "description": "One-line human description of what this graph is, e.g. \"traceroute to www.de-cix.net\". May be entirely absent (defaults to null)."
+    },
+    "metric_label": {
+      "type": ["string", "null"],
+      "description": "What GraphNode.metric measures and its unit, e.g. \"avg RTT (ms)\". May be entirely absent (defaults to null)."
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/graphNode" }
+    }
+  },
+  "$defs": {
+    "graphNode": {
+      "type": "object",
+      "required": ["id", "label", "parent"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique within the graph."
+        },
+        "label": {
+          "type": "string",
+          "description": "Human-readable display name."
+        },
+        "parent": {
+          "type": ["string", "null"],
+          "description": "id of the parent node, or null for a root. Multiple roots form a forest. This key must be present (possibly null) even though it may hold no value."
+        },
+        "metric": {
+          "type": ["number", "null"],
+          "description": "Generic numeric weight driving color/size in the layout; unit described by the graph's metric_label. May be entirely absent (defaults to null)."
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Free-form source-specific fields (ip, hostname, hop number, pid, ...). May be entirely absent (defaults to {}).",
+          "additionalProperties": true
+        }
+      }
+    }
+  }
+}

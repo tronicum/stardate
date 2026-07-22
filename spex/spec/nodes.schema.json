@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/nodes.schema.json",
+  "title": "spex per-node layout metadata (nodes.json)",
+  "description": "Written by `spex graph-layout` alongside a tileset — graph pipeline only, absent for plain point-cloud tilesets from `spex convert`. One entry per graph node, including any fan-out-cap synthetic \"+N more\" nodes (see docs/ARCHITECTURE.md) which don't exist in the original graph.json. Gives each node's resolved 3D position, in the same offset-relative coordinate frame as tileset.json/octree points, plus everything from the original GraphNode. Used by the viewer for hover tooltips.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "label", "parent", "center", "metric", "metadata"],
+    "additionalProperties": false,
+    "properties": {
+      "id": { "type": "string" },
+      "label": { "type": "string" },
+      "parent": { "type": ["string", "null"] },
+      "center": {
+        "type": "array",
+        "items": { "type": "number" },
+        "minItems": 3,
+        "maxItems": 3
+      },
+      "metric": { "type": ["number", "null"] },
+      "metadata": { "type": "object", "additionalProperties": true }
+    }
+  }
+}

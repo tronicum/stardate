@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/meta.schema.json",
+  "title": "spex graph metadata (meta.json)",
+  "description": "Written by `spex graph-layout` alongside a tileset — graph pipeline only. Whole-graph summary for the viewer's persistent header/legend: title, what the metric measures, and its min/max across all nodes that have one.",
+  "type": "object",
+  "required": ["title", "metricLabel", "nodeCount", "metricMin", "metricMax"],
+  "additionalProperties": false,
+  "properties": {
+    "title": { "type": ["string", "null"] },
+    "metricLabel": { "type": ["string", "null"] },
+    "nodeCount": { "type": "integer", "minimum": 0 },
+    "metricMin": { "type": ["number", "null"] },
+    "metricMax": { "type": ["number", "null"] }
+  }
+}

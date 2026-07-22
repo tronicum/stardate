@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/tileset.schema.json",
+  "title": "spex tileset manifest (tileset.json)",
+  "description": "Written by spex-tiler for both pipelines (literal point clouds via `spex convert`, and graph layouts via `spex graph-layout`). Describes the octree: root bounds, the coordinate offset applied to every point, and one entry per octree node with its own bounds/point count. Point data itself lives in octree/<node-id>.bin, a small binary format (not JSON, so not schema'd here) — see CLAUDE.md's \"Tileset format\" section: u32 LE point count, then per point 3x f32 LE position + 3x u8 RGB.",
+  "type": "object",
+  "required": ["version", "offset", "bounds", "pointCount", "nodes"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "offset": {
+      "$ref": "#/$defs/vec3",
+      "description": "Subtracted from every point's original coordinate before writing. All bounds/positions in this file (and in a sibling nodes.json, if present) are already in this offset-relative frame."
+    },
+    "bounds": { "$ref": "#/$defs/aabb" },
+    "pointCount": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total points across the whole tileset — equal to the sum of every node's own pointCount, since nodes are non-overlapping (each point belongs to exactly one node)."
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "bounds", "pointCount"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^r[0-7]*$",
+            "description": "Octal path from the root (\"r\", \"r0\", \"r03\", ...) — this is spex-core's octree node-id scheme, unrelated to graph.json's node ids."
+          },
+          "bounds": { "$ref": "#/$defs/aabb" },
+          "pointCount": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "vec3": {
+      "type": "array",
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "aabb": {
+      "type": "object",
+      "required": ["min", "max"],
+      "additionalProperties": false,
+      "properties": {
+        "min": { "$ref": "#/$defs/vec3" },
+        "max": { "$ref": "#/$defs/vec3" }
+      }
+    }
+  }
+}
