@@ -16,7 +16,20 @@
     .node-label { position: absolute; transform: translate(-50%, -100%); background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; line-height: 1.5; padding: 6px 10px; border-radius: 6px; white-space: pre-wrap; text-align: left; max-width: 320px; word-break: break-word; }
     .node-label::first-line { font-weight: 600; }
     #graph-meta { display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.55); padding: 10px 16px; border-radius: 8px; font-size: 13px; text-align: center; pointer-events: none; user-select: none; max-width: min(70vw, 560px); }
-    #graph-title { font-weight: 600; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    #graph-title {
+      font-weight: 600; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      animation: titleFloat 3.2s ease-in-out infinite, titleGlow 6s ease-in-out infinite;
+    }
+    @keyframes titleFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    @keyframes titleGlow {
+      0%   { text-shadow: 0 0 6px rgba(120,170,255,0.6), 0 0 16px rgba(120,170,255,0.3); }
+      33%  { text-shadow: 0 0 6px rgba(255,210,90,0.6),  0 0 16px rgba(255,210,90,0.3); }
+      66%  { text-shadow: 0 0 6px rgba(255,90,140,0.6),  0 0 16px rgba(255,90,140,0.3); }
+      100% { text-shadow: 0 0 6px rgba(120,170,255,0.6), 0 0 16px rgba(120,170,255,0.3); }
+    }
     #graph-legend { display: flex; align-items: center; gap: 8px; font-size: 11px; opacity: 0.85; }
     #legend-bar { flex: 1; height: 8px; border-radius: 4px; background: linear-gradient(to right, rgb(40,110,255), rgb(255,220,0), rgb(255,40,40)); }
     #legend-caption { font-size: 11px; opacity: 0.7; margin-top: 4px; }
