@@ -81,6 +81,8 @@ Apply this standard to new demos by default (stock-price, Kevin Bacon movie-cast
 
 ### Backlog (ideas discussed, not built — pruned to the ones actually worth doing next)
 - [ ] "Kevin Bacon" movie demo, for fun, much later: a movie's cast/crew (actors, producers, ...) as a graph. Needs real data (a public movie/cast dataset or API — nothing to shell out to locally like `brew`/`sqlite3`). Also the natural case for the DAG/shared-parent limitation below: the same actor appears in many movies, so this is a real forcing function for that work rather than a hypothetical one
+- [ ] Molecule/reaction adapter, spark idea from https://tronicum.github.io/smol/ (a SMILES/WebGL molecule-reaction visualizer): parse a SMILES string into atoms (nodes) + bonds (edges) as a `Graph`, rendered through the existing point-cloud pipeline. Molecules have rings (cycles) — `Graph` is tree/forest-only today, so this is another real forcing case for the DAG/cycle limitation below, not just the Kevin Bacon one
+- [ ] "Morph between two graph states" — generalizes the animated-packet work into the diff/temporal idea below: lerp every matching node's position/color between graph A and graph B (e.g. a molecule mid-reaction, or a traceroute re-run) instead of walking a single chain
 - [ ] Animated packet on branching trees (ps-tree, brew-deps) — today it only walks one branch (first-child-always); multiple simultaneous packets or a full DFS sweep would cover the whole tree
 - [ ] Layout polish: ring-stagger helps but capped rings can still overlap at some angles/zoom levels — worth a proper multi-ring rewrite if it keeps bothering us
 - [ ] Real line-edges in the viewer (replace point-trails with an actual WebGL line primitive)
