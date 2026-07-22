@@ -1,0 +1,68 @@
+name: Deploy demos to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one deployment at a time; a new push cancels any in-flight one.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Best-effort extras for a couple of the demos — everything in
+      # scripts/walkthrough.sh already skips gracefully if a tool isn't
+      # present, so this only affects which demos show up, never a failure.
+      - name: Install traceroute (for the decix-trace demo)
+        run: sudo apt-get update && sudo apt-get install -y traceroute
+
+      # The viewer must be built *before* the Rust workspace, since
+      # spex-server embeds viewer/dist at Rust compile time (rust-embed),
+      # not at runtime.
+      - name: Build viewer
+        working-directory: viewer
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build spex
+        run: cargo build --release
+
+      - name: Generate demos
+        run: ./scripts/walkthrough.sh
+
+      - name: Export static site
+        run: ./target/release/spex export-static demos -o public
+
+      - uses: actions/configure-pages@v4
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

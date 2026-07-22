@@ -1,6 +1,7 @@
 mod ascii;
 mod brew_deps;
 mod disk_usage;
+mod export_static;
 mod nav;
 mod ps_tree;
 mod pstree_demo;
@@ -106,6 +107,19 @@ enum Command {
         no_open: bool,
     },
 
+    /// Write a fully static, server-free copy of a demos gallery — same
+    /// shape `spex gallery` serves dynamically, but every byte lives on disk
+    /// (relative links/asset paths throughout) so it can be hosted by a
+    /// plain static host like GitHub Pages with no backend at all.
+    ExportStatic {
+        #[arg(default_value = "demos")]
+        dir: PathBuf,
+
+        /// Output directory for the static site.
+        #[arg(short, long)]
+        out: PathBuf,
+    },
+
     /// Interactively browse demos: move through the list, view a demo's
     /// tree inline, or press `w` to launch its web view — a k9s-style
     /// navigator instead of one-shot commands per demo.
@@ -206,6 +220,7 @@ fn main() -> Result<()> {
         Command::GraphPrint { graph } => cmd_graph_print(&graph),
         Command::Demos { dir } => cmd_demos(&dir),
         Command::Gallery { dir, port, no_open } => cmd_gallery(&dir, port, !no_open),
+        Command::ExportStatic { dir, out } => cmd_export_static(&dir, &out),
         Command::Nav { dir } => nav::run(&dir),
         Command::Ascii { tileset_dir, width } => cmd_ascii(&tileset_dir, width),
         Command::PsTree { root, out } => cmd_ps_tree(root, &out),
@@ -515,4 +530,25 @@ fn cmd_gallery(dir: &Path, port: u16, open_browser: bool) -> Result<()> {
         port,
         open_browser,
     })
+}
+
+fn cmd_export_static(dir: &Path, out: &Path) -> Result<()> {
+    let demos = discover_demos(dir)?;
+    let ready: Vec<(String, PathBuf)> = demos
+        .into_iter()
+        .filter(|d| d.web_ready)
+        .map(|d| (d.name, d.tileset_dir))
+        .collect();
+    if ready.is_empty() {
+        bail!(
+            "no web-ready demos found in {} — run `spex graph-layout` on a captured graph.json first, \
+             or try ./scripts/walkthrough.sh",
+            dir.display()
+        );
+    }
+    println!("exporting {} demo(s) to {}...", ready.len(), out.display());
+    export_static::run(&ready, out)?;
+    println!("wrote a static site to {} — serve it with any static file host, e.g.:", out.display());
+    println!("  cd {} && python3 -m http.server 8000", out.display());
+    Ok(())
 }

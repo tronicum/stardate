@@ -129,7 +129,13 @@ struct MetaSummary {
     node_count: Option<usize>,
 }
 
-fn render_gallery_html(demos: &[(String, PathBuf)]) -> String {
+/// Pre-rendered gallery front page listing every demo, linking into each via
+/// a *relative* href (`d/<name>/`, not `/d/<name>/`) — this resolves
+/// correctly whether served at a domain root (`spex gallery`) or under a
+/// subpath (a static export hosted on e.g. GitHub Pages at
+/// `username.github.io/reponame/`). `pub` so `spex-cli`'s static-export
+/// command can reuse it verbatim instead of duplicating the HTML.
+pub fn render_gallery_html(demos: &[(String, PathBuf)]) -> String {
     let mut cards = String::new();
     for (name, tileset_dir) in demos {
         let tileset: TilesetSummary = std::fs::read_to_string(tileset_dir.join("tileset.json"))
@@ -152,7 +158,7 @@ fn render_gallery_html(demos: &[(String, PathBuf)]) -> String {
 
         let name_escaped = escape_html(name);
         cards.push_str(&format!(
-            r#"<a class="card" href="/d/{name_escaped}/">
+            r#"<a class="card" href="d/{name_escaped}/">
   <h2>{name_escaped}</h2>
   <p class="title">{title_escaped}</p>
   <div class="stats">{stats_escaped}</div>
@@ -241,9 +247,46 @@ fn open_browser(url: &str) {
     let _ = std::process::Command::new(cmd.0).args(cmd.1).status();
 }
 
+/// Writes every embedded viewer asset (the same `viewer/dist` this crate
+/// serves at runtime via `serve_viewer_asset`) out to real files under
+/// `output_dir` — used by `spex export-static` to give each demo folder in a
+/// static export its own self-contained copy of the viewer (no server
+/// needed to resolve them at request time).
+pub fn write_viewer_assets(output_dir: &Path) -> Result<()> {
+    for path in ViewerAssets::iter() {
+        let Some(content) = ViewerAssets::get(&path) else { continue };
+        let dest = output_dir.join(path.as_ref());
+        if let Some(parent) = dest.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(&dest, content.data.as_ref()).with_context(|| format!("writing {}", dest.display()))?;
+    }
+    Ok(())
+}
+
+/// Gallery mode serves every demo under `/d/<name>/`, but they all share one
+/// embedded viewer bundle (unlike a static export, where each demo folder
+/// gets its own copy) — the built `index.html` references assets via a
+/// *relative* path (`./assets/...`, see `viewer/vite.config.ts`), which the
+/// browser resolves against `/d/<name>/`, producing a request like
+/// `/d/<name>/assets/index-HASH.js`. Strip that per-demo prefix so it still
+/// resolves against the flat embedded keys (`assets/index-HASH.js`).
+fn resolve_viewer_asset_path(raw: &str) -> &str {
+    let path = raw
+        .strip_prefix("d/")
+        .and_then(|rest| rest.split_once('/'))
+        .map(|(_name, rest)| rest)
+        .unwrap_or(raw);
+    if path.is_empty() {
+        "index.html"
+    } else {
+        path
+    }
+}
+
 async fn serve_viewer_asset(uri: Uri) -> Response {
-    let path = uri.path().trim_start_matches('/');
-    let path = if path.is_empty() { "index.html" } else { path };
+    let raw = uri.path().trim_start_matches('/');
+    let path = resolve_viewer_asset_path(raw);
 
     if let Some(content) = ViewerAssets::get(path) {
         let mime = mime_guess::from_path(path).first_or_octet_stream();
@@ -312,6 +355,60 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 
+    #[test]
+    fn resolve_viewer_asset_path_strips_the_per_demo_prefix() {
+        assert_eq!(resolve_viewer_asset_path("d/bigmac/assets/index-HASH.js"), "assets/index-HASH.js");
+        assert_eq!(resolve_viewer_asset_path("d/bigmac/"), "index.html");
+        // No trailing slash: not a recognized demo-prefixed path, so it's
+        // left alone — the caller's ViewerAssets lookup will miss and fall
+        // through to its own SPA-fallback branch, still serving index.html
+        // end to end, just not via this function's return value directly.
+        assert_eq!(resolve_viewer_asset_path("d/bigmac"), "d/bigmac");
+    }
+
+    #[test]
+    fn resolve_viewer_asset_path_leaves_non_demo_paths_alone() {
+        assert_eq!(resolve_viewer_asset_path("assets/index-HASH.js"), "assets/index-HASH.js");
+        assert_eq!(resolve_viewer_asset_path("some/spa/route"), "some/spa/route");
+        assert_eq!(resolve_viewer_asset_path(""), "index.html");
+        // A path that merely starts with "d" but not "d/" must not be mistaken for the demo prefix.
+        assert_eq!(resolve_viewer_asset_path("decix-trace-notes.txt"), "decix-trace-notes.txt");
+    }
+
+    #[tokio::test]
+    async fn a_demos_asset_request_resolves_to_the_shared_embedded_bundle() {
+        let dir = temp_tileset_dir("demo-asset");
+        let demos = vec![("bigmac".to_string(), dir.clone())];
+        let app = build_gallery_router(&demos);
+
+        // Whatever the real hashed asset filename is, a request for it under
+        // /d/<name>/assets/... must resolve to the same bytes as requesting
+        // it directly — proving the per-demo prefix strip actually works,
+        // not just that *some* fallback fired.
+        let Some(asset_path) = ViewerAssets::iter().find(|p| p.starts_with("assets/")) else {
+            // dist/ not built in this environment — nothing to assert against.
+            return;
+        };
+
+        let direct = app
+            .clone()
+            .oneshot(Request::builder().uri(format!("/{asset_path}")).body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        let nested = app
+            .oneshot(Request::builder().uri(format!("/d/bigmac/{asset_path}")).body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(direct.status(), StatusCode::OK);
+        assert_eq!(nested.status(), StatusCode::OK);
+        let direct_body = axum::body::to_bytes(direct.into_body(), usize::MAX).await.unwrap();
+        let nested_body = axum::body::to_bytes(nested.into_body(), usize::MAX).await.unwrap();
+        assert_eq!(direct_body, nested_body, "nested per-demo asset request should serve identical bytes");
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
     #[tokio::test]
     async fn unknown_path_falls_back_to_viewer_assets() {
         let dir = temp_tileset_dir("fallback");
@@ -354,7 +451,10 @@ mod tests {
         assert!(html.contains("decix-trace"), "should list the demo name");
         assert!(html.contains("a real traceroute"), "should show its title");
         assert!(html.contains("9 nodes"), "should show its node count");
-        assert!(html.contains("href=\"/d/decix-trace/\""), "should link into the demo");
+        assert!(
+            html.contains("href=\"d/decix-trace/\""),
+            "should link into the demo with a relative href (subpath-hosting safe)"
+        );
 
         let _ = std::fs::remove_dir_all(&dir);
     }

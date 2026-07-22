@@ -4,12 +4,21 @@ import { fetchTileset, fetchNodePoints, fetchNodeLabels, fetchGraphMeta, type Bo
 import { NodeIndex, selectNodes } from './lod';
 import { buildPrimaryPath } from './packetAnimation';
 
-/** In gallery mode (`spex gallery`) each demo is served under `/d/<name>/`,
- * with its tileset at `/d/<name>/tileset`; single-tileset mode (`spex serve`)
- * serves it at the root, under plain `/tileset`. Same bundle, either way. */
-const GALLERY_MATCH = window.location.pathname.match(/^\/d\/([^/]+)\/?$/);
+/** In gallery mode (`spex gallery`, or a static export served by e.g. GitHub
+ * Pages) each demo lives under `.../d/<name>/`, with its tileset at
+ * `.../d/<name>/tileset`; single-tileset mode (`spex serve`) serves it at
+ * the root, under plain `/tileset`. Same bundle, either way.
+ *
+ * Paths here are deliberately relative, not root-absolute: a static export
+ * can be hosted at a domain root or under a project-pages subpath
+ * (`username.github.io/reponame/...`), and relative fetches/links resolve
+ * correctly against the current document's location regardless of how deep
+ * that prefix is — no need to know it in advance. The regex also has no `^`
+ * anchor for the same reason: it just needs to find `/d/<name>/` at the end
+ * of the pathname, wherever it's mounted. */
+const GALLERY_MATCH = window.location.pathname.match(/\/d\/([^/]+)\/?$/);
 const CURRENT_DEMO_NAME = GALLERY_MATCH ? GALLERY_MATCH[1] : null;
-const TILESET_BASE = CURRENT_DEMO_NAME ? `/d/${CURRENT_DEMO_NAME}/tileset` : '/tileset';
+const TILESET_BASE = CURRENT_DEMO_NAME ? 'tileset' : '/tileset';
 
 /** "Demoscene" screensaver mode (`?cycle=1`, only meaningful in gallery mode):
  * auto-rotates the camera and, after a while, jumps to a random other demo.
@@ -22,13 +31,15 @@ const cycleCountdownEl = document.getElementById('cycle-countdown') as HTMLSpanE
 
 async function goToRandomOtherDemo() {
   try {
-    const html = await (await fetch('/')).text();
-    const names = [...html.matchAll(/href="\/d\/([^/"]+)\/"/g)].map((m) => m[1]);
+    // Relative: from `.../d/<current>/`, up two levels reaches the gallery
+    // root regardless of any hosting subpath prefix.
+    const html = await (await fetch('../../')).text();
+    const names = [...html.matchAll(/href="d\/([^/"]+)\/"/g)].map((m) => m[1]);
     const others = names.filter((n) => n !== CURRENT_DEMO_NAME);
     const pool = others.length > 0 ? others : names;
     if (pool.length === 0) return;
     const next = pool[Math.floor(Math.random() * pool.length)];
-    window.location.href = `/d/${next}/?cycle=1`;
+    window.location.href = `../${next}/?cycle=1`;
   } catch (err) {
     console.error('cycle: failed to find another demo', err);
   }
