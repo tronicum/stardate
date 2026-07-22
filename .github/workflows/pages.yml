@@ -35,27 +35,30 @@ jobs:
 
       # The viewer must be built *before* the Rust workspace, since
       # spex-server embeds viewer/dist at Rust compile time (rust-embed),
-      # not at runtime.
+      # not at runtime. The spex project lives under spex/ in this repo.
       - name: Build viewer
-        working-directory: viewer
+        working-directory: spex/viewer
         run: |
           npm ci
           npm run build
 
       - name: Build spex
+        working-directory: spex
         run: cargo build --release
 
       - name: Generate demos
+        working-directory: spex
         run: ./scripts/walkthrough.sh
 
       - name: Export static site
+        working-directory: spex
         run: ./target/release/spex export-static demos -o public
 
       - uses: actions/configure-pages@v4
 
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: public
+          path: spex/public
 
   deploy:
     needs: build
