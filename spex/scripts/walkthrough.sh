@@ -15,8 +15,8 @@ say "spex walkthrough"
 note "This builds a few example trees and turns each into a tiny 3D point-cloud"
 note "scene you can look at in a browser. Nothing here touches real files"
 note "outside this repo except to *read* them (du/ps/brew/traceroute); the one"
-note "exception is a tiny SQLite fixture database it creates under demos/ for"
-note "the sql-schema example."
+note "exception is downloading the real Chinook sample database (~1MB, once)"
+note "under demos/ for the sql-schema example."
 
 if [ ! -x "$BIN" ]; then
   say "1. Building spex (cargo build --release)..."
@@ -125,28 +125,27 @@ else
   note "no python3 found — skipping the traveling-salesman example"
 fi
 
-if command -v sqlite3 >/dev/null 2>&1; then
-  note "A tiny SQLite database (customers/products/orders/order_items, a"
-  note "few real rows each) introspected via the real sqlite3 CLI — table"
-  note "row counts and foreign keys, not fabricated JSON."
+CHINOOK_URL="https://github.com/lerocha/chinook-database/raw/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
+if command -v sqlite3 >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
   mkdir -p demos/sql-schema
-  sqlite3 demos/sql-schema/shop.db <<'SQL'
-CREATE TABLE IF NOT EXISTS customers (id INTEGER PRIMARY KEY, name TEXT, email TEXT);
-CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY, name TEXT, price REAL);
-CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY, customer_id INTEGER, order_date TEXT,
-  FOREIGN KEY(customer_id) REFERENCES customers(id));
-CREATE TABLE IF NOT EXISTS order_items (id INTEGER PRIMARY KEY, order_id INTEGER, product_id INTEGER, quantity INTEGER,
-  FOREIGN KEY(order_id) REFERENCES orders(id),
-  FOREIGN KEY(product_id) REFERENCES products(id));
-INSERT OR IGNORE INTO customers VALUES (1,'Alice','alice@example.com'),(2,'Bob','bob@example.com'),(3,'Carol','carol@example.com');
-INSERT OR IGNORE INTO products VALUES (1,'Widget',9.99),(2,'Gadget',19.99),(3,'Gizmo',29.99),(4,'Thingamajig',4.99);
-INSERT OR IGNORE INTO orders VALUES (1,1,'2026-01-02'),(2,2,'2026-01-05'),(3,1,'2026-02-10'),(4,3,'2026-03-01');
-INSERT OR IGNORE INTO order_items VALUES
-  (1,1,1,2),(2,1,2,1),(3,2,3,1),(4,3,1,5),(5,3,2,2),(6,4,4,3),(7,4,1,1),(8,4,2,2),(9,4,3,1);
-SQL
-  capture sql-schema "$BIN" sql-schema demos/sql-schema/shop.db
+  if [ ! -f demos/sql-schema/chinook.sqlite ]; then
+    note "Downloading the real Chinook sample database (a digital media"
+    note "store: artists/albums/tracks/customers/invoices, ~1MB, MIT-licensed"
+    note "(c) 2008-2024 Luis Rocha, https://github.com/lerocha/chinook-database)."
+    curl -sL --max-time 30 -o demos/sql-schema/chinook.sqlite.tmp "$CHINOOK_URL" \
+      && mv demos/sql-schema/chinook.sqlite.tmp demos/sql-schema/chinook.sqlite
+  fi
+  if [ -f demos/sql-schema/chinook.sqlite ]; then
+    note "Introspected via the real sqlite3 CLI — real tables, real row"
+    note "counts, real foreign keys (including a self-referential one,"
+    note "Employee.ReportsTo, correctly excluded as a tree parent)."
+    capture sql-schema "$BIN" sql-schema demos/sql-schema/chinook.sqlite
+  else
+    rm -f demos/sql-schema/chinook.sqlite.tmp
+    note "couldn't download the Chinook database (offline?) — skipping the SQL schema example"
+  fi
 else
-  note "no sqlite3 found — skipping the SQL schema example"
+  note "no sqlite3/curl found — skipping the SQL schema example"
 fi
 
 say "4. What you've got"
