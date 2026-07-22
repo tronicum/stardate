@@ -125,6 +125,22 @@ else
   note "no python3 found — skipping the traveling-salesman example"
 fi
 
+if command -v python3 >/dev/null 2>&1; then
+  note "The real Big Mac Index for the United States (2000-present) — real"
+  note "prices twice a year, published by The Economist"
+  note "(github.com/TheEconomist/big-mac-data), one node per publication date."
+  say "-> bigmac"
+  mkdir -p demos/bigmac
+  if python3 scripts/gen_bigmac_demo.py demos/bigmac/graph.json "United States"; then
+    "$BIN" graph-layout demos/bigmac/graph.json -o demos/bigmac/tileset >/dev/null
+    note "ready: spex serve demos/bigmac/tileset"
+  else
+    note "skipped (download/generation failed — see message above, needs internet on first run)"
+  fi
+else
+  note "no python3 found — skipping the Big Mac Index example"
+fi
+
 CHINOOK_URL="https://github.com/lerocha/chinook-database/raw/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
 if command -v sqlite3 >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
   mkdir -p demos/sql-schema
