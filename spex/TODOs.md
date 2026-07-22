@@ -21,6 +21,23 @@ See `CLAUDE.md` for how the pieces fit together.
 - **M14 — Packet-hit tooltip flash** ✅ done: the animated packet reaching a node briefly shows that node's full hover tooltip, regardless of mouse position
 - **M15 — Floating demoscene-style title** ✅ done: the persistent header title gently floats and glow-cycles through blue/yellow/pink, pure CSS
 
+## Demo data provenance
+
+Standard: real tool + real underlying data, not just a real *tool* pointed at fabricated sample data. Where a real dump isn't available, be explicit about which parts are real vs invented (`decix-trace` and `disk-usage` are the bar — real hops/sizes, nothing made up).
+
+| Demo | Tool | Data | Status |
+|---|---|---|---|
+| `decix-trace` | real `traceroute` | real network hops on this machine | ✅ fully real |
+| `disk-usage` | real `du` | real filesystem sizes on this machine | ✅ fully real |
+| `my-shell` | real `ps` | real process tree on this machine | ✅ fully real |
+| `neovim-deps` | real `brew deps --tree` | real installed package graph | ✅ fully real |
+| `pstree` | none (`pstree-demo`) | fabricated, explicitly labeled "not read from any real machine" | ⚠️ intentional synthetic fallback, not meant to be upgraded |
+| `sql-schema` | real `sqlite3` (`PRAGMA`/`COUNT(*)`) | hand-typed sample rows (customers/products/orders/order_items) | ⚠️ real tool, fabricated data — should swap in a real downloaded sample DB (Chinook/Northwind) |
+| `traveling-salesman` | none (generator script) | real city coordinates + real haversine distances; latency numbers and router hostnames/IPs are invented, honestly labeled illustrative | ⚠️ real geography, fabricated network numbers — no real dump to copy from for a fictional route, but worth a second look |
+| `berlin-tegernsee-neuss` | none (generator script) | same shape as `traveling-salesman`, smaller | ⚠️ same caveat |
+
+Apply this standard to new demos by default (stock-price, Kevin Bacon movie-cast) — look for a real downloadable/copyable dataset dump before inventing numbers.
+
 ## Board
 
 ### Done
@@ -60,6 +77,7 @@ See `CLAUDE.md` for how the pieces fit together.
 - [ ] Debian/RPM package-dependency adapter (`dpkg -s`/`apt-cache depends` or `rpm -qR`) — same shape as `brew-deps`, start small (one real package's direct deps, not a full recursive apt/dnf tree); not testable on this dev machine (macOS, no dpkg/rpm on PATH) — needs a Linux box or a container
 - [ ] MySQL/DB2 SQL adapter — `sql_schema.rs`'s SQLite version is the template (same table/FK/row-count shape); swap `sqlite3` CLI calls for the real driver/CLI (`mysql`/`db2` client) when there's a real instance to point at
 - [ ] "Deutsche Bahn mode" for the traveling-salesman demo, for fun: random per-hop delays, occasional cancelled/skipped hops, maybe a "replacement bus" fallback edge — layered on top of `scripts/gen_traveling_salesman.py`'s existing hop generation
+- [ ] Swap `sql-schema`'s hand-typed fixture rows for a real downloaded public sample SQLite DB (e.g. Chinook or Northwind) — see Demo data provenance above; the tool/introspection is already real, only the sample data isn't
 
 ### Backlog (ideas discussed, not built — pruned to the ones actually worth doing next)
 - [ ] "Kevin Bacon" movie demo, for fun, much later: a movie's cast/crew (actors, producers, ...) as a graph. Needs real data (a public movie/cast dataset or API — nothing to shell out to locally like `brew`/`sqlite3`). Also the natural case for the DAG/shared-parent limitation below: the same actor appears in many movies, so this is a real forcing function for that work rather than a hypothetical one
