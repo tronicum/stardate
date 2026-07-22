@@ -44,6 +44,41 @@ say "2. Always-available examples (no external tools required)"
 note "A fabricated minimal-boot process tree — just to see the shape of things."
 capture pstree "$BIN" pstree-demo
 
+note "A tiny simulated packet journey Berlin -> Tegernsee -> Neuss (real"
+note "haversine distances; latency is illustrative, not measured)."
+mkdir -p demos/berlin-tegernsee-neuss
+cat > demos/berlin-tegernsee-neuss/graph.json <<'JSON'
+{
+  "title": "simulated packet journey: Berlin -> Tegernsee -> Neuss",
+  "metric_label": "simulated one-way latency (ms) - illustrative, not measured",
+  "nodes": [
+    {
+      "id": "berlin",
+      "label": "Berlin",
+      "parent": null,
+      "metric": null,
+      "metadata": { "lat": 52.52, "lon": 13.405, "note": "start of the journey" }
+    },
+    {
+      "id": "tegernsee",
+      "label": "Tegernsee",
+      "parent": "berlin",
+      "metric": 8.2,
+      "metadata": { "lat": 47.7167, "lon": 11.75, "distanceKm": 546.9, "note": "real haversine distance from Berlin; latency is illustrative, not measured" }
+    },
+    {
+      "id": "neuss",
+      "label": "Neuss",
+      "parent": "tegernsee",
+      "metric": 9.6,
+      "metadata": { "lat": 51.1985, "lon": 6.6956, "distanceKm": 532.1, "note": "real haversine distance from Tegernsee; latency is illustrative, not measured" }
+    }
+  ]
+}
+JSON
+"$BIN" graph-layout demos/berlin-tegernsee-neuss/graph.json -o demos/berlin-tegernsee-neuss/tileset >/dev/null
+note "ready: spex serve demos/berlin-tegernsee-neuss/tileset"
+
 note "Real disk usage of this repo's demos/ folder — a genuine 'what's taking"
 note "up space' tree, using the real du on this machine."
 capture disk-usage "$BIN" disk-usage demos
@@ -72,6 +107,22 @@ if command -v brew >/dev/null 2>&1; then
   capture neovim-deps "$BIN" brew-deps neovim
 else
   note "no Homebrew found — skipping the package-dependency example"
+fi
+
+if command -v python3 >/dev/null 2>&1; then
+  note "A simulated packet journey Neuss -> Hamburg -> ... -> Tegernsee, with"
+  note "synthetic router hops between each city pair (real haversine"
+  note "distances; latency is illustrative, not measured)."
+  say "-> traveling-salesman"
+  mkdir -p demos/traveling-salesman
+  if python3 scripts/gen_traveling_salesman.py demos/traveling-salesman/graph.json; then
+    "$BIN" graph-layout demos/traveling-salesman/graph.json -o demos/traveling-salesman/tileset >/dev/null
+    note "ready: spex serve demos/traveling-salesman/tileset"
+  else
+    note "skipped (generation failed — see message above)"
+  fi
+else
+  note "no python3 found — skipping the traveling-salesman example"
 fi
 
 if command -v sqlite3 >/dev/null 2>&1; then
