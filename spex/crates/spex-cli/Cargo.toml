@@ -19,6 +19,7 @@ serde_json = { workspace = true }
 clap = { version = "4", features = ["derive"] }
 ratatui = "0.30.2"
 crossterm = "0.29.0"
+ansi-to-tui = "8.0.1"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"

@@ -2,6 +2,7 @@
 //! output: move through the list, view a demo's tree inline, or launch its
 //! web view, without re-typing a path into a fresh command each time.
 use crate::{discover_demos, DemoEntry};
+use ansi_to_tui::IntoText;
 use anyhow::{Context, Result};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
 use crossterm::execute;
@@ -167,8 +168,13 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, mut app: App) 
                 }
                 KeyCode::Enter | KeyCode::Char('v') => {
                     if let Some(demo) = app.selected_demo() {
+                        // format_tree()'s color gating checks stdout.is_terminal(),
+                        // which is true here (nav only ever runs attached to a
+                        // real terminal), so this already carries real ANSI
+                        // truecolor codes — render_detail() converts them to
+                        // real ratatui styling via ansi_to_tui.
                         let text = spex_graph::Graph::read_json(&demo.graph_path)
-                            .map(|g| strip_ansi(&spex_graph::format_tree(&g)))
+                            .map(|g| spex_graph::format_tree(&g))
                             .unwrap_or_else(|e| format!("failed to read {}: {e}", demo.graph_path.display()));
                         app.mode = Mode::Detail { text, scroll: 0 };
                     }
@@ -227,30 +233,6 @@ fn open_web_view(demo: &DemoEntry) -> String {
     }
 }
 
-/// Strips ANSI color escapes from `format_tree()`'s output — rendering real
-/// color inside a ratatui `Paragraph` needs an ANSI-to-styled-text
-/// conversion that's out of scope for this pass (see plan notes); plain
-/// text is still fully legible.
-fn strip_ansi(s: &str) -> String {
-    let mut out = String::with_capacity(s.len());
-    let mut chars = s.chars().peekable();
-    while let Some(c) = chars.next() {
-        if c == '\u{1b}' {
-            if chars.peek() == Some(&'[') {
-                chars.next();
-                for c2 in chars.by_ref() {
-                    if c2.is_ascii_alphabetic() {
-                        break;
-                    }
-                }
-            }
-            continue;
-        }
-        out.push(c);
-    }
-    out
-}
-
 fn render(f: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -296,7 +278,14 @@ fn render_list(f: &mut Frame, area: Rect, app: &App) {
 
 fn render_detail(f: &mut Frame, area: Rect, app: &App, text: &str, scroll: u16) {
     let name = app.selected_demo().map(|d| d.name.as_str()).unwrap_or("");
-    let paragraph = Paragraph::new(text.to_string())
+    // `text` already carries real ANSI truecolor codes from `format_tree()`
+    // (see the Enter/'v' handler) — parse them into real ratatui styling
+    // instead of showing plain text or raw escape codes. Malformed/unknown
+    // sequences are ignored by the parser, and a `NO_COLOR`/non-tty run
+    // (which `format_tree` itself would have already rendered plain) falls
+    // back to plain text the same way.
+    let content = text.into_text().unwrap_or_else(|_| ratatui::text::Text::raw(text));
+    let paragraph = Paragraph::new(content)
         .block(Block::default().borders(Borders::ALL).title(format!(" {name} ")))
         .scroll((scroll, 0));
     f.render_widget(paragraph, area);
@@ -364,7 +353,7 @@ mod tests {
     }
 
     #[test]
-    fn detail_view_shows_stripped_tree_and_demo_name() {
+    fn detail_view_shows_tree_and_demo_name() {
         let graph = Graph {
             title: Some("test".to_string()),
             metric_label: None,
@@ -376,8 +365,11 @@ mod tests {
                 metadata: Map::new(),
             }],
         };
-        let text = strip_ansi(&spex_graph::format_tree(&graph));
-        assert!(!text.contains('\u{1b}'), "should have no raw ANSI escapes left: {text:?}");
+        // No real tty in a test process, so `format_tree()`'s own color
+        // gating already renders plain text here — same code path detail
+        // entry uses, just without a color-coded fixture (see the
+        // ansi-parsing test below for that half).
+        let text = spex_graph::format_tree(&graph);
 
         let mut app = App::new(vec![demo("my-demo", "a title", 1, true)]);
         app.mode = Mode::Detail { text: text.clone(), scroll: 0 };
@@ -399,9 +391,23 @@ mod tests {
     }
 
     #[test]
-    fn strip_ansi_removes_color_codes_but_keeps_text() {
-        let input = "\u{1b}[38;2;40;110;255mfritz.box\u{1b}[0m  [4.98]";
-        assert_eq!(strip_ansi(input), "fritz.box  [4.98]");
+    fn detail_view_renders_real_ansi_colors_not_raw_escape_codes() {
+        let ansi_text = "\u{1b}[38;2;40;110;255mfritz.box\u{1b}[0m  [4.98]";
+        let mut app = App::new(vec![demo("decix-trace", "traceroute", 1, true)]);
+        app.mode = Mode::Detail { text: ansi_text.to_string(), scroll: 0 };
+        let mut terminal = Terminal::new(TestBackend::new(90, 10)).unwrap();
+        terminal.draw(|f| render(f, &app)).unwrap();
+
+        let rendered = buffer_text(&terminal);
+        assert!(rendered.contains("fritz.box"), "{rendered}");
+        assert!(!rendered.contains('\u{1b}'), "raw escape bytes should never reach the rendered buffer: {rendered:?}");
+
+        // The real proof this is styled, not just stripped-to-plain-text:
+        // the "f" of "fritz.box" (one cell inside the block's border) should
+        // carry the actual parsed truecolor.
+        let buf = terminal.backend().buffer();
+        let cell = buf.cell((1, 1)).expect("cell in range");
+        assert_eq!(cell.fg, ratatui::style::Color::Rgb(40, 110, 255), "cell: {cell:?}");
     }
 
     #[test]
