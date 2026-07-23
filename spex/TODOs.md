@@ -7,8 +7,8 @@ See `CLAUDE.md` for how the pieces fit together.
 
 - **M1 — Point cloud MVP** ✅ done: convert/serve/view real point clouds (PLY/XYZ → octree tileset → LOD viewer)
 - **M2 — Graph abstraction** ✅ done: `spex-graph` model, 3 real adapters, 3 views (terminal/web/json), `demos/` convention
-- **M3 — Robustness** 🟡 in progress: fan-out cap + ring-stagger done; real line-edges still open
-- **M4 — More adapters** 🟡 in progress: disk-usage done, others open
+- **M3 — Robustness** ✅ done: fan-out cap, ring-stagger, real line-edges (M25), and the jitter-overshoot fix (M37) all shipped
+- **M4 — More adapters** ✅ done: disk-usage, sql-schema (M13), deb-deps (M20), cargo-deps (M22), npm-deps (M28), molecule (M33) — apt is the one still-open package-manager adapter, see backlog
 - **M5 — Docs & handoff** ✅ done: CLAUDE.md, AGENTS.md, README, `scripts/walkthrough.sh`
 - **M6 — Self-explanatory demos** ✅ done: `Graph.title`/`metric_label`, colored+summarized terminal view, browser header/legend
 - **M7 — Web gallery** ✅ done: `spex gallery` — front-page index of all demos, click into any of them
