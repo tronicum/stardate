@@ -23,6 +23,43 @@ export async function fetchTileset(baseUrl: string): Promise<Tileset> {
   return res.json() as Promise<Tileset>;
 }
 
+/** Written by `spex frame-sequence` (see unibrick/gen_monolith_assembly.py):
+ * N real point-cloud tilesets, sharing one coordinate offset, meant to be
+ * played back as frames of one real animation — e.g. parts converging into
+ * an assembly. `frames` are directory names, each fetchable the normal way
+ * via `fetchTileset`/`fetchNodePoints` at `${baseUrl}/${frame}`. */
+export interface SequenceManifest {
+  version: number;
+  frameCount: number;
+  fps: number;
+  frames: string[];
+}
+
+/** Returns `null` if sequence.json is absent — the common case (a plain
+ * single tileset, or a graph layout). Present only for a real multi-frame
+ * point-cloud animation. */
+export async function fetchSequence(baseUrl: string): Promise<SequenceManifest | null> {
+  const res = await fetch(`${baseUrl}/sequence.json`);
+  if (!res.ok) return null;
+  return res.json() as Promise<SequenceManifest>;
+}
+
+/** Combines several frames' bounds into one — used to pick a single stable
+ * camera framing across an entire sequence (a frame's own bounds can
+ * legitimately differ a lot in size, e.g. scattered vs. assembled), rather
+ * than reframing the camera on every frame swap. */
+export function mergeBounds(list: Bounds[]): Bounds {
+  const min: [number, number, number] = [Infinity, Infinity, Infinity];
+  const max: [number, number, number] = [-Infinity, -Infinity, -Infinity];
+  for (const b of list) {
+    for (let i = 0; i < 3; i++) {
+      min[i] = Math.min(min[i], b.min[i]);
+      max[i] = Math.max(max[i], b.max[i]);
+    }
+  }
+  return { min, max };
+}
+
 /** Optional per-node metadata written by `spex graph-layout` (absent for plain
  * point-cloud tilesets from `spex convert`) — the human-readable companion to
  * the raw points: each tree node's label, metric, and source metadata. */

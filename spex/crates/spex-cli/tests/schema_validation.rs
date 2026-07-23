@@ -69,6 +69,41 @@ fn validate(instance_path: &Path, schema_file: &str) {
 }
 
 #[test]
+fn frame_sequence_output_matches_schemas() {
+    let dir = std::env::temp_dir().join(format!("spex-schema-test-sequence-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+
+    // Two tiny real point clouds standing in for two real animation frames
+    // (the same shape unibrick/gen_monolith_assembly.py's own frame files
+    // take) — frame 1 is just frame 0 shifted along x, so a correct shared
+    // offset is actually exercised, not just a degenerate zero-shift case.
+    let frame0 = dir.join("frame0.xyz");
+    let frame1 = dir.join("frame1.xyz");
+    std::fs::write(&frame0, "0 0 0 255 0 0\n1 0 0 0 255 0\n0 1 0 0 0 255\n").unwrap();
+    std::fs::write(&frame1, "10 0 0 255 0 0\n11 0 0 0 255 0\n10 1 0 0 0 255\n").unwrap();
+
+    let out_dir = dir.join("sequence-out");
+    let status = Command::new(spex_bin())
+        .arg("frame-sequence")
+        .arg(&frame0)
+        .arg(&frame1)
+        .arg("-o")
+        .arg(&out_dir)
+        .arg("--fps")
+        .arg("6")
+        .status()
+        .expect("running spex frame-sequence");
+    assert!(status.success(), "spex frame-sequence failed");
+
+    validate(&out_dir.join("sequence.json"), "sequence.schema.json");
+    validate(&out_dir.join("frame-000").join("tileset.json"), "tileset.schema.json");
+    validate(&out_dir.join("frame-001").join("tileset.json"), "tileset.schema.json");
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+#[test]
 #[ignore = "manual spot-check against real local demo data, not a committed fixture"]
 fn real_decix_trace_demo_matches_schemas_too() {
     let base = repo_root().join("demos/decix-trace");

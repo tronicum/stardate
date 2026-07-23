@@ -4,6 +4,7 @@ mod cargo_deps;
 mod deb_deps;
 mod disk_usage;
 mod export_static;
+mod frame_sequence;
 mod graph_diff;
 mod molecule;
 mod nav;
@@ -42,6 +43,31 @@ enum Command {
         /// Output tileset directory.
         #[arg(short, long)]
         out: PathBuf,
+
+        /// Max points sampled to represent a single octree node's LOD level.
+        #[arg(long, default_value_t = 50_000)]
+        max_points_per_node: usize,
+
+        /// Hard cap on octree depth.
+        #[arg(long, default_value_t = 16)]
+        max_depth: usize,
+    },
+
+    /// Tile N real point-cloud files (one per animation frame) into a real
+    /// multi-tileset sequence that all share one coordinate offset, plus a
+    /// sequence.json manifest — e.g. unibrick/gen_monolith_assembly.py's
+    /// per-frame .xyz snapshots of parts converging into an assembly.
+    FrameSequence {
+        /// Input point-cloud files, in playback order.
+        inputs: Vec<PathBuf>,
+
+        /// Output directory (gets frame-000/, frame-001/, ..., sequence.json).
+        #[arg(short, long)]
+        out: PathBuf,
+
+        /// Playback rate the viewer should advance frames at.
+        #[arg(long, default_value_t = 6.0)]
+        fps: f64,
 
         /// Max points sampled to represent a single octree node's LOD level.
         #[arg(long, default_value_t = 50_000)]
@@ -307,6 +333,13 @@ fn main() -> Result<()> {
             max_points_per_node,
             max_depth,
         } => cmd_convert(&input, &out, max_points_per_node, max_depth),
+        Command::FrameSequence {
+            inputs,
+            out,
+            fps,
+            max_points_per_node,
+            max_depth,
+        } => frame_sequence::run(&inputs, &out, fps, max_points_per_node, max_depth),
         Command::Serve {
             tileset_dir,
             port,
@@ -380,9 +413,13 @@ fn cmd_convert(input: &Path, out: &Path, max_points_per_node: usize, max_depth: 
 }
 
 fn cmd_serve(tileset_dir: &Path, port: u16, open_browser: bool) -> Result<()> {
-    if !tileset_dir.join("tileset.json").exists() {
+    // A real `spex frame-sequence` output has no root-level tileset.json —
+    // just sequence.json plus a frame-NNN/ subdirectory per frame (each one
+    // its own real tileset) — so accept either shape rather than assuming
+    // every servable directory is a single plain tileset.
+    if !tileset_dir.join("tileset.json").exists() && !tileset_dir.join("sequence.json").exists() {
         bail!(
-            "{} does not look like a tileset directory (no tileset.json found) — did you run `spex convert`?",
+            "{} does not look like a tileset directory (no tileset.json or sequence.json found) — did you run `spex convert` or `spex frame-sequence`?",
             tileset_dir.display()
         );
     }

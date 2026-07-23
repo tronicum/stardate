@@ -206,9 +206,37 @@ follows naturally:
   to the gitignored `.ldraw-cache/`, never committed/uploaded/git-lfs'd)
   lets `fetch()` read any real file straight out of the local archive with
   zero network requests at all when it's present.
-- A true mesh/vector renderer (crisp catalog-quality edges, rendering
-  LDraw's real triangle faces directly instead of sampling them into
-  points) is a real, deliberately bigger alternative for later, if the
+- **Done: the real monolith assembly reveal animation, through spex's
+  actual point-cloud pipeline** (see `TODOs.md`'s M45) — the "floats a
+  whole series of Klemmbausteine into the perfect monolith" idea floated
+  earlier in this project's own discussion, now actually built. An
+  earlier attempt at this got this specifically wrong (a standalone
+  canvas-rendered HTML file, bypassing `spex-tiler`/`spex-server`/the real
+  viewer entirely) and was reverted once that was pointed out — worth
+  recording so the mistake isn't repeated. The real version:
+  `unibrick/gen_monolith_assembly.py` samples the same 9 real monolith
+  parts' surfaces exactly *once* (translation is the only thing that
+  changes per frame, so a point's local position/baked shading never
+  needs resampling), writes each of N real animation frames as a plain
+  `.xyz` point cloud, and hands them to a new real CLI command, `spex
+  frame-sequence` (`crates/spex-cli/src/frame_sequence.rs`) — which tiles
+  every frame into a real octree tileset via the same `spex-tiler` every
+  other demo uses, computing one shared bounding box across all frames
+  first so `spex_tiler::build_with_offset` (a small, additive, reusable
+  addition — `build()` is now a thin wrapper around it) can force every
+  frame to share one coordinate offset. Without that, each independently
+  tiled frame would get its own offset and the point cloud would visibly
+  jump position every time the viewer switched frames. The real WebGL
+  viewer (`viewer/src/main.ts`) plays the result back by swapping which
+  frame's octree nodes are loaded on a `sequence.json`-driven timer,
+  reusing the *exact same* LOD-selection/`ensureLoaded`/`unload` code path
+  every other demo already uses — no new rendering code, no bespoke
+  renderer, no server changes beyond `cmd_serve` accepting a
+  `sequence.json`-rooted directory alongside a plain tileset. Spec'd as
+  `spec/sequence.schema.json`, and — unlike `brickmesh.json`/
+  `brickscene.json` — checked by `crates/spex-cli/tests/schema_validation.rs`
+  against real generated output, since this one *is* a real Rust-workspace
+  format, not a Python-only cache.
 - A true mesh/vector renderer (crisp catalog-quality edges, rendering
   LDraw's real triangle faces directly instead of sampling them into
   points) is a real, deliberately bigger alternative for later, if the

@@ -52,12 +52,29 @@ struct TilesetManifest {
 /// positioned in the same original coordinate space (e.g. spex-graph's
 /// per-node layout metadata) need this to keep everything aligned.
 pub fn build(points: Vec<Point>, out_dir: &Path, config: &TilerConfig) -> Result<[f64; 3]> {
+    build_with_offset(points, out_dir, config, None)
+}
+
+/// Same as `build`, but lets a caller force a specific coordinate offset
+/// instead of always deriving one from this call's own bounding box.
+/// Needed whenever several independently-built tilesets must share one
+/// coordinate frame — e.g. a real multi-frame point-cloud animation (see
+/// `unibrick/gen_monolith_assembly.py`), where each frame is tiled
+/// separately but has to line up in the same world space so the viewer
+/// can swap between them without every frame's origin jumping around.
+/// `build` is the common case (`offset_override: None`) and is unaffected.
+pub fn build_with_offset(
+    points: Vec<Point>,
+    out_dir: &Path,
+    config: &TilerConfig,
+    offset_override: Option<[f64; 3]>,
+) -> Result<[f64; 3]> {
     if points.is_empty() {
         bail!("no points to tile");
     }
     let total_points = points.len();
     let global_bounds = Aabb::from_points(points.iter().map(|p| p.position));
-    let offset = global_bounds.min;
+    let offset = offset_override.unwrap_or(global_bounds.min);
 
     let octree_dir = out_dir.join("octree");
     fs::create_dir_all(&octree_dir)?;
@@ -308,6 +325,48 @@ mod tests {
         assert_eq!(nodes.len(), 1, "100 points at a 100-point budget should be a single root leaf");
         assert_eq!(nodes[0]["id"].as_str().unwrap(), "r");
         assert_eq!(nodes[0]["pointCount"].as_u64().unwrap(), 100);
+
+        fs::remove_dir_all(&dir).unwrap();
+    }
+
+    #[test]
+    fn build_with_offset_forces_the_given_offset_instead_of_deriving_one() {
+        let dir = tempdir("forced-offset");
+        let points = synthetic_points(50);
+        let config = TilerConfig {
+            max_points_per_node: 1000,
+            max_depth: 16,
+        };
+        // Deliberately NOT this data's own bounding-box min, so a passing
+        // test can only mean the override actually took effect.
+        let forced_offset = [-1000.0, -2000.0, -3000.0];
+        let returned_offset =
+            build_with_offset(points.clone(), &dir, &config, Some(forced_offset)).unwrap();
+        assert_eq!(returned_offset, forced_offset);
+
+        let manifest_str = fs::read_to_string(dir.join("tileset.json")).unwrap();
+        let manifest: serde_json::Value = serde_json::from_str(&manifest_str).unwrap();
+        let stored_offset: Vec<f64> = manifest["offset"].as_array().unwrap().iter().map(|v| v.as_f64().unwrap()).collect();
+        assert_eq!(stored_offset, forced_offset.to_vec());
+
+        // read_points() returns raw offset-relative positions (it doesn't
+        // add the offset back) — so a correct forced offset means every
+        // stored point equals (original position - forced_offset), not the
+        // original position itself. Checking against that, rather than the
+        // original coordinates directly, is what actually proves the
+        // *forced* offset was subtracted, not some offset derived from the
+        // data's own bounds (which would fail this check unless it happened
+        // to coincide with forced_offset).
+        let read_back = read_points(&dir).unwrap();
+        let mut expected: Vec<[f64; 3]> = points.iter().map(|p| sub(&p.position, &forced_offset)).collect();
+        let mut actual: Vec<[f64; 3]> = read_back.iter().map(|p| p.position).collect();
+        expected.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        actual.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        for (e, a) in expected.iter().zip(actual.iter()) {
+            for i in 0..3 {
+                assert!((e[i] - a[i]).abs() < 1e-4, "expected {e:?} got {a:?}");
+            }
+        }
 
         fs::remove_dir_all(&dir).unwrap();
     }

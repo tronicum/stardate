@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { fetchTileset, fetchNodePoints, fetchNodeLabels, fetchGraphMeta, type Bounds, type NodeLabel } from './tileset';
+import { fetchTileset, fetchNodePoints, fetchNodeLabels, fetchGraphMeta, fetchSequence, mergeBounds, type Bounds, type NodeLabel } from './tileset';
 import { NodeIndex, selectNodes } from './lod';
 import { buildFullSweepPath } from './packetAnimation';
 
@@ -99,18 +99,31 @@ function boundsDiagonal(b: Bounds): number {
 }
 
 async function main() {
-  const tileset = await fetchTileset(TILESET_BASE).catch((err: Error) => {
+  // Optional: a real multi-frame point-cloud animation (`spex
+  // frame-sequence`, see unibrick/gen_monolith_assembly.py) instead of one
+  // static tileset — absent for every other demo. When present, `activeBase`
+  // points at whichever frame is currently on screen; everything below
+  // (fetchTileset/fetchNodePoints/the LOD selector) works completely
+  // unchanged, since a frame is just a normal tileset at its own path.
+  const sequence = await fetchSequence(TILESET_BASE);
+  let activeBase = TILESET_BASE;
+  let sequenceFrameIdx = 0;
+  if (sequence) {
+    activeBase = `${TILESET_BASE}/${sequence.frames[0]}`;
+  }
+
+  let tileset = await fetchTileset(activeBase).catch((err: Error) => {
     statusEl.textContent = `failed to load tileset: ${err.message}`;
     throw err;
   });
   statusEl.textContent = `${tileset.pointCount.toLocaleString()} points across ${tileset.nodes.length} nodes`;
 
-  const index = new NodeIndex(tileset);
+  let index = new NodeIndex(tileset);
 
   // Optional: whole-graph description (absent for plain point-cloud tilesets)
   // — a persistent header/legend so a viewer doesn't have to guess what
   // they're looking at or hunt for a hover tooltip to find out.
-  const graphMeta = await fetchGraphMeta(TILESET_BASE);
+  const graphMeta = await fetchGraphMeta(activeBase);
   if (graphMeta) {
     graphMetaEl.style.display = 'block';
     graphTitleEl.textContent = graphMeta.title ?? `${graphMeta.nodeCount} nodes`;
@@ -126,7 +139,7 @@ async function main() {
   }
 
   // Optional: node labels (absent for plain point-cloud tilesets from `spex convert`).
-  const nodeLabels = await fetchNodeLabels(TILESET_BASE);
+  const nodeLabels = await fetchNodeLabels(activeBase);
   const labelEls = new Map<string, HTMLDivElement>();
   for (const n of nodeLabels) {
     const el = document.createElement('div');
@@ -144,8 +157,19 @@ async function main() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b0e12);
 
-  const diag = boundsDiagonal(tileset.bounds);
-  const center = boundsCenter(tileset.bounds);
+  let diag = boundsDiagonal(tileset.bounds);
+  let center = boundsCenter(tileset.bounds);
+  if (sequence) {
+    // One stable camera framing across the whole sequence — a single
+    // frame's own bounds legitimately differ a lot in size (e.g. scattered
+    // vs. assembled), so the camera shouldn't reframe on every swap. Same
+    // "one shared window across all frames" principle as `spex ascii
+    // --animate`'s turntable orbit.
+    const allTilesets = await Promise.all(sequence.frames.map((f) => fetchTileset(`${TILESET_BASE}/${f}`)));
+    const combined = mergeBounds(allTilesets.map((t) => t.bounds));
+    diag = boundsDiagonal(combined);
+    center = boundsCenter(combined);
+  }
 
   // Optional: crisp real line edges between each node and its real parent,
   // layered on top of the existing dim point-trail edges (baked into the
@@ -330,7 +354,7 @@ async function main() {
     if (loaded.has(id) || pending.has(id)) return;
     pending.add(id);
     try {
-      const { positions, colors } = await fetchNodePoints(TILESET_BASE, id);
+      const { positions, colors } = await fetchNodePoints(activeBase, id);
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
@@ -352,6 +376,29 @@ async function main() {
     loaded.delete(id);
   }
 
+  // Advances a real point-cloud animation to its next frame: every
+  // currently-loaded octree node belongs to the *old* frame's tileset, so
+  // it's unloaded outright (a new frame's node ids can coincidentally match
+  // the old ones — "r", "r0", ... — but point to completely different bin
+  // data) rather than reused; `updateLOD()`'s next tick then loads whatever
+  // the new frame's own octree actually needs, via the exact same
+  // ensureLoaded/unload path every other demo already uses.
+  async function advanceToFrame(frameName: string) {
+    activeBase = `${TILESET_BASE}/${frameName}`;
+    for (const id of [...loaded.keys()]) unload(id);
+    pending.clear();
+    tileset = await fetchTileset(activeBase);
+    index = new NodeIndex(tileset);
+  }
+
+  if (sequence && sequence.frames.length > 1) {
+    const frameIntervalMs = 1000 / Math.max(sequence.fps, 0.1);
+    setInterval(() => {
+      sequenceFrameIdx = (sequenceFrameIdx + 1) % sequence.frames.length;
+      void advanceToFrame(sequence.frames[sequenceFrameIdx]);
+    }, frameIntervalMs);
+  }
+
   let lastSelected: Set<string> = new Set();
 
   function updateLOD() {
@@ -368,10 +415,12 @@ async function main() {
   function updateHud(fps: number) {
     let renderedPoints = 0;
     for (const id of lastSelected) renderedPoints += index.get(id)?.pointCount ?? 0;
+    const frameLine = sequence ? `<div>frame ${sequenceFrameIdx + 1} / ${sequence.frames.length}</div>` : '';
     hudEl.innerHTML = `
       <div>${renderedPoints.toLocaleString()} / ${tileset.pointCount.toLocaleString()} points</div>
       <div>${lastSelected.size} nodes visible &middot; ${loaded.size} loaded</div>
       <div>${fps.toFixed(0)} fps</div>
+      ${frameLine}
     `;
   }
 

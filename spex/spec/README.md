@@ -24,6 +24,7 @@ isn't just aspirational prose, it's enforced against real output.
 | `meta.json` | [`meta.schema.json`](meta.schema.json) | `graph-layout` only | viewer (header/legend) |
 | `.ldraw-cache/meshes/*.json` (a `spex-brick-mesh`) | [`brickmesh.schema.json`](brickmesh.schema.json) | `unibrick/brickmesh.py` (`get_or_resolve_mesh`) | `unibrick/gen_brick_demo.py`, `unibrick/gen_monolith_demo.py`, `unibrick/gen_model_demo.py` |
 | `.ldraw-cache/scenes/*.json` (a `spex-brick-scene`) | [`brickscene.schema.json`](brickscene.schema.json) | `unibrick/brickscene.py` (`get_or_parse_scene`) | `unibrick/gen_model_demo.py` |
+| `sequence.json` | [`sequence.schema.json`](sequence.schema.json) | `spex frame-sequence` (`crates/spex-cli/src/frame_sequence.rs`) | viewer (`fetchSequence`, real frame-advance playback) |
 
 `octree/<node-id>.bin` (the point data itself) is a small binary format, not
 JSON — see the "Tileset format" section of `CLAUDE.md`: `u32` LE point
@@ -35,9 +36,23 @@ count, then per point `3x f32` LE position + `3x u8` RGB (15 bytes/point).
 `spex-tiler` is the most likely of these to gain a breaking format change
 (compression, out-of-core support — see `TODOs.md`). The graph-pipeline
 files (`graph.json`, `nodes.json`, `meta.json`) don't version yet; treat
-them as v0/unstable until this note is removed. `brickmesh.json` and
-`brickscene.json` also have an explicit `version` (currently `1` each) for
-the same reason, since both are the youngest formats here.
+them as v0/unstable until this note is removed. `brickmesh.json`,
+`brickscene.json`, and `sequence.json` also have an explicit `version`
+(currently `1` each) for the same reason, since all three are the youngest
+formats here.
+
+## A note on `sequence.json`
+
+Unlike `brickmesh.json`/`brickscene.json` below, `sequence.json` *is* a
+real Rust-workspace format — written by the real `spex frame-sequence`
+command and read by the real viewer (`viewer/src/tileset.ts`'s
+`fetchSequence`) to play back a real multi-frame point-cloud animation
+(each `frame-NNN/` alongside it is an ordinary tileset, sharing one
+coordinate offset via `spex_tiler::build_with_offset` so the viewer can
+swap between them without the point cloud's position jumping — see that
+function's own doc comment). It's checked by
+`crates/spex-cli/tests/schema_validation.rs` the same way `tileset.json`
+etc. are, not just documented in prose.
 
 ## A note on `brickmesh.json` and `brickscene.json`
 
