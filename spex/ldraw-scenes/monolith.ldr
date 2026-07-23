@@ -1,0 +1,18 @@
+0 Monolith Assembly - 9-part stylized stack (7 Brick 1 x 4 + 2 Plate 1 x 4)
+0 Name: monolith.ldr
+0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
+0 // Real stacking math: each part's own bottom surface lands exactly on
+0 // the real top surface of everything stacked below it - translation_y
+0 // = -(height_from_base + own_height), LDraw's own +Y-down convention.
+0 // Brick 1x4 (3010.dat) is 24 LDU tall, Plate 1x4 (3710.dat) is 8 LDU
+0 // tall. Total stack height: 7*24 + 2*8 = 184 LDU = 73.6mm, matching
+0 // spex's own already-verified real monolith numbers (ratio 1:4:9.20).
+1 0 0 -24 0 1 0 0 0 1 0 0 0 1 3010.dat
+1 0 0 -48 0 1 0 0 0 1 0 0 0 1 3010.dat
+1 0 0 -72 0 1 0 0 0 1 0 0 0 1 3010.dat
+1 0 0 -96 0 1 0 0 0 1 0 0 0 1 3010.dat
+1 0 0 -120 0 1 0 0 0 1 0 0 0 1 3010.dat
+1 0 0 -144 0 1 0 0 0 1 0 0 0 1 3010.dat
+1 0 0 -168 0 1 0 0 0 1 0 0 0 1 3010.dat
+1 0 0 -176 0 1 0 0 0 1 0 0 0 1 3710.dat
+1 0 0 -184 0 1 0 0 0 1 0 0 0 1 3710.dat

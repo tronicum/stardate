@@ -102,6 +102,26 @@ enum Command {
         cache_dir: PathBuf,
     },
 
+    /// Render a full real multi-part LDraw scene (a named official model
+    /// fetched from ldraw.org's models/ folder, or a local .ldr file)
+    /// straight into an octree tileset. Resolves each distinct real part
+    /// exactly once no matter how many times the scene places it.
+    BrickModel {
+        /// A known model name (run with no argument to list them) or a
+        /// local .ldr file path (e.g. "ldraw-scenes/monolith.ldr").
+        model: Option<String>,
+
+        #[arg(long, default_value_t = 20_000)]
+        points: usize,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+
+        /// Local cache directory for fetched real LDraw files.
+        #[arg(long, default_value = ".ldraw-cache")]
+        cache_dir: PathBuf,
+    },
+
     /// Serve a tileset directory and open the browser viewer.
     Serve {
         tileset_dir: PathBuf,
@@ -371,6 +391,12 @@ fn main() -> Result<()> {
             out,
             cache_dir,
         } => cmd_brick_part(part, color, points, out, &cache_dir),
+        Command::BrickModel {
+            model,
+            points,
+            out,
+            cache_dir,
+        } => cmd_brick_model(model, points, out, &cache_dir),
         Command::Serve {
             tileset_dir,
             port,
@@ -458,6 +484,38 @@ fn cmd_brick_part(part: Option<String>, color: u32, points: usize, out: Option<P
     println!("resolving real LDraw part {part_file:?}...");
     let cache = spex_ldraw::LdrawCache::new(cache_dir);
     let cloud = brick::render_part_to_points(&cache, part_file, color, points, 0xC0FFEE)?;
+    println!("sampled {} real points, building octree tileset...", cloud.len());
+
+    spex_tiler::build(cloud, &out, &spex_tiler::TilerConfig::default())?;
+    println!("wrote tileset to {}", out.display());
+    Ok(())
+}
+
+fn cmd_brick_model(model: Option<String>, points: usize, out: Option<PathBuf>, cache_dir: &Path) -> Result<()> {
+    let Some(model) = model else {
+        println!("known real official LDraw models (or pass a local .ldr file path):");
+        for name in brick::KNOWN_MODELS {
+            println!("  {name}");
+        }
+        println!("\nusage: spex brick-model <name-or-path.ldr> -o <tileset-dir>");
+        return Ok(());
+    };
+    let out = out.context("--out <tileset-dir> is required when rendering a model")?;
+    let source = brick::resolve_model_source(&model);
+
+    println!("parsing real LDraw scene {model:?}...");
+    let cache = spex_ldraw::LdrawCache::new(cache_dir);
+    let scene = spex_ldraw::parse_scene(&cache, source.as_model_source())?;
+    let distinct_parts: std::collections::HashSet<&str> = scene.placements.iter().map(|p| p.part_file.as_str()).collect();
+    println!(
+        "parsed {} real placements ({} distinct real parts) from {:?} (author: {:?})",
+        scene.placements.len(),
+        distinct_parts.len(),
+        scene.source_description,
+        scene.source_author
+    );
+
+    let cloud = brick::render_scene_to_points(&cache, &scene, points, 0xC0FFEE)?;
     println!("sampled {} real points, building octree tileset...", cloud.len());
 
     spex_tiler::build(cloud, &out, &spex_tiler::TilerConfig::default())?;
