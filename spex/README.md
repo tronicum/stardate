@@ -12,8 +12,8 @@ See `docs/ARCHITECTURE.md` for how this actually works (a worked example + the r
 
 ### Point cloud pipeline
 
-Converts `.ply`/`.xyz`/`.csv`/`.txt` into a streamable octree tileset, then
-serves an interactive three.js viewer with LOD streaming.
+Converts `.ply`/`.xyz`/`.csv`/`.txt`/`.las`/`.laz` into a streamable octree
+tileset, then serves an interactive three.js viewer with LOD streaming.
 
 ```sh
 cargo build --release
@@ -36,12 +36,14 @@ JSON itself).
 spex trace <host> -o demos/my-trace/graph.json                  # real traceroute
 spex ps-tree --root <pid> -o demos/my-ps/graph.json              # real process tree (scope with --root; a bare run covers everything but is capped/collapsed for legibility)
 spex brew-deps <formula> -o demos/my-deps/graph.json             # real `brew deps --tree`
+spex molecule benzene -o demos/my-molecule/graph.json            # real SMILES parsing (built-in molecules, or any SMILES string)
 
 # view
 spex graph-print demos/my-trace/graph.json                       # terminal view
 spex graph-layout demos/my-trace/graph.json -o demos/my-trace/tileset  # build the web view's tileset
 spex serve demos/my-trace/tileset                                 # web view
 spex ascii demos/my-trace/tileset                                 # colored ASCII-art snapshot, no browser needed
+spex ascii demos/my-trace/tileset --animate                       # same, but a turntable-orbit animation (terminal or --out <file.html>)
 
 spex demos                                                        # list what's captured and how to view each
 spex gallery                                                      # web front page: every demo as a card, click into any of them
@@ -57,8 +59,9 @@ new bundle.
 
 ### Known limitations
 
-Point clouds: no LAS/LAZ input, no out-of-core tiling for point clouds too
-large for memory, no buffer compression — see `crates/spex-tiler`.
+Point clouds: no out-of-core tiling for point clouds too large for memory, no
+buffer compression — see `crates/spex-tiler`. LAS/LAZ input is supported but
+still loads the whole file into memory like every other format here.
 Graphs: tree/forest only (no cycles or shared parents), so e.g. `brew-deps`
 duplicates a package under every branch that depends on it rather than
 merging it into one node.
