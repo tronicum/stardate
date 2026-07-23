@@ -53,6 +53,7 @@ const pointSizeInput = document.getElementById('pointSize') as HTMLInputElement;
 const pointBudgetInput = document.getElementById('pointBudget') as HTMLInputElement;
 const showLabelsInput = document.getElementById('showLabels') as HTMLInputElement;
 const animatePacketInput = document.getElementById('animatePacket') as HTMLInputElement;
+const showEdgesInput = document.getElementById('showEdges') as HTMLInputElement;
 const graphMetaEl = document.getElementById('graph-meta') as HTMLDivElement;
 const graphTitleEl = document.getElementById('graph-title') as HTMLDivElement;
 const graphLegendEl = document.getElementById('graph-legend') as HTMLDivElement;
@@ -144,6 +145,34 @@ async function main() {
 
   const diag = boundsDiagonal(tileset.bounds);
   const center = boundsCenter(tileset.bounds);
+
+  // Optional: crisp real line edges between each node and its real parent,
+  // layered on top of the existing dim point-trail edges (baked into the
+  // tileset's points at graph-layout time — replacing those is a separate,
+  // riskier change since every existing demo's point count depends on them;
+  // this is purely additive) for a clearer sense of tree structure at a
+  // glance. Absent for plain point-cloud tilesets (no nodeLabels).
+  if (nodeLabels.length > 0) {
+    const byId = new Map(nodeLabels.map((n) => [n.id, n]));
+    const positions: number[] = [];
+    for (const n of nodeLabels) {
+      if (n.parent === null) continue;
+      const parent = byId.get(n.parent);
+      if (!parent) continue;
+      positions.push(parent.center[0], parent.center[1], parent.center[2], n.center[0], n.center[1], n.center[2]);
+    }
+    if (positions.length > 0) {
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      const material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.45 });
+      const edgeLines = new THREE.LineSegments(geometry, material);
+      edgeLines.visible = showEdgesInput.checked;
+      scene.add(edgeLines);
+      showEdgesInput.addEventListener('input', () => {
+        edgeLines.visible = showEdgesInput.checked;
+      });
+    }
+  }
 
   // Optional: animate a marker traveling along the primary chain (traceroute
   // hops, journey demos) — absent/no-op for branching trees or plain
