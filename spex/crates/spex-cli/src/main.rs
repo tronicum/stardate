@@ -1,5 +1,6 @@
 mod ascii;
 mod brew_deps;
+mod deb_deps;
 mod disk_usage;
 mod export_static;
 mod nav;
@@ -175,6 +176,18 @@ enum Command {
         out: PathBuf,
     },
 
+    /// Run `dpkg -s <package>` (Debian/Ubuntu) on a package and its direct
+    /// dependencies and write them as a spex-graph JSON file: one level of
+    /// real direct deps, not a full recursive apt tree. Only works on a real
+    /// Debian/Ubuntu system.
+    DebDeps {
+        package: String,
+
+        /// Output graph JSON path.
+        #[arg(short, long)]
+        out: PathBuf,
+    },
+
     /// Run `du -a -k <path>` and write the real filesystem tree as a
     /// spex-graph JSON file: size in KB drives color. The layout's fan-out
     /// cap keeps huge directories (build output, node_modules, ...) legible.
@@ -226,6 +239,7 @@ fn main() -> Result<()> {
         Command::PsTree { root, out } => cmd_ps_tree(root, &out),
         Command::PstreeDemo { out } => cmd_pstree_demo(&out),
         Command::BrewDeps { formula, out } => cmd_brew_deps(&formula, &out),
+        Command::DebDeps { package, out } => cmd_deb_deps(&package, &out),
         Command::DiskUsage { path, out } => cmd_disk_usage(&path, &out),
         Command::SqlSchema { db, out } => cmd_sql_schema(&db, &out),
     }
@@ -341,6 +355,20 @@ fn cmd_pstree_demo(out: &Path) -> Result<()> {
 fn cmd_brew_deps(formula: &str, out: &Path) -> Result<()> {
     println!("running `brew deps --tree {formula}`...");
     let graph = brew_deps::run(formula)?;
+    println!("captured {} packages", graph.nodes.len());
+    if let Some(parent) = out.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent)?;
+        }
+    }
+    graph.write_json(out)?;
+    println!("wrote graph to {}", out.display());
+    Ok(())
+}
+
+fn cmd_deb_deps(package: &str, out: &Path) -> Result<()> {
+    println!("running `dpkg -s {package}` and its direct dependencies...");
+    let graph = deb_deps::run(package)?;
     println!("captured {} packages", graph.nodes.len());
     if let Some(parent) = out.parent() {
         if !parent.as_os_str().is_empty() {
