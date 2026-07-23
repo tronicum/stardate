@@ -57,6 +57,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::field_reassign_with_default)]
     fn reads_real_color_when_present() {
         let mut p = LasPoint::default();
         p.x = 1.0;
@@ -75,6 +76,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::field_reassign_with_default)]
     fn falls_back_to_intensity_grayscale_when_no_color() {
         let mut p = LasPoint::default();
         p.x = 10.0;

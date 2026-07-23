@@ -227,7 +227,7 @@ mod tests {
     fn benzene_ring_closure_is_metadata_not_a_second_parent() {
         let g = parse_smiles("c1ccccc1").unwrap();
         assert_eq!(g.nodes.len(), 6);
-        assert!(g.nodes.iter().all(|n| n.metadata["aromatic"] == Value::from(true)));
+        assert!(g.nodes.iter().all(|n| n.metadata["aromatic"] == true));
         // Every atom has exactly one Graph parent (or none, for the root) —
         // the ring-closing 6th->1st bond must NOT create a second parent.
         assert_eq!(g.nodes[0].parent, None);

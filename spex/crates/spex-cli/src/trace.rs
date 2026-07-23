@@ -50,7 +50,7 @@ pub fn run(host: &str) -> Result<Graph> {
         if !hop.rtts_ms.is_empty() {
             metadata.insert(
                 "rttSamplesMs".to_string(),
-                Value::from(hop.rtts_ms.iter().copied().collect::<Vec<_>>()),
+                Value::from(hop.rtts_ms.to_vec()),
             );
         }
 

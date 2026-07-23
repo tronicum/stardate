@@ -165,7 +165,7 @@ fn read_ascii_element<R: BufRead>(r: &mut R, elem: &Element, points: &mut Vec<Po
         if elem.name != "vertex" {
             continue; // whole line already consumed; nothing else to do
         }
-        let tokens: Vec<&str> = line.trim().split_whitespace().collect();
+        let tokens: Vec<&str> = line.split_whitespace().collect();
         let mut idx = 0usize;
         let (mut x, mut y, mut z) = (None, None, None);
         let (mut cr, mut cg, mut cb) = (None, None, None);

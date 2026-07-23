@@ -31,12 +31,12 @@ impl Aabb {
     }
 
     pub fn expand(&mut self, p: &[f64; 3]) {
-        for i in 0..3 {
-            if p[i] < self.min[i] {
-                self.min[i] = p[i];
+        for (i, &pi) in p.iter().enumerate() {
+            if pi < self.min[i] {
+                self.min[i] = pi;
             }
-            if p[i] > self.max[i] {
-                self.max[i] = p[i];
+            if pi > self.max[i] {
+                self.max[i] = pi;
             }
         }
     }

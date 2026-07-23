@@ -159,6 +159,7 @@ fn content_bounds(grid: &[Option<[u8; 3]>], width: usize, height: usize) -> Opti
 /// the grid plus its real width and the cropped row/col bounds — shared by
 /// `render` (ANSI terminal) and `render_html` (browser) so both draw from
 /// the exact same projection instead of duplicating it.
+#[allow(clippy::type_complexity)]
 fn project_cropped(points: &[Point], width: usize) -> Option<(Vec<Option<[u8; 3]>>, usize, usize, usize, usize)> {
     if points.is_empty() || width == 0 {
         return None;
@@ -218,6 +219,7 @@ fn render(points: &[Point], width: usize) -> String {
 /// own — so the crop window is stable across the animation instead of the
 /// content jumping around as different angles light up different regions
 /// of the grid. Returns `(grids, width, min_row, max_row, min_col, max_col)`.
+#[allow(clippy::type_complexity)]
 fn project_frames_cropped(points: &[Point], width: usize, frame_count: usize) -> Option<(Vec<Vec<Option<[u8; 3]>>>, usize, usize, usize, usize, usize)> {
     if points.is_empty() || width == 0 || frame_count == 0 {
         return None;
