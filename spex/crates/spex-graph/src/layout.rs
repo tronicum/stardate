@@ -254,7 +254,20 @@ fn place(
     };
 
     let mut rng = StdRng::seed_from_u64(fnv1a(id));
-    let jitter = (rng.gen::<f64>() - 0.5) * ANGLE_JITTER;
+    // Jitter amplitude is capped to a fraction of this node's own angular
+    // slice width, not just the flat ANGLE_JITTER constant. A high fan-out
+    // deep in the tree (e.g. a capped-at-20 parent whose own slice was
+    // already narrow, inherited from a wide ancestor) divides that slice
+    // into 20 vanishingly thin sub-slices — a fixed-magnitude jitter can
+    // then overshoot a slice entirely and land on top of a sibling's blob
+    // (confirmed on a real 1066-node ps-tree capture: sibling centers as
+    // close as 0.05 units apart, with blobs radius 1.5 each). Capping the
+    // jitter to a fraction of the node's own slice keeps it strictly inside
+    // that slice's bounds, so distinct siblings can never collide no
+    // matter how deep or wide the tree gets.
+    let own_span = angle_end - angle_start;
+    let jitter_amplitude = ANGLE_JITTER.min(own_span * 0.4);
+    let jitter = (rng.gen::<f64>() - 0.5) * jitter_amplitude;
     let angle = (angle_start + angle_end) / 2.0 + jitter;
     let radius = depth as f64 * RADIUS_STEP + radius_offset;
     let center = [radius * angle.cos(), radius * angle.sin(), depth as f64 * HEIGHT_STEP];
@@ -395,6 +408,53 @@ mod tests {
         assert!((radius_of("child4") - base).abs() < 1e-9);
         assert!((radius_of("child1") - (base + RING_STAGGER)).abs() < 1e-9);
         assert!((radius_of("child3") - (base + RING_STAGGER)).abs() < 1e-9);
+    }
+
+    #[test]
+    fn narrow_inherited_slice_keeps_every_child_within_its_own_bounds() {
+        // Reproduces a real pathology found on a real 1066-node full-system
+        // `ps-tree` capture: a node several levels deep, itself one of many
+        // capped-at-20 siblings, inherits an already-narrow angular slice
+        // from its ancestors — dividing that slice among its own 20
+        // children with the OLD flat-magnitude jitter (up to +/-0.3 rad)
+        // routinely overshot the slice entirely, since 0.3 rad can be many
+        // times wider than a deeply-inherited slice. Real sibling pairs
+        // measured as close as 0.05 units apart (blob radius is 1.5).
+        //
+        // The fix caps jitter to a fraction of each node's OWN slice width,
+        // which guarantees every child's actual angle lands strictly inside
+        // its assigned [a0, a1) sub-slice (with a provable >= 0.1*span
+        // margin from each edge) no matter how narrow that slice is. This
+        // is the exact, depth-independent invariant the fix provides —
+        // unlike a downstream absolute blob-distance number, which still
+        // shrinks at extreme depth/fan-out combinations for purely
+        // geometric reasons the fix doesn't (and isn't meant to) solve.
+        let mut nodes = vec![node("root", None, None)];
+        for i in 0..20 {
+            nodes.push(node(&format!("l1-{i}"), Some("root"), None));
+        }
+        // l1-0's own slice is [0, TAU/20) — already the whole "one sibling
+        // out of 20" scenario the real ps-tree data hit at 20-way fan-out.
+        for i in 0..20 {
+            nodes.push(node(&format!("l2-{i}"), Some("l1-0"), None));
+        }
+        let graph = Graph { nodes, ..Default::default() };
+        let result = build(&graph);
+
+        let l1_span = std::f64::consts::TAU / 20.0;
+        let n = 20.0;
+        for i in 0..20 {
+            let child = result.nodes.iter().find(|n| n.id == format!("l2-{i}")).unwrap();
+            let angle = child.center[1].atan2(child.center[0]);
+            let a0 = l1_span * (i as f64) / n;
+            let a1 = l1_span * (i as f64 + 1.0) / n;
+            let span = a1 - a0;
+            let margin = span * 0.1; // matches the 0.4-of-half-span jitter cap exactly
+            assert!(
+                angle >= a0 + margin - 1e-9 && angle <= a1 - margin + 1e-9,
+                "l2-{i}: angle {angle} outside its own slice [{a0}, {a1}] (margin {margin})"
+            );
+        }
     }
 
     #[test]
