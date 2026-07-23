@@ -18,7 +18,7 @@ isn't just aspirational prose, it's enforced against real output.
 
 | File | Schema | Produced by | Consumed by |
 |---|---|---|---|
-| `graph.json` | [`graph.schema.json`](graph.schema.json) | any input adapter (`trace`, `ps-tree`, `brew-deps`, `disk-usage`, `pstree-demo`) | `graph-print`, `graph-layout` |
+| `graph.json` | [`graph.schema.json`](graph.schema.json) | any input adapter (`trace`, `ps-tree`, `brew-deps`, `cargo-deps`, `npm-deps`, `deb-deps`, `sql-schema`, `disk-usage`, `molecule`, `pstree-demo`) | `graph-print`, `graph-layout`, `graph-diff` |
 | `tileset.json` | [`tileset.schema.json`](tileset.schema.json) | `spex-tiler` (both pipelines) | `spex-server`, viewer |
 | `nodes.json` | [`nodes.schema.json`](nodes.schema.json) | `graph-layout` only | viewer (hover labels) |
 | `meta.json` | [`meta.schema.json`](meta.schema.json) | `graph-layout` only | viewer (header/legend) |
