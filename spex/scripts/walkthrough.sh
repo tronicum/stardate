@@ -141,6 +141,21 @@ else
   note "no python3 found — skipping the Big Mac Index example"
 fi
 
+if command -v python3 >/dev/null 2>&1; then
+  note "Real weekly stock closes (Tesla) from a committed data snapshot —"
+  note "see scripts/stock-data/ and scripts/gen_stock_demo.py."
+  say "-> stock-tesla"
+  mkdir -p demos/stock-tesla
+  if python3 scripts/gen_stock_demo.py demos/stock-tesla/graph.json tsla; then
+    "$BIN" graph-layout demos/stock-tesla/graph.json -o demos/stock-tesla/tileset >/dev/null
+    note "ready: spex serve demos/stock-tesla/tileset"
+  else
+    note "skipped (generation failed — see message above)"
+  fi
+else
+  note "no python3 found — skipping the stock-price example"
+fi
+
 CHINOOK_URL="https://github.com/lerocha/chinook-database/raw/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
 if command -v sqlite3 >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
   mkdir -p demos/sql-schema
