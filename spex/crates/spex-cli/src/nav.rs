@@ -27,6 +27,13 @@ struct App {
     selected: usize,
     mode: Mode,
     status: Option<String>,
+    /// `/`-filter on the demo list (name or title, case-insensitive
+    /// substring). Empty means unfiltered — every demo shown.
+    filter: String,
+    /// Whether `/` is actively being typed into right now (a lightweight
+    /// modal state, not a `Mode` variant, since it only ever applies on top
+    /// of `Mode::List` — `Mode::Detail` has no filter of its own).
+    filtering: bool,
 }
 
 impl App {
@@ -36,11 +43,31 @@ impl App {
             selected: 0,
             mode: Mode::List,
             status: None,
+            filter: String::new(),
+            filtering: false,
         }
     }
 
+    /// Indices into `self.demos` matching the current filter, preserving
+    /// original order. All indices when the filter is empty.
+    fn filtered_indices(&self) -> Vec<usize> {
+        if self.filter.is_empty() {
+            return (0..self.demos.len()).collect();
+        }
+        let query = self.filter.to_lowercase();
+        self.demos
+            .iter()
+            .enumerate()
+            .filter(|(_, d)| {
+                d.name.to_lowercase().contains(&query) || d.title.as_deref().unwrap_or("").to_lowercase().contains(&query)
+            })
+            .map(|(i, _)| i)
+            .collect()
+    }
+
     fn selected_demo(&self) -> Option<&DemoEntry> {
-        self.demos.get(self.selected)
+        let indices = self.filtered_indices();
+        indices.get(self.selected).and_then(|&i| self.demos.get(i))
     }
 }
 
@@ -111,16 +138,30 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, mut app: App) 
                 }
                 _ => {}
             }
+        } else if app.filtering {
+            match key.code {
+                KeyCode::Enter | KeyCode::Esc => app.filtering = false,
+                KeyCode::Backspace => {
+                    app.filter.pop();
+                    app.selected = 0;
+                }
+                KeyCode::Char(c) => {
+                    app.filter.push(c);
+                    app.selected = 0;
+                }
+                _ => {}
+            }
         } else {
             match key.code {
                 KeyCode::Char('q') | KeyCode::Esc => return Ok(()),
+                KeyCode::Char('/') => app.filtering = true,
                 KeyCode::Up | KeyCode::Char('k') => {
                     if app.selected > 0 {
                         app.selected -= 1;
                     }
                 }
                 KeyCode::Down | KeyCode::Char('j') => {
-                    if app.selected + 1 < app.demos.len() {
+                    if app.selected + 1 < app.filtered_indices().len() {
                         app.selected += 1;
                     }
                 }
@@ -224,10 +265,11 @@ fn render(f: &mut Frame, app: &App) {
 }
 
 fn render_list(f: &mut Frame, area: Rect, app: &App) {
-    let items: Vec<ListItem> = app
-        .demos
+    let indices = app.filtered_indices();
+    let items: Vec<ListItem> = indices
         .iter()
-        .map(|d| {
+        .map(|&i| {
+            let d = &app.demos[i];
             let title = d.title.clone().unwrap_or_else(|| d.name.clone());
             let ready = if d.web_ready { "" } else { "  (no tileset yet)" };
             ListItem::new(format!("{:<16} {:>4} nodes   {title}{ready}", d.name, d.node_count))
@@ -235,10 +277,18 @@ fn render_list(f: &mut Frame, area: Rect, app: &App) {
         .collect();
 
     let mut state = ListState::default();
-    state.select(Some(app.selected));
+    if !items.is_empty() {
+        state.select(Some(app.selected.min(items.len() - 1)));
+    }
+
+    let title = if app.filter.is_empty() {
+        " spex nav — demos ".to_string()
+    } else {
+        format!(" spex nav — demos ({}/{} matching \"{}\") ", items.len(), app.demos.len(), app.filter)
+    };
 
     let list = List::new(items)
-        .block(Block::default().borders(Borders::ALL).title(" spex nav — demos "))
+        .block(Block::default().borders(Borders::ALL).title(title))
         .highlight_style(Style::default().add_modifier(Modifier::REVERSED));
 
     f.render_stateful_widget(list, area, &mut state);
@@ -253,13 +303,17 @@ fn render_detail(f: &mut Frame, area: Rect, app: &App, text: &str, scroll: u16) 
 }
 
 fn render_footer(f: &mut Frame, area: Rect, app: &App) {
-    let help = match app.mode {
-        Mode::List => "\u{2191}/k \u{2193}/j: move   enter/v: view tree   w: open web view   q: quit",
-        Mode::Detail { .. } => "\u{2191}/k \u{2193}/j: scroll   esc/q: back",
-    };
-    let text = match &app.status {
-        Some(s) => format!("{help}   |   {s}"),
-        None => help.to_string(),
+    let text = if app.filtering {
+        format!("/{}\u{2588}   (enter/esc: done filtering)", app.filter)
+    } else {
+        let help = match app.mode {
+            Mode::List => "\u{2191}/k \u{2193}/j: move   enter/v: view tree   w: open web view   /: filter   q: quit",
+            Mode::Detail { .. } => "\u{2191}/k \u{2193}/j: scroll   esc/q: back",
+        };
+        match &app.status {
+            Some(s) => format!("{help}   |   {s}"),
+            None => help.to_string(),
+        }
     };
     f.render_widget(Paragraph::new(text).style(Style::default().add_modifier(Modifier::DIM)), area);
 }
@@ -348,5 +402,64 @@ mod tests {
     fn strip_ansi_removes_color_codes_but_keeps_text() {
         let input = "\u{1b}[38;2;40;110;255mfritz.box\u{1b}[0m  [4.98]";
         assert_eq!(strip_ansi(input), "fritz.box  [4.98]");
+    }
+
+    #[test]
+    fn filtered_indices_matches_name_or_title_case_insensitively() {
+        let demos = vec![
+            demo("decix-trace", "traceroute to www.de-cix.net", 10, true),
+            demo("sql-schema", "SQL schema: shop.db", 11, true),
+            demo("bigmac", "Big Mac Index: United States", 43, true),
+        ];
+        let mut app = App::new(demos);
+
+        app.filter = "SQL".to_string(); // matches name, case-insensitive
+        assert_eq!(app.filtered_indices(), vec![1]);
+
+        app.filter = "index".to_string(); // matches title, case-insensitive
+        assert_eq!(app.filtered_indices(), vec![2]);
+
+        app.filter = "nonexistent-xyz".to_string();
+        assert!(app.filtered_indices().is_empty());
+
+        app.filter = String::new();
+        assert_eq!(app.filtered_indices(), vec![0, 1, 2]);
+    }
+
+    #[test]
+    fn selected_demo_resolves_through_the_filter() {
+        let demos = vec![demo("decix-trace", "traceroute", 10, true), demo("sql-schema", "SQL schema", 11, true)];
+        let mut app = App::new(demos);
+        app.filter = "sql".to_string();
+        app.selected = 0;
+        assert_eq!(app.selected_demo().map(|d| d.name.as_str()), Some("sql-schema"));
+    }
+
+    #[test]
+    fn render_list_shows_match_count_when_filtering() {
+        let demos = vec![demo("decix-trace", "traceroute", 10, true), demo("sql-schema", "SQL schema", 11, true)];
+        let mut app = App::new(demos);
+        app.filter = "sql".to_string();
+        let mut terminal = Terminal::new(TestBackend::new(90, 10)).unwrap();
+        terminal.draw(|f| render(f, &app)).unwrap();
+
+        let text = buffer_text(&terminal);
+        assert!(text.contains("1/2"), "{text}");
+        assert!(text.contains("sql-schema"), "{text}");
+        assert!(!text.contains("decix-trace"), "{text}");
+    }
+
+    #[test]
+    fn render_footer_shows_filter_being_typed() {
+        let demos = vec![demo("decix-trace", "traceroute", 10, true)];
+        let mut app = App::new(demos);
+        app.filtering = true;
+        app.filter = "dec".to_string();
+        let mut terminal = Terminal::new(TestBackend::new(90, 10)).unwrap();
+        terminal.draw(|f| render(f, &app)).unwrap();
+
+        let text = buffer_text(&terminal);
+        assert!(text.contains("/dec"), "{text}");
+        assert!(text.contains("done filtering"), "{text}");
     }
 }
