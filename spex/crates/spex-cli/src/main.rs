@@ -92,8 +92,23 @@ enum Command {
     /// Compare two spex-graph JSON captures of the same kind of tree by node
     /// id — which nodes appeared, disappeared, or changed metric (e.g. two
     /// `ps-tree` snapshots a few seconds apart, or `disk-usage` before/after
-    /// a build). Prints to the terminal, no new file written.
-    GraphDiff { old: PathBuf, new: PathBuf },
+    /// a build). Prints to the terminal, no new file written — unless
+    /// `--merge -o <graph.json>` is given, which instead writes a single
+    /// renderable graph with every node tagged added/removed/changed/
+    /// unchanged (colored distinctly by `graph-layout`, viewable in 3D).
+    GraphDiff {
+        old: PathBuf,
+        new: PathBuf,
+
+        /// Write a merged, colorable graph.json instead of printing the
+        /// terminal diff — the viewer half of diff/temporal mode.
+        #[arg(long)]
+        merge: bool,
+
+        /// Output path for `--merge`'s graph JSON.
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+    },
 
     /// List available demos (subdirectories of `demos/` containing a
     /// graph.json), showing the terminal/web view command for each — so you
@@ -276,7 +291,7 @@ fn main() -> Result<()> {
         Command::Trace { host, out } => cmd_trace(&host, &out),
         Command::GraphLayout { graph, out } => cmd_graph_layout(&graph, &out),
         Command::GraphPrint { graph } => cmd_graph_print(&graph),
-        Command::GraphDiff { old, new } => cmd_graph_diff(&old, &new),
+        Command::GraphDiff { old, new, merge, out } => cmd_graph_diff(&old, &new, merge, out),
         Command::Demos { dir } => cmd_demos(&dir),
         Command::Gallery { dir, port, no_open } => cmd_gallery(&dir, port, !no_open),
         Command::ExportStatic { dir, out } => cmd_export_static(&dir, &out),
@@ -585,7 +600,21 @@ fn cmd_graph_print(graph_path: &Path) -> Result<()> {
     Ok(())
 }
 
-fn cmd_graph_diff(old: &Path, new: &Path) -> Result<()> {
+fn cmd_graph_diff(old: &Path, new: &Path, merge: bool, out: Option<PathBuf>) -> Result<()> {
+    if merge {
+        let out = out.context("--out <graph.json> is required with --merge")?;
+        let old_graph = Graph::read_json(old)?;
+        let new_graph = Graph::read_json(new)?;
+        let merged = graph_diff::merge_for_viz(&old_graph, &new_graph);
+        if let Some(parent) = out.parent() {
+            if !parent.as_os_str().is_empty() {
+                std::fs::create_dir_all(parent)?;
+            }
+        }
+        merged.write_json(&out)?;
+        println!("wrote merged diff graph ({} nodes) to {}", merged.nodes.len(), out.display());
+        return Ok(());
+    }
     print!("{}", graph_diff::run(old, new)?);
     Ok(())
 }

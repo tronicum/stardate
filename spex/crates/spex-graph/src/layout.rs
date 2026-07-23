@@ -34,6 +34,13 @@ const BLOB_RADIUS: f64 = 1.5;
 const EDGE_POINTS: usize = 60;
 const EDGE_JITTER: f64 = 0.15;
 const NEUTRAL_GRAY: [u8; 3] = [140, 140, 140];
+/// Fixed colors for the diff/temporal viewer (`graph_diff::merge_for_viz`'s
+/// `diff_status` metadata tag) — distinct from the metric heat gradient so
+/// "what changed" reads as a category, not a magnitude.
+const DIFF_ADDED_COLOR: [u8; 3] = [60, 220, 90];
+const DIFF_REMOVED_COLOR: [u8; 3] = [220, 50, 50];
+const DIFF_CHANGED_COLOR: [u8; 3] = [255, 170, 30];
+const DIFF_UNCHANGED_COLOR: [u8; 3] = [90, 110, 160];
 /// Alternating radial offset applied to every other sibling ("zigzag" a
 /// ring's blobs slightly in/out) so a crowded ring — narrow angular slices,
 /// e.g. from a capped high-fanout parent — gets a little breathing room
@@ -252,9 +259,15 @@ fn place(
     let radius = depth as f64 * RADIUS_STEP + radius_offset;
     let center = [radius * angle.cos(), radius * angle.sin(), depth as f64 * HEIGHT_STEP];
 
-    let color = match node.metric {
-        Some(m) => heat_color((m - metric_min) / metric_range),
-        None => NEUTRAL_GRAY,
+    let color = match node.metadata.get("diff_status").and_then(|v| v.as_str()) {
+        Some("added") => DIFF_ADDED_COLOR,
+        Some("removed") => DIFF_REMOVED_COLOR,
+        Some("changed") => DIFF_CHANGED_COLOR,
+        Some("unchanged") => DIFF_UNCHANGED_COLOR,
+        _ => match node.metric {
+            Some(m) => heat_color((m - metric_min) / metric_range),
+            None => NEUTRAL_GRAY,
+        },
     };
 
     out.insert(
