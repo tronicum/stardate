@@ -54,6 +54,7 @@ const pointBudgetInput = document.getElementById('pointBudget') as HTMLInputElem
 const showLabelsInput = document.getElementById('showLabels') as HTMLInputElement;
 const animatePacketInput = document.getElementById('animatePacket') as HTMLInputElement;
 const showEdgesInput = document.getElementById('showEdges') as HTMLInputElement;
+const autoRotateInput = document.getElementById('autoRotate') as HTMLInputElement;
 const graphMetaEl = document.getElementById('graph-meta') as HTMLDivElement;
 const graphTitleEl = document.getElementById('graph-title') as HTMLDivElement;
 const graphLegendEl = document.getElementById('graph-legend') as HTMLDivElement;
@@ -283,7 +284,13 @@ async function main() {
   if (CYCLE_MODE) {
     controls.autoRotate = true;
     controls.autoRotateSpeed = 1.5;
+  } else {
+    controls.autoRotateSpeed = 0.6; // a slow showcase spin, not three.js's brisker default
   }
+  autoRotateInput.checked = controls.autoRotate;
+  autoRotateInput.addEventListener('input', () => {
+    controls.autoRotate = autoRotateInput.checked;
+  });
   controls.update();
 
   let cycleDeadline = 0;
