@@ -5,10 +5,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 `spex` is two things layered on one pipeline:
-1. A literal point cloud explorer — converts LiDAR/scan files (PLY/XYZ/CSV) into a streamable octree tileset viewable in the browser.
+1. A literal point cloud explorer — converts LiDAR/scan files (PLY/XYZ/CSV/LAS/LAZ) into a streamable octree tileset viewable in the browser.
 2. A generic tree/graph explorer — "input adapters" (traceroute, process tree, package deps, ...) capture real-world trees into one common JSON format, which gets laid out in 3D and rendered through the *same* point-cloud pipeline as #1. There is no adapter-specific viewer code; everything becomes points.
 
-See `docs/ARCHITECTURE.md` for the narrative version of this — a worked example with real data and the reasoning behind the non-obvious design choices (radial layout, the fan-out cap, why three views of one model). This file stays terse/reference-only. See `spec/README.md` for the formal JSON Schema of every file in the "Tileset format" section below — validated against real generated output by `crates/spex-cli/tests/schema_validation.rs`, not just documented in prose.
+See `docs/ARCHITECTURE.md` for the narrative version of this — a worked example with real data and the reasoning behind the non-obvious design choices (radial layout, the fan-out cap, why three views of one model). This file stays terse/reference-only. See `spec/README.md` for the formal JSON Schema of every file in the "Tileset format" section below — validated against real generated output by `crates/spex-cli/tests/schema_validation.rs`, not just documented in prose. See `AGENTS.md` and `docs/agents/` for this project's working-mode/verification playbooks — how commits, adapters, and verification actually happen here, distinct from this file's architecture reference.
 
 ## Commands
 
