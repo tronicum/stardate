@@ -210,6 +210,23 @@ else
   note "no python3 found — skipping the stock-price examples"
 fi
 
+if command -v python3 >/dev/null 2>&1; then
+  note "3 degrees of Wikipedia from Frankfurt — a real breadth-first crawl of"
+  note "English Wikipedia's outbound links, from a committed snapshot (see"
+  note "scripts/wikipedia-crawl-data/ and scripts/gen_wikipedia_crawl.py for"
+  note "the live-crawl tool used to capture it)."
+  say "-> wikipedia-crawl"
+  mkdir -p demos/wikipedia-crawl
+  if python3 scripts/gen_wikipedia_demo.py demos/wikipedia-crawl/graph.json; then
+    "$BIN" graph-layout demos/wikipedia-crawl/graph.json -o demos/wikipedia-crawl/tileset >/dev/null
+    note "ready: spex serve demos/wikipedia-crawl/tileset"
+  else
+    note "skipped (generation failed — see message above)"
+  fi
+else
+  note "no python3 found — skipping the wikipedia-crawl example"
+fi
+
 CHINOOK_URL="https://github.com/lerocha/chinook-database/raw/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
 if command -v sqlite3 >/dev/null 2>&1 && command -v curl >/dev/null 2>&1; then
   mkdir -p demos/sql-schema

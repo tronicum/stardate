@@ -1,0 +1,406 @@
+{
+  "title": "3 degrees of Wikipedia from \"Frankfurt\" (real links, fan-out capped at 3)",
+  "metric_label": "degrees of separation",
+  "nodes": [
+    {
+      "id": "n0",
+      "label": "Frankfurt",
+      "parent": null,
+      "metric": 0,
+      "metadata": {
+        "degree": 0,
+        "note": "start page"
+      }
+    },
+    {
+      "id": "n1",
+      "label": "2008 financial crisis",
+      "parent": "n0",
+      "metric": 1,
+      "metadata": {
+        "degree": 1,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n2",
+      "label": "2017 German federal election",
+      "parent": "n0",
+      "metric": 1,
+      "metadata": {
+        "degree": 1,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n3",
+      "label": "2019 European Parliament election",
+      "parent": "n0",
+      "metric": 1,
+      "metadata": {
+        "degree": 1,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n4",
+      "label": "1860 United States presidential election",
+      "parent": "n1",
+      "metric": 2,
+      "metadata": {
+        "degree": 2,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n5",
+      "label": "1920s Florida land boom",
+      "parent": "n1",
+      "metric": 2,
+      "metadata": {
+        "degree": 2,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n6",
+      "label": "1933 Banking Act",
+      "parent": "n1",
+      "metric": 2,
+      "metadata": {
+        "degree": 2,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n7",
+      "label": "1848 German federal election",
+      "parent": "n2",
+      "metric": 2,
+      "metadata": {
+        "degree": 2,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n8",
+      "label": "1868 Zollparlament election",
+      "parent": "n2",
+      "metric": 2,
+      "metadata": {
+        "degree": 2,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n9",
+      "label": "1871 German federal election",
+      "parent": "n2",
+      "metric": 2,
+      "metadata": {
+        "degree": 2,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n10",
+      "label": "1979 European Parliament election",
+      "parent": "n3",
+      "metric": 2,
+      "metadata": {
+        "degree": 2,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n11",
+      "label": "1979 European Parliament election in Belgium",
+      "parent": "n3",
+      "metric": 2,
+      "metadata": {
+        "degree": 2,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n12",
+      "label": "1979 European Parliament election in Denmark",
+      "parent": "n3",
+      "metric": 2,
+      "metadata": {
+        "degree": 2,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n13",
+      "label": "1788\u201389 United States presidential election",
+      "parent": "n4",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n14",
+      "label": "1792 United States presidential election",
+      "parent": "n4",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n15",
+      "label": "1796 United States presidential election",
+      "parent": "n4",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n16",
+      "label": "1920s",
+      "parent": "n5",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n17",
+      "label": "1926 Miami hurricane",
+      "parent": "n5",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n18",
+      "label": "1928 Okeechobee hurricane",
+      "parent": "n5",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n19",
+      "label": "1932 United States presidential election",
+      "parent": "n6",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n20",
+      "label": "2009 Supervisory Capital Assessment Program",
+      "parent": "n6",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n21",
+      "label": "72nd United States Congress",
+      "parent": "n6",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n22",
+      "label": "1874 German federal election",
+      "parent": "n7",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n23",
+      "label": "1877 German federal election",
+      "parent": "n7",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n24",
+      "label": "1878 German federal election",
+      "parent": "n7",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n25",
+      "label": "1881 German federal election",
+      "parent": "n8",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n26",
+      "label": "1884 German federal election",
+      "parent": "n8",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n27",
+      "label": "1887 German federal election",
+      "parent": "n8",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n28",
+      "label": "1890 German federal election",
+      "parent": "n9",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n29",
+      "label": "1893 German federal election",
+      "parent": "n9",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n30",
+      "label": "1898 German federal election",
+      "parent": "n9",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n31",
+      "label": "1979 European Parliament election in France",
+      "parent": "n10",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n32",
+      "label": "1979 European Parliament election in Greenland",
+      "parent": "n10",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n33",
+      "label": "1979 European Parliament election in Ireland",
+      "parent": "n10",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n34",
+      "label": "1830 Belgian general election",
+      "parent": "n11",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n35",
+      "label": "1831 Belgian general election",
+      "parent": "n11",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n36",
+      "label": "1833 Belgian general election",
+      "parent": "n11",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n37",
+      "label": "1848 Danish Constituent Assembly election",
+      "parent": "n12",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n38",
+      "label": "1849 Danish Folketing election",
+      "parent": "n12",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    },
+    {
+      "id": "n39",
+      "label": "1849 Danish Landsting election",
+      "parent": "n12",
+      "metric": 3,
+      "metadata": {
+        "degree": 3,
+        "note": "real Wikipedia outbound link (English Wikipedia); fan-out capped and deduped against already-visited pages to keep the crawl bounded and tree-shaped"
+      }
+    }
+  ]
+}
