@@ -20,3 +20,9 @@
 
 # Python cache (scripts/gen_*.py)
 __pycache__/
+
+# Local cache of real LDraw files fetched on demand by
+# unibrick/gen_brick_demo.py — not committed; a deliberate full library
+# mirror (if ever wanted) would be a separate, explicit git-lfs step
+# instead, see BRICKs.md.
+/unibrick/.ldraw-cache/

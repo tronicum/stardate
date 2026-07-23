@@ -152,6 +152,35 @@ follows naturally:
   cloud, fed through the *existing* point-cloud pipeline (`spex convert`/
   `spex serve`), not the graph pipeline (a brick's shape is a solid volume,
   not a tree).
+- **Done: a first real spike** — `unibrick/gen_brick_demo.py` (see M40 in
+  `TODOs.md`) proves this end to end for the smallest real case (a real
+  1×1 brick, LDraw part `3005.dat`): live-fetches and recursively resolves
+  the real part → subpart → shared-primitive reference tree, samples the
+  real surface into colored points, writes a plain point cloud spex's
+  existing pipeline renders unchanged. Verified against real brick
+  dimensions and a real headless-Chromium session — see M40 for the
+  concrete numbers.
+- **Next real design step, not yet built: a `spex-brick-mesh` intermediate
+  format.** The spike currently does two jobs in one pass — resolving a
+  part's real LDraw geometry, and sampling it into points — every single
+  run, even to just try a different color or point density. Splitting
+  these means resolving a part's real geometry *once* into spex's own
+  simple intermediate format (a flat list of real triangles in real
+  millimeters, a real color reference, and real provenance metadata —
+  source part number, LDraw attribution), then reusing that for both
+  point-cloud sampling *and*, later, a true mesh/vector renderer (below) —
+  both would consume the same resolved data instead of each
+  re-implementing LDraw's real reference-tree resolution.
+- **Once that format exists, it gets a formal spec, same as everything
+  else in this project.** `spec/` already has a JSON Schema for every file
+  spex reads or writes (`graph.schema.json`, `tileset.schema.json`, ...),
+  each validated by a real test against real generated output, not just
+  described in prose (see `spec/README.md`). Any new voxel/brick-specific
+  format — the resolved-mesh intermediate format above, and later a
+  full-set "many real parts placed in real 3D space" assembly format for
+  build-instruction-style rendering — should get exactly the same
+  treatment once its shape is actually decided by real implementation,
+  not speculatively specified ahead of the code that produces it.
 - A full set's real inventory (many elements, each with a real position —
   from a real LDraw `.ldr` model, not guessed) would extend this to many
   parts placed in real 3D space relative to each other — the "build
