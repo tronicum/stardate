@@ -2,7 +2,7 @@
 
 Working directory for the Klemmbaustein/interlocking-brick renderer
 milestone — see `/BRICKs.md` (real-terminology glossary, real
-geometry-source confirmation, licensing) and `TODOs.md`'s M40-M45 entries
+geometry-source confirmation, licensing) and `TODOs.md`'s M40-M44 entries
 for the full design and status. This directory is the code; those
 root-level docs are the plan.
 
@@ -71,17 +71,6 @@ root-level docs are the plan.
   only 26 distinct real parts). Usage: `python3 unibrick/gen_model_demo.py
   <model.ldr> <point-count> <out.xyz>` (defaults to `car.ldr`; `pyramid.ldr`
   is the other real official sample model available the same way).
-- **`gen_monolith_assembly.py`** — CLI: the animated version of
-  `gen_monolith_demo.py` — the same 9 real parts starting
-  scattered/floating (a real, honestly-labeled *stylized* reveal, not a
-  physics simulation) and converging into the finished stacked monolith.
-  Writes a single self-contained animated HTML file (embedded JSON frame
-  data + a hand-rolled canvas 2D point renderer with drag-orbit/scroll-zoom
-  — no three.js/WebGL/server dependency, opens directly from disk) rather
-  than going through spex's tileset/octree pipeline at all, since animating
-  real per-point positions there would require the tileset format itself to
-  track point identity across frames. Usage: `python3
-  unibrick/gen_monolith_assembly.py <point-count> <frame-count> <out.html>`.
 - **`.ldraw-cache/`** — gitignored local cache of real files fetched from
   ldraw.org (`.ldraw-cache/parts/`, `.ldraw-cache/p/`,
   `.ldraw-cache/models/`, `.ldraw-cache/LDConfig.ldr`), so repeated runs

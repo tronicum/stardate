@@ -206,26 +206,6 @@ follows naturally:
   to the gitignored `.ldraw-cache/`, never committed/uploaded/git-lfs'd)
   lets `fetch()` read any real file straight out of the local archive with
   zero network requests at all when it's present.
-- **Done: the real monolith assembly reveal animation** (see `TODOs.md`'s
-  M45) — the "floats a whole series of Klemmbausteine into the perfect
-  monolith" idea floated earlier in this project's own discussion, now
-  actually built: `unibrick/gen_monolith_assembly.py` shows the same 9 real
-  parts from M41's static monolith starting scattered/floating apart and
-  converging into the finished stack. Deliberately built as a standalone,
-  self-contained HTML artifact (embedded JSON frame data + a hand-rolled
-  canvas 2D point renderer, no three.js/WebGL dependency) rather than a
-  live-interpolated feature inside spex's actual WebGL viewer/tileset
-  pipeline — animating real per-point positions there would need the
-  octree/tileset format itself to track point identity across frames, a
-  real, much bigger and riskier change to a shared, heavily-tested core
-  format used by every existing demo. Each output point's local sampled
-  position and baked shading are computed *once* (translation is the only
-  thing that changes per frame — a triangle's normal doesn't move when only
-  its parent part translates), so points move smoothly frame to frame
-  instead of shimmering from independent resampling. Real mouse-drag
-  orbit + scroll zoom + a slow auto-rotate (paused while dragging) built by
-  hand for this same reason (no shared-viewer-code dependency to keep this
-  fully standalone).
 - A true mesh/vector renderer (crisp catalog-quality edges, rendering
   LDraw's real triangle faces directly instead of sampling them into
   points) is a real, deliberately bigger alternative for later, if the
