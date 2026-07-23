@@ -109,6 +109,10 @@ else
   note "no Homebrew found — skipping the package-dependency example"
 fi
 
+note "spex's own real Cargo dependency tree (dogfooding — this project is a"
+note "Rust workspace, so this always works, no extra tool to install)."
+capture spex-graph-deps "$BIN" cargo-deps spex-graph
+
 if command -v python3 >/dev/null 2>&1; then
   note "A simulated packet journey Neuss -> Hamburg -> ... -> Tegernsee, with"
   note "synthetic router hops between each city pair (real haversine"
