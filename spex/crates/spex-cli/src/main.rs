@@ -594,15 +594,21 @@ fn cmd_graph_layout(graph_path: &Path, out: &Path) -> Result<()> {
     // served/copied wherever the tileset itself is (spex-server's ServeDir,
     // `spex export-static`'s directory copy), no special-casing needed
     // anywhere else. Non-fatal if it fails; the tileset itself is already written.
-    if let Ok(ascii_html) = ascii::run_html(out, 100, &demo_title) {
+    // 140 columns at the HTML views' 14px monospace font (~8.4px/char for
+    // Menlo/SF Mono-family fonts) renders to roughly 1180px wide plus
+    // padding — comfortably fits a 1280px-wide viewport with a little
+    // margin and fills a 1440/1920px one nicely too, without the
+    // scroll-heavy sparseness a narrower default left on wider screens.
+    const HTML_ASCII_WIDTH: usize = 140;
+    if let Ok(ascii_html) = ascii::run_html(out, HTML_ASCII_WIDTH, &demo_title) {
         let _ = std::fs::write(out.join("ascii.html"), ascii_html);
     }
     // Same reasoning as the static ascii.html above — generated once here so
     // it rides along wherever the tileset itself goes, no special-casing in
-    // spex-server/export-static. 24 frames at width 100 is cheap even for a
-    // few-thousand-point demo tileset (projection is the only per-frame cost,
-    // and it's a simple O(points) pass); non-fatal if it fails.
-    if let Ok(ascii_animated_html) = ascii::run_html_animated(out, 100, 24, 8.0, &demo_title) {
+    // spex-server/export-static. 24 frames at this width is still cheap for
+    // a few-thousand-point demo tileset (projection is the only per-frame
+    // cost, and it's a simple O(points) pass); non-fatal if it fails.
+    if let Ok(ascii_animated_html) = ascii::run_html_animated(out, HTML_ASCII_WIDTH, 24, 8.0, &demo_title) {
         let _ = std::fs::write(out.join("ascii-animated.html"), ascii_animated_html);
     }
 
