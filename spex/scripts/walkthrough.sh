@@ -161,6 +161,22 @@ else
 fi
 
 if command -v python3 >/dev/null 2>&1; then
+  note "Frankfurt am Main + 5 random German cities (population > 100k, fixed"
+  note "seed) — an *actually solved* shortest path (brute-force exact over"
+  note "all orderings), real haversine distances throughout."
+  say "-> german-tsp"
+  mkdir -p demos/german-tsp
+  if python3 scripts/gen_german_tsp_demo.py demos/german-tsp/graph.json; then
+    "$BIN" graph-layout demos/german-tsp/graph.json -o demos/german-tsp/tileset >/dev/null
+    note "ready: spex serve demos/german-tsp/tileset"
+  else
+    note "skipped (generation failed — see message above)"
+  fi
+else
+  note "no python3 found — skipping the german-tsp example"
+fi
+
+if command -v python3 >/dev/null 2>&1; then
   note "The real Big Mac Index for the United States (2000-present) — real"
   note "prices twice a year, published by The Economist"
   note "(github.com/TheEconomist/big-mac-data), one node per publication date."

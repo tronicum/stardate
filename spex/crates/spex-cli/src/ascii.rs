@@ -21,6 +21,19 @@ pub fn run(tileset_dir: &Path, width: usize) -> Result<String> {
     Ok(render(&points, width))
 }
 
+/// Same rendering as `run`, but as a small self-contained HTML page (colored
+/// via inline `<span style="color:...">`, monospace `<pre>`) instead of an
+/// ANSI-colored terminal string — so the same ASCII-art view is browsable
+/// outside a terminal too. Written alongside a tileset's own files (see
+/// `main.rs`'s `cmd_graph_layout`), so it's automatically present wherever
+/// that tileset is served or copied — no special-casing needed in
+/// `spex-server`/`spex export-static`, which already serve/copy a tileset
+/// directory's contents verbatim.
+pub fn run_html(tileset_dir: &Path, width: usize, title: &str) -> Result<String> {
+    let points = spex_tiler::read_points(tileset_dir)?;
+    Ok(render_html(&points, width, title))
+}
+
 struct Camera {
     position: [f64; 3],
     right: [f64; 3],
@@ -131,9 +144,13 @@ fn content_bounds(grid: &[Option<[u8; 3]>], width: usize, height: usize) -> Opti
     any.then_some((min_row, max_row, min_col, max_col))
 }
 
-fn render(points: &[Point], width: usize) -> String {
+/// Projects `points` and crops to content (see `content_bounds`), returning
+/// the grid plus its real width and the cropped row/col bounds — shared by
+/// `render` (ANSI terminal) and `render_html` (browser) so both draw from
+/// the exact same projection instead of duplicating it.
+fn project_cropped(points: &[Point], width: usize) -> Option<(Vec<Option<[u8; 3]>>, usize, usize, usize, usize)> {
     if points.is_empty() || width == 0 {
-        return String::new();
+        return None;
     }
     let bounds = Aabb::from_points(points.iter().map(|p| p.position));
     let camera = default_camera(&bounds);
@@ -144,13 +161,18 @@ fn render(points: &[Point], width: usize) -> String {
     // region of the full field-of-view grid — rendering the whole grid means
     // mostly blank space, which can scroll real content off a short terminal
     // entirely. Crop to what was actually drawn, plus a 1-cell margin.
-    let Some((min_row, max_row, min_col, max_col)) = content_bounds(&grid, width, height) else {
-        return String::new();
-    };
+    let (min_row, max_row, min_col, max_col) = content_bounds(&grid, width, height)?;
     let min_row = min_row.saturating_sub(1);
     let max_row = (max_row + 1).min(height - 1);
     let min_col = min_col.saturating_sub(1);
     let max_col = (max_col + 1).min(width - 1);
+    Some((grid, min_row, max_row, min_col, max_col))
+}
+
+fn render(points: &[Point], width: usize) -> String {
+    let Some((grid, min_row, max_row, min_col, max_col)) = project_cropped(points, width) else {
+        return String::new();
+    };
 
     let use_color = std::io::stdout().is_terminal() && std::env::var_os("NO_COLOR").is_none();
     let mut out = String::new();
@@ -171,6 +193,51 @@ fn render(points: &[Point], width: usize) -> String {
         out.push('\n');
     }
     out
+}
+
+fn render_html(points: &[Point], width: usize, title: &str) -> String {
+    let Some((grid, min_row, max_row, min_col, max_col)) = project_cropped(points, width) else {
+        return format!("<!doctype html><title>{title}</title><body style=\"background:#0b0e12\"></body>");
+    };
+
+    let mut body = String::new();
+    for row in min_row..=max_row {
+        for col in min_col..=max_col {
+            match grid[row * width + col] {
+                None => body.push(' '),
+                Some(color) => {
+                    let ch = luminance_to_char(color);
+                    body.push_str(&format!(
+                        "<span style=\"color:rgb({},{},{})\">{}</span>",
+                        color[0],
+                        color[1],
+                        color[2],
+                        html_escape_char(ch)
+                    ));
+                }
+            }
+        }
+        body.push('\n');
+    }
+
+    format!(
+        "<!doctype html>\n\
+<html><head><meta charset=\"UTF-8\"><title>{title} — ASCII</title>\n\
+<style>\n\
+  html, body {{ margin: 0; background: #0b0e12; color: #e6e6e6; }}\n\
+  pre {{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.15; padding: 16px; white-space: pre; }}\n\
+</style>\n\
+</head><body><pre>{body}</pre></body></html>\n"
+    )
+}
+
+fn html_escape_char(c: char) -> String {
+    match c {
+        '<' => "&lt;".to_string(),
+        '>' => "&gt;".to_string(),
+        '&' => "&amp;".to_string(),
+        _ => c.to_string(),
+    }
 }
 
 #[cfg(test)]

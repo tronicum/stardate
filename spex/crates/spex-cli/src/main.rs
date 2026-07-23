@@ -470,6 +470,7 @@ fn cmd_sql_schema(db: &Path, out: &Path) -> Result<()> {
 
 fn cmd_graph_layout(graph_path: &Path, out: &Path) -> Result<()> {
     let graph = Graph::read_json(graph_path)?;
+    let demo_title = graph.title.clone().unwrap_or_else(|| "spex demo".to_string());
     println!("laying out {} nodes...", graph.nodes.len());
     let layout = spex_graph::build(&graph);
     println!("generated {} points, building octree tileset...", layout.points.len());
@@ -504,7 +505,16 @@ fn cmd_graph_layout(graph_path: &Path, out: &Path) -> Result<()> {
     let f = std::fs::File::create(out.join("meta.json"))?;
     serde_json::to_writer_pretty(f, &meta)?;
 
-    println!("wrote tileset to {} (+ nodes.json, meta.json)", out.display());
+    // A static ASCII-art view (colored HTML, mirrors `spex ascii`'s terminal
+    // rendering) written directly into the tileset directory — automatically
+    // served/copied wherever the tileset itself is (spex-server's ServeDir,
+    // `spex export-static`'s directory copy), no special-casing needed
+    // anywhere else. Non-fatal if it fails; the tileset itself is already written.
+    if let Ok(ascii_html) = ascii::run_html(out, 100, &demo_title) {
+        let _ = std::fs::write(out.join("ascii.html"), ascii_html);
+    }
+
+    println!("wrote tileset to {} (+ nodes.json, meta.json, ascii.html)", out.display());
     Ok(())
 }
 

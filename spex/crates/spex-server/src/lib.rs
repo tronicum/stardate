@@ -158,11 +158,14 @@ pub fn render_gallery_html(demos: &[(String, PathBuf)]) -> String {
 
         let name_escaped = escape_html(name);
         cards.push_str(&format!(
-            r#"<a class="card" href="d/{name_escaped}/">
+            r#"<div class="card-wrap">
+<a class="card" href="d/{name_escaped}/">
   <h2>{name_escaped}</h2>
   <p class="title">{title_escaped}</p>
   <div class="stats">{stats_escaped}</div>
 </a>
+<a class="card-ascii" href="d/{name_escaped}/tileset/ascii.html" title="colored ASCII-art view, same as `spex ascii` in a terminal">ascii</a>
+</div>
 "#,
             title_escaped = escape_html(&title),
             stats_escaped = escape_html(&stats.join(" · ")),
@@ -194,11 +197,14 @@ pub fn render_gallery_html(demos: &[(String, PathBuf)]) -> String {
   .cycle-btn {{ color: inherit; text-decoration: none; background: rgba(255,255,255,0.08); padding: 8px 14px; border-radius: 8px; font-size: 13px; transition: background 0.15s; }}
   .cycle-btn:hover {{ background: rgba(255,255,255,0.16); }}
   .grid {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; max-width: 1000px; }}
+  .card-wrap {{ position: relative; }}
   .card {{ display: block; background: rgba(255,255,255,0.06); border-radius: 10px; padding: 16px; text-decoration: none; color: inherit; transition: background 0.15s; }}
   .card:hover {{ background: rgba(255,255,255,0.12); }}
   .card h2 {{ margin: 0 0 6px; font-size: 15px; font-weight: 600; }}
   .card .title {{ margin: 0 0 10px; font-size: 12px; opacity: 0.7; }}
   .card .stats {{ font-size: 11px; opacity: 0.5; }}
+  .card-ascii {{ position: absolute; top: 10px; right: 10px; font-size: 10px; color: inherit; text-decoration: none; background: rgba(255,255,255,0.1); padding: 2px 7px; border-radius: 4px; opacity: 0.7; }}
+  .card-ascii:hover {{ opacity: 1; background: rgba(255,255,255,0.2); }}
   .empty {{ opacity: 0.6; }}
   code {{ background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; }}
 </style>
