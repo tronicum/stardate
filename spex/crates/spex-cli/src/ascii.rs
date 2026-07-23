@@ -60,15 +60,17 @@ fn normalize(a: [f64; 3]) -> [f64; 3] {
     }
 }
 
-/// Matches the viewer's default framing (`viewer/src/main.ts`'s initial
-/// camera placement) so a terminal snapshot looks like the first thing
-/// you'd see opening the same tileset in a browser: `position = center +
-/// diagonal * 0.6` per axis, looking at `center`, world-up `(0,1,0)` (the
-/// same convention three.js/OrbitControls default to).
-fn default_camera(bounds: &Aabb) -> Camera {
+/// A camera on a horizontal ring around `bounds`'s center, at a fixed
+/// elevation, looking at the center — a turntable orbit. `angle` is the
+/// azimuth in radians; `angle = PI/4` reproduces [`default_camera`]'s exact
+/// position (same radius/height, just parameterized), which is what makes
+/// `default_camera` a thin wrapper around this rather than separate code.
+fn orbit_camera(bounds: &Aabb, angle: f64) -> Camera {
     let center = bounds.center();
     let diag = bounds.diagonal().max(1.0);
-    let position = [center[0] + diag * 0.6, center[1] + diag * 0.6, center[2] + diag * 0.6];
+    let radius = diag * 0.6 * std::f64::consts::SQRT_2;
+    let height = diag * 0.6;
+    let position = [center[0] + radius * angle.cos(), center[1] + height, center[2] + radius * angle.sin()];
     let forward = normalize(sub(center, position));
     let world_up = [0.0, 1.0, 0.0];
     let right = normalize(cross(forward, world_up));
@@ -80,6 +82,15 @@ fn default_camera(bounds: &Aabb) -> Camera {
         forward,
         tan_half_fov: (FOV_Y_DEGREES.to_radians() / 2.0).tan(),
     }
+}
+
+/// Matches the viewer's default framing (`viewer/src/main.ts`'s initial
+/// camera placement) so a terminal snapshot looks like the first thing
+/// you'd see opening the same tileset in a browser: `position = center +
+/// diagonal * 0.6` per axis, looking at `center`, world-up `(0,1,0)` (the
+/// same convention three.js/OrbitControls default to).
+fn default_camera(bounds: &Aabb) -> Camera {
+    orbit_camera(bounds, std::f64::consts::FRAC_PI_4)
 }
 
 /// Projects `points` through `camera` into a `width`-column grid (rows
@@ -169,12 +180,10 @@ fn project_cropped(points: &[Point], width: usize) -> Option<(Vec<Option<[u8; 3]
     Some((grid, min_row, max_row, min_col, max_col))
 }
 
-fn render(points: &[Point], width: usize) -> String {
-    let Some((grid, min_row, max_row, min_col, max_col)) = project_cropped(points, width) else {
-        return String::new();
-    };
-
-    let use_color = std::io::stdout().is_terminal() && std::env::var_os("NO_COLOR").is_none();
+/// Renders one already-projected grid slice as ANSI text — shared by the
+/// single-frame `render` and the multi-frame animation renderer so both
+/// produce byte-identical formatting for the same cells.
+fn grid_slice_to_ansi(grid: &[Option<[u8; 3]>], width: usize, min_row: usize, max_row: usize, min_col: usize, max_col: usize, use_color: bool) -> String {
     let mut out = String::new();
     for row in min_row..=max_row {
         for col in min_col..=max_col {
@@ -195,11 +204,97 @@ fn render(points: &[Point], width: usize) -> String {
     out
 }
 
-fn render_html(points: &[Point], width: usize, title: &str) -> String {
+fn render(points: &[Point], width: usize) -> String {
     let Some((grid, min_row, max_row, min_col, max_col)) = project_cropped(points, width) else {
-        return format!("<!doctype html><title>{title}</title><body style=\"background:#0b0e12\"></body>");
+        return String::new();
     };
+    let use_color = std::io::stdout().is_terminal() && std::env::var_os("NO_COLOR").is_none();
+    grid_slice_to_ansi(&grid, width, min_row, max_row, min_col, max_col, use_color)
+}
 
+/// Projects `points` from `frame_count` camera angles evenly spaced around a
+/// full turntable orbit (see [`orbit_camera`]), then crops every frame to
+/// the *union* of all frames' real content bounds rather than each frame's
+/// own — so the crop window is stable across the animation instead of the
+/// content jumping around as different angles light up different regions
+/// of the grid. Returns `(grids, width, min_row, max_row, min_col, max_col)`.
+fn project_frames_cropped(points: &[Point], width: usize, frame_count: usize) -> Option<(Vec<Vec<Option<[u8; 3]>>>, usize, usize, usize, usize, usize)> {
+    if points.is_empty() || width == 0 || frame_count == 0 {
+        return None;
+    }
+    let bounds = Aabb::from_points(points.iter().map(|p| p.position));
+    let height = ((width as f64) * CHAR_ASPECT).round().max(1.0) as usize;
+
+    let grids: Vec<Vec<Option<[u8; 3]>>> = (0..frame_count)
+        .map(|i| {
+            let angle = (i as f64 / frame_count as f64) * std::f64::consts::TAU;
+            let camera = orbit_camera(&bounds, angle);
+            project(points, &camera, width, height)
+        })
+        .collect();
+
+    let (mut min_row, mut max_row, mut min_col, mut max_col) = (height, 0, width, 0);
+    let mut any = false;
+    for grid in &grids {
+        if let Some((r0, r1, c0, c1)) = content_bounds(grid, width, height) {
+            any = true;
+            min_row = min_row.min(r0);
+            max_row = max_row.max(r1);
+            min_col = min_col.min(c0);
+            max_col = max_col.max(c1);
+        }
+    }
+    if !any {
+        return None;
+    }
+    let min_row = min_row.saturating_sub(1);
+    let max_row = (max_row + 1).min(height - 1);
+    let min_col = min_col.saturating_sub(1);
+    let max_col = (max_col + 1).min(width - 1);
+    Some((grids, width, min_row, max_row, min_col, max_col))
+}
+
+/// One ANSI-colored string per frame of a turntable orbit animation — same
+/// crop window for every frame (see [`project_frames_cropped`]).
+pub fn render_frames(points: &[Point], width: usize, frame_count: usize) -> Vec<String> {
+    let Some((grids, width, min_row, max_row, min_col, max_col)) = project_frames_cropped(points, width, frame_count) else {
+        return Vec::new();
+    };
+    let use_color = std::io::stdout().is_terminal() && std::env::var_os("NO_COLOR").is_none();
+    grids.iter().map(|g| grid_slice_to_ansi(g, width, min_row, max_row, min_col, max_col, use_color)).collect()
+}
+
+/// Plays a turntable orbit animation directly in the terminal: clears the
+/// screen and redraws each frame in place (`\x1b[2J\x1b[H`), pacing frames
+/// at `fps`, for `loops` full orbits (`loops == 0` means forever, until the
+/// process is interrupted — e.g. Ctrl-C).
+pub fn run_animated(tileset_dir: &Path, width: usize, frame_count: usize, fps: f64, loops: usize) -> Result<()> {
+    let points = spex_tiler::read_points(tileset_dir)?;
+    let frames = render_frames(&points, width, frame_count);
+    if frames.is_empty() {
+        return Ok(());
+    }
+    let frame_delay = std::time::Duration::from_secs_f64(1.0 / fps.max(0.1));
+    let mut loop_count = 0;
+    loop {
+        for frame in &frames {
+            print!("\x1b[2J\x1b[H{frame}");
+            use std::io::Write;
+            std::io::stdout().flush().ok();
+            std::thread::sleep(frame_delay);
+        }
+        loop_count += 1;
+        if loops != 0 && loop_count >= loops {
+            break;
+        }
+    }
+    Ok(())
+}
+
+/// Renders one already-projected grid slice as an HTML body (`<span
+/// style="color:...">` per lit cell) — shared by the single-frame
+/// `render_html` and the multi-frame animated HTML export.
+fn grid_slice_to_html_body(grid: &[Option<[u8; 3]>], width: usize, min_row: usize, max_row: usize, min_col: usize, max_col: usize) -> String {
     let mut body = String::new();
     for row in min_row..=max_row {
         for col in min_col..=max_col {
@@ -219,6 +314,14 @@ fn render_html(points: &[Point], width: usize, title: &str) -> String {
         }
         body.push('\n');
     }
+    body
+}
+
+fn render_html(points: &[Point], width: usize, title: &str) -> String {
+    let Some((grid, min_row, max_row, min_col, max_col)) = project_cropped(points, width) else {
+        return format!("<!doctype html><title>{title}</title><body style=\"background:#0b0e12\"></body>");
+    };
+    let body = grid_slice_to_html_body(&grid, width, min_row, max_row, min_col, max_col);
 
     format!(
         "<!doctype html>\n\
@@ -228,6 +331,46 @@ fn render_html(points: &[Point], width: usize, title: &str) -> String {
   pre {{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.15; padding: 16px; white-space: pre; }}\n\
 </style>\n\
 </head><body><pre>{body}</pre></body></html>\n"
+    )
+}
+
+/// A self-contained, dependency-free animated version of `render_html`: every
+/// frame of a turntable orbit (see [`project_frames_cropped`]) pre-rendered
+/// to an HTML body string, embedded as a JS array (`serde_json::to_string`
+/// handles all the escaping — no hand-rolled JS-string quoting), and cycled
+/// by a small inline `<script>` via `setInterval` swapping one `<pre>`'s
+/// `innerHTML`. No canvas/WebGL — this is meant to be viewable literally
+/// anywhere an HTML file renders, matching the plain-ASCII spirit of the
+/// static view it's an animated sibling of.
+pub fn run_html_animated(tileset_dir: &Path, width: usize, frame_count: usize, fps: f64, title: &str) -> Result<String> {
+    let points = spex_tiler::read_points(tileset_dir)?;
+    Ok(render_html_animated(&points, width, frame_count, fps, title))
+}
+
+fn render_html_animated(points: &[Point], width: usize, frame_count: usize, fps: f64, title: &str) -> String {
+    let Some((grids, width, min_row, max_row, min_col, max_col)) = project_frames_cropped(points, width, frame_count) else {
+        return format!("<!doctype html><title>{title}</title><body style=\"background:#0b0e12\"></body>");
+    };
+    let bodies: Vec<String> = grids.iter().map(|g| grid_slice_to_html_body(g, width, min_row, max_row, min_col, max_col)).collect();
+    let frames_json = serde_json::to_string(&bodies).unwrap_or_else(|_| "[]".to_string());
+    let interval_ms = (1000.0 / fps.max(0.1)).round() as u64;
+
+    format!(
+        "<!doctype html>\n\
+<html><head><meta charset=\"UTF-8\"><title>{title} — ASCII (animated)</title>\n\
+<style>\n\
+  html, body {{ margin: 0; background: #0b0e12; color: #e6e6e6; }}\n\
+  pre {{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; line-height: 1.15; padding: 16px; white-space: pre; }}\n\
+</style>\n\
+</head><body><pre id=\"f\"></pre>\n\
+<script>\n\
+  const frames = {frames_json};\n\
+  let i = 0;\n\
+  const el = document.getElementById('f');\n\
+  el.innerHTML = frames[0] ?? '';\n\
+  setInterval(() => {{ i = (i + 1) % frames.length; el.innerHTML = frames[i]; }}, {interval_ms});\n\
+</script>\n\
+</body></html>\n"
     )
 }
 
@@ -300,5 +443,49 @@ mod tests {
         let lines: Vec<&str> = text.lines().collect();
         assert!(lines.len() <= 5, "expected a tight crop around one point, got {} lines:\n{text}", lines.len());
         assert!(lines.iter().any(|l| !l.trim().is_empty()), "cropped output should still contain the point");
+    }
+
+    #[test]
+    fn orbit_camera_at_45_degrees_matches_default_camera() {
+        let bounds = Aabb { min: [-10.0, -10.0, -10.0], max: [10.0, 10.0, 10.0] };
+        let default = default_camera(&bounds);
+        let orbited = orbit_camera(&bounds, std::f64::consts::FRAC_PI_4);
+        for i in 0..3 {
+            assert!((default.position[i] - orbited.position[i]).abs() < 1e-9, "axis {i}: {} vs {}", default.position[i], orbited.position[i]);
+        }
+    }
+
+    #[test]
+    fn render_frames_produces_the_requested_frame_count() {
+        // A point off-center so different orbit angles actually project it
+        // to different screen positions, not the same cell every frame.
+        let points = vec![Point { position: [3.0, 0.0, 0.0], color: [255, 255, 255] }];
+        let frames = render_frames(&points, 60, 8);
+        assert_eq!(frames.len(), 8);
+        assert!(frames.iter().all(|f| !f.is_empty()), "every frame should render real content");
+        // Not every frame should be byte-identical — the camera really is
+        // moving around the point between frames.
+        assert!(frames.windows(2).any(|w| w[0] != w[1]), "frames should differ as the camera orbits");
+    }
+
+    #[test]
+    fn render_frames_share_a_stable_crop_window_across_the_orbit() {
+        let points = vec![Point { position: [3.0, 0.0, 0.0], color: [255, 255, 255] }];
+        let frames = render_frames(&points, 60, 8);
+        let widths: Vec<usize> = frames.iter().map(|f| f.lines().next().map(str::chars).map(Iterator::count).unwrap_or(0)).collect();
+        assert!(widths.iter().all(|w| *w == widths[0]), "every frame should share the same crop width: {widths:?}");
+    }
+
+    #[test]
+    fn render_html_animated_embeds_every_frame_as_real_json() {
+        let points = vec![Point { position: [3.0, 0.0, 0.0], color: [200, 50, 50] }];
+        let html = render_html_animated(&points, 60, 6, 10.0, "test");
+        assert!(html.contains("const frames ="));
+        assert!(html.contains("setInterval"));
+        // The embedded JSON array should parse back into exactly 6 real strings.
+        let json_start = html.find("const frames = ").unwrap() + "const frames = ".len();
+        let json_end = html[json_start..].find(";\n").unwrap() + json_start;
+        let parsed: Vec<String> = serde_json::from_str(&html[json_start..json_end]).unwrap();
+        assert_eq!(parsed.len(), 6);
     }
 }

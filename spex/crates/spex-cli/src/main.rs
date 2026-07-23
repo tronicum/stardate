@@ -164,6 +164,30 @@ enum Command {
 
         #[arg(long, default_value_t = 100)]
         width: usize,
+
+        /// Play a turntable-orbit ASCII animation instead of one static
+        /// frame — in the terminal, or (with --out) as a self-contained
+        /// animated HTML file.
+        #[arg(long)]
+        animate: bool,
+
+        /// Frames per full orbit, only used with --animate.
+        #[arg(long, default_value_t = 24)]
+        frames: usize,
+
+        /// Playback speed in frames/sec, only used with --animate.
+        #[arg(long, default_value_t = 10.0)]
+        fps: f64,
+
+        /// How many full orbits to play in the terminal before exiting (0 =
+        /// forever, until interrupted). Ignored with --out.
+        #[arg(long, default_value_t = 3)]
+        loops: usize,
+
+        /// Write an animated HTML file here instead of playing in the
+        /// terminal (implies --animate).
+        #[arg(long)]
+        out: Option<PathBuf>,
     },
 
     /// Capture the REAL process tree on this machine (via `ps`) as a
@@ -296,7 +320,7 @@ fn main() -> Result<()> {
         Command::Gallery { dir, port, no_open } => cmd_gallery(&dir, port, !no_open),
         Command::ExportStatic { dir, out } => cmd_export_static(&dir, &out),
         Command::Nav { dir } => nav::run(&dir),
-        Command::Ascii { tileset_dir, width } => cmd_ascii(&tileset_dir, width),
+        Command::Ascii { tileset_dir, width, animate, frames, fps, loops, out } => cmd_ascii(&tileset_dir, width, animate, frames, fps, loops, out),
         Command::PsTree { root, out } => cmd_ps_tree(root, &out),
         Command::PstreeDemo { out } => cmd_pstree_demo(&out),
         Command::BrewDeps { formula, out } => cmd_brew_deps(&formula, &out),
@@ -619,7 +643,22 @@ fn cmd_graph_diff(old: &Path, new: &Path, merge: bool, out: Option<PathBuf>) -> 
     Ok(())
 }
 
-fn cmd_ascii(tileset_dir: &Path, width: usize) -> Result<()> {
+fn cmd_ascii(tileset_dir: &Path, width: usize, animate: bool, frames: usize, fps: f64, loops: usize, out: Option<PathBuf>) -> Result<()> {
+    if let Some(out) = out {
+        let title = out.file_stem().and_then(|s| s.to_str()).unwrap_or("spex demo");
+        let html = ascii::run_html_animated(tileset_dir, width, frames, fps, title)?;
+        if let Some(parent) = out.parent() {
+            if !parent.as_os_str().is_empty() {
+                std::fs::create_dir_all(parent)?;
+            }
+        }
+        std::fs::write(&out, html)?;
+        println!("wrote animated ASCII ({frames} frames) to {}", out.display());
+        return Ok(());
+    }
+    if animate {
+        return ascii::run_animated(tileset_dir, width, frames, fps, loops);
+    }
     print!("{}", ascii::run(tileset_dir, width)?);
     Ok(())
 }
