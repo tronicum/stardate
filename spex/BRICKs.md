@@ -176,19 +176,39 @@ follows naturally:
   structural check run against actual generated output (see
   `spec/README.md`'s note on why this one isn't in the Rust test suite —
   it's a Python-only cache format, no Rust reader exists for it yet).
-- **Next real design step, not yet built:** a full-set "many real parts
-  placed in real 3D space" *assembly* format (as opposed to the
-  hand-written stack `gen_monolith_demo.py` builds today) — sourced from a
-  real LDraw `.ldr` model's own part-placement list, the actual "build
-  instructions" half of the idea, and a much bigger step than reusing
-  already-resolved single-part meshes. Once its shape is settled by real
-  implementation (not speculatively ahead of it), it gets the same
-  `spec/*.schema.json` treatment as everything else here.
-- A full set's real inventory (many elements, each with a real position —
-  from a real LDraw `.ldr` model, not guessed) would extend this to many
-  parts placed in real 3D space relative to each other — the "build
-  instructions" half of the idea, and a much bigger step than the single-
-  brick renderer.
+- **Done: the `spex-brick-scene` format — real assemblies sourced from a
+  real LDraw model file, not hand-written** (see `TODOs.md`'s M44).
+  `unibrick/brickscene.py` parses a real, official LDraw *model* file's own
+  type-1 placement lines directly (`https://library.ldraw.org/library/
+  official/models/car.ldr`/`pyramid.ldr` — real official sample models
+  authored by James Jessiman, LDraw's original creator) into a flat list of
+  real `(part, color, translation, rotation matrix, build-step)`
+  placements — the actual "build instructions" half of this idea, as
+  opposed to `gen_monolith_demo.py`'s hand-written stack. `gen_model_demo.py`
+  resolves each *distinct* referenced part exactly once via
+  `brickmesh.get_or_resolve_mesh` (car.ldr's 61 real placements are only 26
+  distinct real parts) and places each real occurrence at its own real
+  position *and* rotation (`brickmesh.place_mesh` gained real 3x3-matrix
+  support for this — car.ldr genuinely rotates placed parts, e.g. its
+  wheels, not just translates them). `spec/brickscene.schema.json` is the
+  formal spec. **A real, checked licensing caveat**: unlike individual part
+  files (each explicitly `CCAL 2.0`-licensed), ldraw.org's official
+  `models/` sample files carry no such header and the Legal Info page
+  doesn't address them the same way — treated as unconfirmed, not assumed,
+  same as this project's standing rule; see `brickscene.py`'s docstring.
+  **A real forcing case for a genuine rate limit**: resolving car.ldr's 26
+  distinct parts (each needing its own subpart/primitive fetches) via
+  live per-file HTTP requests hit ldraw.org's real HTTP 429 rate limit —
+  fixed two ways: `ldraw.fetch()` now retries with real exponential
+  backoff (same pattern as the Wikipedia-crawl adapter's own 429 fix), and
+  a real, once-off local mirror of the *entire* official library
+  (`complete.zip`, ~136MB, downloaded via `ldraw.download_library_zip()`
+  to the gitignored `.ldraw-cache/`, never committed/uploaded/git-lfs'd)
+  lets `fetch()` read any real file straight out of the local archive with
+  zero network requests at all when it's present.
+- A true mesh/vector renderer (crisp catalog-quality edges, rendering
+  LDraw's real triangle faces directly instead of sampling them into
+  points) is a real, deliberately bigger alternative for later, if the
 - A true mesh/vector renderer (crisp catalog-quality edges, rendering
   LDraw's real triangle faces directly instead of sampling them into
   points) is a real, deliberately bigger alternative for later, if the

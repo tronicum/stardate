@@ -16,7 +16,7 @@ files it actually uses, no matter how many times each is placed.
 import json
 import os
 
-from ldraw import IDENTITY, ZERO, fetch, load_ldraw_colors, part_description, resolve_geometry
+from ldraw import IDENTITY, ZERO, fetch, load_ldraw_colors, mat_vec, part_description, resolve_geometry, vec_add
 
 MESH_VERSION = 1
 ATTRIBUTION = (
@@ -116,23 +116,25 @@ def mesh_triangles(mesh):
     ]
 
 
-def place_mesh(mesh, translation=(0.0, 0.0, 0.0), recolor_to=None):
-    """Places a resolved mesh's triangles at `translation` (a plain vertex
-    offset — a mesh is always stored axis-aligned/untransformed in its own
-    local LDraw frame, so placement here is only ever a translation, not a
-    full matrix; rotating a placed part is a real future extension, not
-    needed by anything built so far). If `recolor_to` is given, any
-    triangle whose color is the mesh's own `requestedColorCode` (i.e. was
-    LDraw color 16, "inherit the part's overall color," at resolve time) is
+def place_mesh(mesh, translation=(0.0, 0.0, 0.0), matrix=IDENTITY, recolor_to=None):
+    """Places a resolved mesh's triangles at `translation`/`matrix` — a
+    mesh is always stored axis-aligned/untransformed in its own local
+    LDraw frame, so a real placement (from a hand-written stack like
+    `gen_monolith_demo.py`, or a real scene's own type-1 placement line
+    like `brickscene.py`'s) is just this same real transform applied to
+    every already-resolved vertex, real matrix included (a real .ldr
+    model routinely rotates placed parts — see e.g. car.ldr's wheels —
+    not just translates them). If `recolor_to` is given, any triangle
+    whose color is the mesh's own `requestedColorCode` (i.e. was LDraw
+    color 16, "inherit the part's overall color," at resolve time) is
     remapped to the new color — a real, honest approximation: it recolors
     whatever was "the part's own color," and leaves any genuinely
     fixed/accent-colored triangles (a minority on most simple parts) alone,
     rather than fabricating a full re-resolve against a different color."""
-    tx, ty, tz = translation
     base_code = mesh["requestedColorCode"]
     placed = []
     for verts, code in mesh_triangles(mesh):
-        moved = tuple((x + tx, y + ty, z + tz) for x, y, z in verts)
+        moved = tuple(vec_add(mat_vec(matrix, v), translation) for v in verts)
         out_code = recolor_to if (recolor_to is not None and code == base_code) else code
         placed.append((moved, out_code))
     return placed

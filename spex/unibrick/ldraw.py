@@ -9,10 +9,16 @@ it.
 """
 import math
 import os
+import sys
+import time
+import urllib.error
 import urllib.request
+import zipfile
 
 LDRAW_BASE = "https://library.ldraw.org/library/official"
+LIBRARY_ZIP_URL = "https://library.ldraw.org/library/updates/complete.zip"
 CACHE_DIR = os.path.join(os.path.dirname(__file__), ".ldraw-cache")
+LIBRARY_ZIP_PATH = os.path.join(CACHE_DIR, "complete.zip")
 USER_AGENT = "spex-demo/1.0 (educational project, github.com/tronicum/stardate)"
 
 LDU_TO_MM = 0.4  # real LDraw unit conversion, see BRICKs.md
@@ -20,20 +26,89 @@ LDU_TO_MM = 0.4  # real LDraw unit conversion, see BRICKs.md
 IDENTITY = (1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
 ZERO = (0.0, 0.0, 0.0)
 
+_library_zip = None
+_library_zip_checked = False
 
-def fetch(path):
-    """Fetches one real file from ldraw.org's official library, cached
-    locally under unibrick/.ldraw-cache/ so repeated runs (and the multi-file
-    recursive resolution below) don't re-fetch the same primitive file
-    dozens of times in one run."""
+
+def _get_library_zip():
+    """Lazily opens the real, official full-library archive
+    (`complete.zip`, ~136MB, real current official LDraw parts+models
+    library) if it's been downloaded locally to `LIBRARY_ZIP_PATH` — see
+    `download_library_zip()`. Not committed to the repo (gitignored, same
+    as the rest of `.ldraw-cache/`) and never uploaded anywhere; purely a
+    local shortcut so a real multi-part model (dozens of distinct file
+    fetches — parts, their subparts, their shared primitives) doesn't have
+    to round-trip the network per file and risk ldraw.org's real rate
+    limit, which a per-file fetch loop genuinely hit during this module's
+    own development."""
+    global _library_zip, _library_zip_checked
+    if not _library_zip_checked:
+        _library_zip_checked = True
+        if os.path.exists(LIBRARY_ZIP_PATH):
+            _library_zip = zipfile.ZipFile(LIBRARY_ZIP_PATH)
+    return _library_zip
+
+
+def download_library_zip():
+    """Downloads the real, official `complete.zip` once to
+    `LIBRARY_ZIP_PATH`. Not run automatically by `fetch()` — an explicit
+    one-time step (run this directly, or `python3 -c "import ldraw;
+    ldraw.download_library_zip()"`), since it's a real ~136MB transfer, not
+    something to trigger silently as a side effect of resolving one part."""
+    global _library_zip, _library_zip_checked
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    req = urllib.request.Request(LIBRARY_ZIP_URL, headers={"User-Agent": USER_AGENT})
+    with urllib.request.urlopen(req, timeout=120) as resp:
+        with open(LIBRARY_ZIP_PATH, "wb") as f:
+            while True:
+                chunk = resp.read(1 << 20)
+                if not chunk:
+                    break
+                f.write(chunk)
+    _library_zip = None
+    _library_zip_checked = False  # force _get_library_zip() to re-open the freshly downloaded file
+
+
+def fetch(path, retries=6):
+    """Fetches one real file, preferring the local full-library mirror
+    (see `_get_library_zip`) when it's present — zero network requests,
+    zero rate-limit risk — falling back to a real per-file HTTP fetch
+    (retried with exponential backoff on a real HTTP 429 — the same class
+    of issue already hit and fixed for Wikipedia's API, see
+    `scripts/gen_wikipedia_crawl.py`) only for whatever isn't in the
+    mirror (or if it was never downloaded at all). Either way, the result
+    is cached locally under `unibrick/.ldraw-cache/` at the same per-file
+    path, so a later run doesn't care which source last answered it."""
     cache_path = os.path.join(CACHE_DIR, path)
     if os.path.exists(cache_path):
         with open(cache_path) as f:
             return f.read()
-    url = f"{LDRAW_BASE}/{path}"
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        text = resp.read().decode("utf-8", errors="replace")
+
+    zip_file = _get_library_zip()
+    text = None
+    if zip_file is not None:
+        try:
+            with zip_file.open(f"ldraw/{path}") as f:
+                text = f.read().decode("utf-8", errors="replace")
+        except KeyError:
+            pass  # not in this snapshot of the official mirror - fall through to a live fetch
+
+    if text is None:
+        url = f"{LDRAW_BASE}/{path}"
+        req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        for attempt in range(retries):
+            try:
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    text = resp.read().decode("utf-8", errors="replace")
+                break
+            except urllib.error.HTTPError as e:
+                if e.code == 429 and attempt < retries - 1:
+                    wait = 2**attempt
+                    print(f"  {path!r}: HTTP 429 (rate limited), retrying in {wait}s...", file=sys.stderr)
+                    time.sleep(wait)
+                    continue
+                raise
+
     os.makedirs(os.path.dirname(cache_path), exist_ok=True)
     with open(cache_path, "w") as f:
         f.write(text)
