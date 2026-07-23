@@ -9,11 +9,42 @@ re-run any time — fully regenerates the file from scratch.
 """
 import json
 import os
+import random
 import sys
 from math import asin, cos, radians, sin, sqrt
 
 EARTH_RADIUS_KM = 6371.0
 HOPS_PER_EDGE = 2
+
+# "Deutsche Bahn mode" (--deutsche-bahn): purely for fun, layered on top of
+# the same per-hop structure above — simulated delays/cancellations, *not*
+# real train data (there's no real German rail API being hit here, unlike
+# the real coordinates/haversine distances everywhere else in this file).
+# Fixed seed so a given run is reproducible, not different every time.
+DB_SEED = 42
+DB_ON_TIME_CHANCE = 0.70
+DB_DELAYED_CHANCE = 0.20
+# remaining probability mass (0.10) is "cancelled"
+
+
+def db_status(rng):
+    """Returns (metric_multiplier, status_label, note) for one hop, purely
+    for fun — not real train data."""
+    roll = rng.random()
+    if roll < DB_ON_TIME_CHANCE:
+        return 1.0, "on time", "Deutsche Bahn mode: simulated, not real train data"
+    if roll < DB_ON_TIME_CHANCE + DB_DELAYED_CHANCE:
+        delay_min = rng.randint(3, 45)
+        return (
+            1.0 + delay_min / 15.0,
+            f"delayed +{delay_min} min",
+            "Deutsche Bahn mode: simulated delay, not a real train report",
+        )
+    return (
+        rng.uniform(6.0, 12.0),
+        "CANCELLED - replacement bus dispatched",
+        "Deutsche Bahn mode: simulated cancellation, not a real train report",
+    )
 
 
 def haversine_km(a, b):
@@ -41,7 +72,7 @@ CITIES = [
 ]
 
 
-def build_nodes():
+def build_nodes(rng=None):
     nodes = []
     prev_id = None
     prev = CITIES[0]
@@ -75,35 +106,47 @@ def build_nodes():
             hop_id = f"{prev_id}-{city_id}-hop{i + 1}"
             hop_lat, hop_lon = points[i + 1]
             hop_latency = latency_ms * (leg_km[i] / total_km) if total_km > 0 else 0.0
+            metadata = {
+                "lat": round(hop_lat, 4),
+                "lon": round(hop_lon, 4),
+                "distanceKm": round(leg_km[i], 1),
+                "hostname": f"rtr-{prev_id}-{city_id}-{i + 1}.example.net",
+                "ip": f"10.{(hash(hop_id) % 200) + 10}.{(hash(hop_id + 'b') % 200) + 10}.{i + 1}",
+                "note": "fabricated router hostname/IP for demo purposes; position interpolated along a straight lat/lon path (not the true great circle); latency is illustrative, not measured",
+            }
+            if rng is not None:
+                multiplier, status, db_note = db_status(rng)
+                hop_latency *= multiplier
+                metadata["status"] = status
+                metadata["note"] = db_note
             nodes.append({
                 "id": hop_id,
                 "label": f"hop {i + 1} ({prev[1]} -> {label})",
                 "parent": last_id,
                 "metric": round(hop_latency, 2),
-                "metadata": {
-                    "lat": round(hop_lat, 4),
-                    "lon": round(hop_lon, 4),
-                    "distanceKm": round(leg_km[i], 1),
-                    "hostname": f"rtr-{prev_id}-{city_id}-{i + 1}.example.net",
-                    "ip": f"10.{(hash(hop_id) % 200) + 10}.{(hash(hop_id + 'b') % 200) + 10}.{i + 1}",
-                    "note": "fabricated router hostname/IP for demo purposes; position interpolated along a straight lat/lon path (not the true great circle); latency is illustrative, not measured",
-                },
+                "metadata": metadata,
             })
             last_id = hop_id
 
         final_leg_km = leg_km[-1]
         final_latency = latency_ms * (final_leg_km / total_km) if total_km > 0 else latency_ms
+        final_metadata = {
+            "lat": lat,
+            "lon": lon,
+            "distanceKm": round(final_leg_km, 1),
+            "note": "real haversine distance for this final leg; latency is illustrative, not measured",
+        }
+        if rng is not None:
+            multiplier, status, db_note = db_status(rng)
+            final_latency *= multiplier
+            final_metadata["status"] = status
+            final_metadata["note"] = db_note
         nodes.append({
             "id": city_id,
             "label": label,
             "parent": last_id,
             "metric": round(final_latency, 2),
-            "metadata": {
-                "lat": lat,
-                "lon": lon,
-                "distanceKm": round(final_leg_km, 1),
-                "note": "real haversine distance for this final leg; latency is illustrative, not measured",
-            },
+            "metadata": final_metadata,
         })
         prev = (city_id, label, lat, lon, latency_ms)
         prev_id = city_id
@@ -112,11 +155,19 @@ def build_nodes():
 
 
 def main():
-    out_path = sys.argv[1] if len(sys.argv) > 1 else "demos/traveling-salesman/graph.json"
+    args = sys.argv[1:]
+    deutsche_bahn = "--deutsche-bahn" in args
+    args = [a for a in args if a != "--deutsche-bahn"]
+    out_path = args[0] if args else "demos/traveling-salesman/graph.json"
+
+    rng = random.Random(DB_SEED) if deutsche_bahn else None
+    title = "traveling-salesman demo: Neuss -> Hamburg -> Kiel -> Berlin -> Sonneberg -> Bayreuth -> Tegernsee (with simulated intermediate hops)"
+    if deutsche_bahn:
+        title += " -- Deutsche Bahn mode: simulated delays & cancellations, for fun, not real train data"
     graph = {
-        "title": "traveling-salesman demo: Neuss -> Hamburg -> Kiel -> Berlin -> Sonneberg -> Bayreuth -> Tegernsee (with simulated intermediate hops)",
+        "title": title,
         "metric_label": "simulated one-way latency (ms) - illustrative, not measured",
-        "nodes": build_nodes(),
+        "nodes": build_nodes(rng),
     }
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     with open(out_path, "w") as f:

@@ -121,8 +121,20 @@ if command -v python3 >/dev/null 2>&1; then
   else
     note "skipped (generation failed — see message above)"
   fi
+
+  note "Same route, for fun: 'Deutsche Bahn mode' — simulated random delays"
+  note "and cancellations (fixed seed, reproducible) layered on top. Not"
+  note "real train data."
+  say "-> deutsche-bahn"
+  mkdir -p demos/deutsche-bahn
+  if python3 scripts/gen_traveling_salesman.py demos/deutsche-bahn/graph.json --deutsche-bahn; then
+    "$BIN" graph-layout demos/deutsche-bahn/graph.json -o demos/deutsche-bahn/tileset >/dev/null
+    note "ready: spex serve demos/deutsche-bahn/tileset"
+  else
+    note "skipped (generation failed — see message above)"
+  fi
 else
-  note "no python3 found — skipping the traveling-salesman example"
+  note "no python3 found — skipping the traveling-salesman/deutsche-bahn examples"
 fi
 
 if command -v python3 >/dev/null 2>&1; then

@@ -17,3 +17,6 @@
 # OS / editor cruft
 .DS_Store
 *.swp
+
+# Python cache (scripts/gen_*.py)
+__pycache__/
