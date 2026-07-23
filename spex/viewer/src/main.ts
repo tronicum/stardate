@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { fetchTileset, fetchNodePoints, fetchNodeLabels, fetchGraphMeta, type Bounds, type NodeLabel } from './tileset';
 import { NodeIndex, selectNodes } from './lod';
-import { buildPrimaryPath } from './packetAnimation';
+import { buildFullSweepPath } from './packetAnimation';
 
 /** In gallery mode (`spex gallery`, or a static export served by e.g. GitHub
  * Pages) each demo lives under `.../d/<name>/`, with its tileset at
@@ -174,10 +174,10 @@ async function main() {
     }
   }
 
-  // Optional: animate a marker traveling along the primary chain (traceroute
-  // hops, journey demos) — absent/no-op for branching trees or plain
-  // point-cloud tilesets with no node labels at all.
-  const packetPath = buildPrimaryPath(nodeLabels);
+  // Optional: animate a marker sweeping the full tree (a real depth-first
+  // traversal, heaviest subtree first) — absent/no-op for plain point-cloud
+  // tilesets with no node labels at all.
+  const packetPath = buildFullSweepPath(nodeLabels);
   const packetSpeed = diag * 0.15; // units/sec — a hop's travel time scales with its real distance
   let packetMesh: THREE.Mesh | null = null;
   let packetSegment = 0;

@@ -1,18 +1,21 @@
 import type { NodeLabel } from './tileset';
 
-/** Follows the tree from its root, at each step taking the child with the
- * highest `metric` (ties keep whichever was found first), until it reaches
- * a leaf. For a chain (every node has at most one child — traceroute hops,
- * journey demos) this is trivially the complete path start-to-end, since
- * there's only one child to pick either way. For a branching tree (a
- * dependency tree, a process tree, ...) this is a real, meaningful choice —
- * "follow the heaviest branch" (e.g. the biggest subtree in a dependency
- * tree) — instead of an arbitrary "whichever happened to come first in
- * nodes.json" pick, which depended on insertion order and had no relation
- * to what the tree's own metric considers important. Still just one branch,
- * not full coverage — a multi-packet DFS sweep is a separate follow-up.
+/** Full depth-first sweep of the tree from its root: at each node, visits
+ * children in descending-`metric` order (heaviest subtree first — same
+ * intent as the old heaviest-branch-only behavior), and after each child's
+ * subtree (except the last) walks back to the current node before moving on
+ * to the next sibling, so every node in the tree is covered, not just one
+ * branch. For a chain (every node has at most one child — traceroute hops,
+ * journey demos) there's never more than one child to return from, so this
+ * produces exactly the same path as following a single branch always did —
+ * no behavior change for any existing chain demo. For a branching tree (a
+ * dependency tree, a process tree, a Wikipedia crawl, ...) the packet now
+ * sweeps the whole tree: down into a subtree, back up to the branch point,
+ * down into the next one, and so on — a real Euler-tour-style traversal,
+ * consecutive entries always a real parent-child edge so each step is a
+ * genuine straight-line hop along the tree, not a random jump.
  * Returns `[]` if there's no root or only one node. */
-export function buildPrimaryPath(nodes: NodeLabel[]): NodeLabel[] {
+export function buildFullSweepPath(nodes: NodeLabel[]): NodeLabel[] {
   if (nodes.length < 2) return [];
 
   const childrenOf = new Map<string, NodeLabel[]>();
@@ -22,24 +25,22 @@ export function buildPrimaryPath(nodes: NodeLabel[]): NodeLabel[] {
     if (siblings) siblings.push(n);
     else childrenOf.set(n.parent, [n]);
   }
+  for (const siblings of childrenOf.values()) {
+    siblings.sort((a, b) => (b.metric ?? -Infinity) - (a.metric ?? -Infinity));
+  }
 
   const root = nodes.find((n) => n.parent === null);
   if (!root) return [];
 
-  const path: NodeLabel[] = [root];
-  const visited = new Set<string>([root.id]);
-  let current = root;
-  for (;;) {
-    const children = childrenOf.get(current.id);
-    if (!children || children.length === 0) break;
-    let next = children[0];
-    for (const child of children) {
-      if ((child.metric ?? -Infinity) > (next.metric ?? -Infinity)) next = child;
+  const path: NodeLabel[] = [];
+  function visit(node: NodeLabel) {
+    path.push(node);
+    const children = childrenOf.get(node.id) ?? [];
+    for (let i = 0; i < children.length; i++) {
+      visit(children[i]);
+      if (i < children.length - 1) path.push(node);
     }
-    if (visited.has(next.id)) break;
-    path.push(next);
-    visited.add(next.id);
-    current = next;
   }
+  visit(root);
   return path.length >= 2 ? path : [];
 }
