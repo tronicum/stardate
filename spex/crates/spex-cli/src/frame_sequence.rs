@@ -1,5 +1,5 @@
 //! `spex frame-sequence` — tiles N real point-cloud files (each one frame of
-//! a real animation, e.g. `unibrick/gen_monolith_assembly.py`'s per-frame
+//! a real animation, e.g. `spex brick-assembly`'s per-frame
 //! `.xyz` snapshots of parts converging into a stacked assembly) into N real
 //! octree tilesets that all share *one* coordinate offset, plus a small
 //! `sequence.json` manifest the viewer can play back — real point clouds

@@ -59,7 +59,7 @@ pub fn build(points: Vec<Point>, out_dir: &Path, config: &TilerConfig) -> Result
 /// instead of always deriving one from this call's own bounding box.
 /// Needed whenever several independently-built tilesets must share one
 /// coordinate frame — e.g. a real multi-frame point-cloud animation (see
-/// `unibrick/gen_monolith_assembly.py`), where each frame is tiled
+/// `spex brick-assembly`), where each frame is tiled
 /// separately but has to line up in the same world space so the viewer
 /// can swap between them without every frame's origin jumping around.
 /// `build` is the common case (`offset_override: None`) and is unaffected.

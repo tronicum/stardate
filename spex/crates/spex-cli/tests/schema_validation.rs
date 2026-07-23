@@ -75,7 +75,7 @@ fn frame_sequence_output_matches_schemas() {
     std::fs::create_dir_all(&dir).unwrap();
 
     // Two tiny real point clouds standing in for two real animation frames
-    // (the same shape unibrick/gen_monolith_assembly.py's own frame files
+    // (the same shape `spex brick-assembly`'s own frame files
     // take) — frame 1 is just frame 0 shifted along x, so a correct shared
     // offset is actually exercised, not just a degenerate zero-shift case.
     let frame0 = dir.join("frame0.xyz");

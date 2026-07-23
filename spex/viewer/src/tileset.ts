@@ -23,7 +23,7 @@ export async function fetchTileset(baseUrl: string): Promise<Tileset> {
   return res.json() as Promise<Tileset>;
 }
 
-/** Written by `spex frame-sequence` (see unibrick/gen_monolith_assembly.py):
+/** Written by `spex frame-sequence` (see `spex brick-assembly`):
  * N real point-cloud tilesets, sharing one coordinate offset, meant to be
  * played back as frames of one real animation — e.g. parts converging into
  * an assembly. `frames` are directory names, each fetchable the normal way

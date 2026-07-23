@@ -100,7 +100,7 @@ function boundsDiagonal(b: Bounds): number {
 
 async function main() {
   // Optional: a real multi-frame point-cloud animation (`spex
-  // frame-sequence`, see unibrick/gen_monolith_assembly.py) instead of one
+  // frame-sequence`, see `spex brick-assembly`) instead of one
   // static tileset — absent for every other demo. When present, `activeBase`
   // points at whichever frame is currently on screen; everything below
   // (fetchTileset/fetchNodePoints/the LOD selector) works completely

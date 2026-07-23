@@ -56,8 +56,9 @@ enum Command {
 
     /// Tile N real point-cloud files (one per animation frame) into a real
     /// multi-tileset sequence that all share one coordinate offset, plus a
-    /// sequence.json manifest — e.g. unibrick/gen_monolith_assembly.py's
-    /// per-frame .xyz snapshots of parts converging into an assembly.
+    /// sequence.json manifest — e.g. real parts converging into an assembly
+    /// (see `spex brick-assembly`, which builds its frames in memory and
+    /// calls this same shared-offset tiling core directly).
     FrameSequence {
         /// Input point-cloud files, in playback order.
         inputs: Vec<PathBuf>,

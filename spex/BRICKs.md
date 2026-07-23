@@ -129,7 +129,7 @@ follows naturally:
   already flagged Rebrickable as the right real source over scraping a
   commercial hobbyist site).
 
-## How this maps onto spex (for later — nothing here is built yet)
+## How this maps onto spex
 
 - **Confirmed: the real vector geometry for the shape already exists — no
   need to model or guess it.** LDraw (ldraw.org) is a real, open,
@@ -237,6 +237,31 @@ follows naturally:
   `brickscene.json` — checked by `crates/spex-cli/tests/schema_validation.rs`
   against real generated output, since this one *is* a real Rust-workspace
   format, not a Python-only cache.
+- **Done: ported the whole pipeline into native Rust, retiring the Python
+  scripts** (see `TODOs.md`'s M46-M50). Everything described above
+  (M40-M45) was real, correct, and verified — but it lived in
+  `unibrick/`'s Python scripts while the rest of spex is 100% Rust. Once
+  asked directly why, the whole fetch/parse/resolve/sample pipeline was
+  ported into a new `crates/spex-ldraw` crate (real blocking HTTP via
+  `ureq`, real zip-mirror reading via `zip`, the same recursive
+  resolution/matrix math/baked-lighting logic, now natively fast and
+  fully unit-tested against synthetic fixtures) plus three first-class
+  CLI verbs — `spex brick-part`, `spex brick-model`, `spex brick-assembly`
+  — wired in exactly like every other adapter (`molecule.rs`'s pattern).
+  Two deliberate simplifications came with the port: the `spex-brick-mesh`/
+  `spex-brick-scene` JSON cache formats were dropped entirely (their whole
+  rationale was avoiding *slow interpreted* repeated resolution — Rust
+  makes that cost negligible, so only the raw-fetch text cache still
+  earns its keep), and the monolith's hand-written stacking code became
+  real, hand-authored LDraw placement data instead
+  (`ldraw-scenes/monolith.ldr`) that the general scene pipeline "just
+  works" on — no bespoke Rust stacking function needed at all. Verified
+  against every real number M40/M41/M44 had already established (1x1
+  brick's 8mm×8mm×11.2mm bounds, car.ldr's 61 placements/26 distinct
+  parts, the monolith's 75.2mm total height) before `unibrick/` and the
+  two JSON schemas were deleted outright — this project's established
+  practice for a superseded implementation once the real one works (see
+  M45's reverted canvas-HTML misstep).
 - A true mesh/vector renderer (crisp catalog-quality edges, rendering
   LDraw's real triangle faces directly instead of sampling them into
   points) is a real, deliberately bigger alternative for later, if the
