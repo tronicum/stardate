@@ -158,18 +158,21 @@ else
 fi
 
 if command -v python3 >/dev/null 2>&1; then
-  note "Real weekly stock closes (Tesla) from a committed data snapshot —"
-  note "see scripts/stock-data/ and scripts/gen_stock_demo.py."
-  say "-> stock-tesla"
-  mkdir -p demos/stock-tesla
-  if python3 scripts/gen_stock_demo.py demos/stock-tesla/graph.json tsla; then
-    "$BIN" graph-layout demos/stock-tesla/graph.json -o demos/stock-tesla/tileset >/dev/null
-    note "ready: spex serve demos/stock-tesla/tileset"
-  else
-    note "skipped (generation failed — see message above)"
-  fi
+  note "Real weekly stock closes (Tesla, Volkswagen, BYD) from committed data"
+  note "snapshots (real Alpha Vantage data, fetched once) — see"
+  note "scripts/stock-data/ and scripts/gen_stock_demo.py."
+  for stock_key in tsla vow3 byd; do
+    say "-> stock-$stock_key"
+    mkdir -p "demos/stock-$stock_key"
+    if python3 scripts/gen_stock_demo.py "demos/stock-$stock_key/graph.json" "$stock_key"; then
+      "$BIN" graph-layout "demos/stock-$stock_key/graph.json" -o "demos/stock-$stock_key/tileset" >/dev/null
+      note "ready: spex serve demos/stock-$stock_key/tileset"
+    else
+      note "skipped (generation failed — see message above)"
+    fi
+  done
 else
-  note "no python3 found — skipping the stock-price example"
+  note "no python3 found — skipping the stock-price examples"
 fi
 
 CHINOOK_URL="https://github.com/lerocha/chinook-database/raw/master/ChinookDatabase/DataSources/Chinook_Sqlite.sqlite"
