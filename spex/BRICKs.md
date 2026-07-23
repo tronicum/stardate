@@ -1,14 +1,25 @@
 # BRICKs.md — interlocking-brick domain glossary
 
 Shared vocabulary for a planned future milestone: rendering real
-Klemmbaustein/LEGO-compatible bricks (starting from the simplest possible
-case, a 1×1 plate) as voxel-filled point clouds through spex's existing
-point-cloud pipeline, sourced from [Rebrickable](https://rebrickable.com)'s
-real, open parts data — later, maybe, full build instructions. Not
-implemented yet; this is the terminology the design/planning conversation
-and any future code should agree on, so "brick", "plate", "stud", "element",
-etc. all mean one specific real thing, not whatever seemed reasonable at
-the time.
+Klemmbaustein-compatible bricks (starting from the simplest possible case, a
+1×1 plate) as voxel-filled point clouds through spex's existing point-cloud
+pipeline, sourced from [Rebrickable](https://rebrickable.com)'s real, open
+parts data and [LDraw](https://ldraw.org)'s real vector geometry — later,
+maybe, full build instructions. Not implemented yet; this is the
+terminology the design/planning conversation and any future code should
+agree on, so "brick", "plate", "stud", "element", etc. all mean one specific
+real thing, not whatever seemed reasonable at the time.
+
+**A note on naming.** This project deliberately avoids the trademarked
+brand name in code, commands, and prose — "Klemmbaustein" (the real,
+long-established generic German term for interlocking building bricks) is
+the default. When a fun, more acronym-friendly English name is wanted, this
+project's own callback is the backronym **L.E.G.O. — "Local Evolved Great
+Objects"** (or, in German, "**L**okale **E**rzeugte **G**ute **O**bjekte"):
+it spells out the familiar brand's letters as a wink without using the mark
+itself. Not a strict rule for every identifier (CLI commands should stay
+plain and short, e.g. a future `spex brick`, not `spex lego`) — just the
+project's shared in-joke and prose convention whenever a name is needed.
 
 Real terms only, sourced from the actual LEGO/AFOL/BrickLink/LDraw/
 Rebrickable community's own long-established usage — nothing here is
@@ -120,16 +131,36 @@ follows naturally:
 
 ## How this maps onto spex (for later — nothing here is built yet)
 
-- A single real part (e.g. the smallest case: a 1×1 plate, part number and
-  color pulled live from Rebrickable) becomes a small voxel-filled point
-  cloud — one real stud-pitch/LDU-derived grid cell's worth of points per
-  occupied voxel, colored by the part's real color ID — fed through the
-  *existing* point-cloud pipeline (`spex convert`/`spex serve`), not the
-  graph pipeline (a brick's shape is a solid volume, not a tree).
+- **Confirmed: the real vector geometry for the shape already exists — no
+  need to model or guess it.** LDraw (ldraw.org) is a real, open,
+  actively-maintained library with a precise triangle-mesh `.dat` file for
+  essentially every officially-released part (new parts added within weeks
+  of release), used as the actual backbone of every major unofficial LEGO
+  CAD tool (BrickLink's own Studio, LDCad, LeoCAD, MLCad). Rebrickable's own
+  part numbering is closely aligned with LDraw's IDs, so "look up a part in
+  Rebrickable's real API" → "load the matching real LDraw `.dat` file" is
+  the intended, well-trodden path, not something to reverse-engineer.
+  License terms should be re-checked directly at ldraw.org before any real
+  redistribution, rather than assumed.
+- **The plan: real vector geometry in, point cloud out.** Rather than
+  choosing point-cloud *or* mesh permanently, use the real LDraw mesh as
+  the accurate source of truth for a part's shape, then *sample its surface*
+  into points (spex's existing octree/LOD pipeline only knows how to render
+  points, by design — this reuses it unchanged rather than teaching the
+  viewer a second, mesh-based rendering mode). A single real part (e.g. the
+  smallest case, a 1×1 plate) becomes one small real-surface-sampled point
+  cloud, fed through the *existing* point-cloud pipeline (`spex convert`/
+  `spex serve`), not the graph pipeline (a brick's shape is a solid volume,
+  not a tree).
 - A full set's real inventory (many elements, each with a real position —
   from a real LDraw `.ldr` model, not guessed) would extend this to many
   parts placed in real 3D space relative to each other — the "build
   instructions" half of the idea, and a much bigger step than the single-
   brick renderer.
+- A true mesh/vector renderer (crisp catalog-quality edges, rendering
+  LDraw's real triangle faces directly instead of sampling them into
+  points) is a real, deliberately bigger alternative for later, if the
+  point-cloud look ever feels too soft for what's wanted — a genuine second
+  rendering mode alongside the point pipeline, not a small addition.
 - Real geometry only: no fabricated brick shapes or invented color IDs —
   the same standing rule as every other spex demo.
