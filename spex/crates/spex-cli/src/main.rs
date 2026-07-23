@@ -4,6 +4,7 @@ mod cargo_deps;
 mod deb_deps;
 mod disk_usage;
 mod export_static;
+mod graph_diff;
 mod nav;
 mod npm_deps;
 mod ps_tree;
@@ -86,6 +87,12 @@ enum Command {
     /// Print a spex-graph JSON file as a human-readable ASCII tree in the
     /// terminal (the "terminal view" — labels, metrics, and metadata inline).
     GraphPrint { graph: PathBuf },
+
+    /// Compare two spex-graph JSON captures of the same kind of tree by node
+    /// id — which nodes appeared, disappeared, or changed metric (e.g. two
+    /// `ps-tree` snapshots a few seconds apart, or `disk-usage` before/after
+    /// a build). Prints to the terminal, no new file written.
+    GraphDiff { old: PathBuf, new: PathBuf },
 
     /// List available demos (subdirectories of `demos/` containing a
     /// graph.json), showing the terminal/web view command for each — so you
@@ -253,6 +260,7 @@ fn main() -> Result<()> {
         Command::Trace { host, out } => cmd_trace(&host, &out),
         Command::GraphLayout { graph, out } => cmd_graph_layout(&graph, &out),
         Command::GraphPrint { graph } => cmd_graph_print(&graph),
+        Command::GraphDiff { old, new } => cmd_graph_diff(&old, &new),
         Command::Demos { dir } => cmd_demos(&dir),
         Command::Gallery { dir, port, no_open } => cmd_gallery(&dir, port, !no_open),
         Command::ExportStatic { dir, out } => cmd_export_static(&dir, &out),
@@ -519,6 +527,11 @@ struct GraphMeta {
 fn cmd_graph_print(graph_path: &Path) -> Result<()> {
     let graph = Graph::read_json(graph_path)?;
     print!("{}", spex_graph::format_tree(&graph));
+    Ok(())
+}
+
+fn cmd_graph_diff(old: &Path, new: &Path) -> Result<()> {
+    print!("{}", graph_diff::run(old, new)?);
     Ok(())
 }
 

@@ -33,6 +33,7 @@ See `CLAUDE.md` for how the pieces fit together.
 - **M26 — `spex nav` real ANSI-colored detail view** ✅ done: real terminal truecolor via the `ansi-to-tui` crate, verified with a direct cell-color assertion and a real tmux pty session
 - **M27 — Packet follows the heaviest branch, not an arbitrary one** ✅ done: fixes a real user-reported oddity on `neovim-deps` (packet stuck at "hop 1/1", a dead-end leaf) — `buildPrimaryPath()` now follows the highest-metric child at each branch instead of whichever came first in `nodes.json`
 - **M28 — npm dependency adapter** ✅ done: `spex npm-deps` parses real `npm ls --json` output (structured JSON, not tree-art scraping), dogfooded on `viewer/`'s own `package-lock.json` (96 real packages)
+- **M29 — `spex graph-diff`** ✅ done: terminal-only diff between two `graph.json` captures (added/removed/changed by node id) — smallest real slice of the diff/temporal idea, verified against two real `ps-tree` snapshots
 
 ## Demo data provenance
 
@@ -118,7 +119,7 @@ Apply this standard to new demos by default (stock-price, Kevin Bacon movie-cast
 - [ ] Consider actually removing the point-trail edge points now that real lines exist (`spex-graph::layout`'s `scatter_edge`) — bigger/riskier change (every existing demo's tileset point count depends on it, tests assert exact counts), deliberately not done yet; real lines were added *alongside* them instead
 - [ ] More package-manager adapters (apt) — same shape as `brew-deps`/`cargo-deps`/`npm-deps`
 - [ ] DAG/shared-dependency merging — `Graph` is tree-only today, so a package used by two things gets duplicated instead of merged
-- [ ] Diff/temporal mode — re-run an adapter later and visualize what changed (traceroute path drift, process churn)
+- [ ] Diff/temporal mode, viewer half — `spex graph-diff` (terminal-only, below) does the comparison; visualizing it in the browser (e.g. color-coding added/removed/changed nodes, or the "morph between two graph states" idea above) is still open
 - [ ] Real ICMP raw-socket probing for `trace` (needs sudo/capabilities — using UDP traceroute today)
 - [ ] ASCII renderer improvement idea, only if it's a genuine improvement: https://github.com/1480c1/aalib (classic AAlib) — worth a look at whether it offers real 3D ASCII support beyond what `spex ascii`'s pinhole-camera-projection-plus-luminance-ramp already does; not adopted yet, just a lead to evaluate
 
