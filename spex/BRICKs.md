@@ -1,0 +1,135 @@
+# BRICKs.md — interlocking-brick domain glossary
+
+Shared vocabulary for a planned future milestone: rendering real
+Klemmbaustein/LEGO-compatible bricks (starting from the simplest possible
+case, a 1×1 plate) as voxel-filled point clouds through spex's existing
+point-cloud pipeline, sourced from [Rebrickable](https://rebrickable.com)'s
+real, open parts data — later, maybe, full build instructions. Not
+implemented yet; this is the terminology the design/planning conversation
+and any future code should agree on, so "brick", "plate", "stud", "element",
+etc. all mean one specific real thing, not whatever seemed reasonable at
+the time.
+
+Real terms only, sourced from the actual LEGO/AFOL/BrickLink/LDraw/
+Rebrickable community's own long-established usage — nothing here is
+invented for this project. Where an exact number matters for rendering
+(measurements, real part/color IDs), treat this doc as a *starting
+reference*, not the source of truth — pull the authoritative current value
+from Rebrickable's real API at generation time, the same "real data, not a
+fabricated number" rule the rest of `TODOs.md` already holds every demo to.
+
+## Community & culture terms
+
+- **AFOL** — Adult Fan Of LEGO. The general term for adult hobbyists/
+  collectors, as distinct from:
+- **TFOL** / **KFOL** — Teen / Kid Fan Of LEGO.
+- **MOC** — My Own Creation: an original build, not an official LEGO set.
+- **Kitbashing** — building a MOC using parts scavenged from multiple
+  official sets rather than parts bought individually.
+- **Dark Ages** — the period (often years) an AFOL stops actively
+  building/collecting after childhood; "coming out of the Dark Ages" is a
+  real, commonly used phrase for resuming as an adult.
+- **Sig fig** — an AFOL's "signature figure": a customized minifigure used
+  to represent themselves in photos/MOCs.
+- **Clutch power** — the actual physical grip strength between a stud and
+  an anti-stud tube; the entire system's defining engineering property
+  (real, molded to extremely tight tolerances — this is *why* the parts
+  interlock at all, not just a figure of speech).
+- **Legal** vs. **illegal** build/connection — a "legal" connection loads
+  studs/tubes/clips the way LEGO's own engineering intends (won't stress or
+  warp parts over time); an "illegal" connection (e.g. forcing a stud into
+  a non-matching gap, off-grid angles) works today but risks part damage or
+  loosening over years — a real, meaningful distinction in the community,
+  not just informal slang.
+- **SNOT** — Studs Not On Top: a building technique/aesthetic where a
+  surface is built sideways or with tiles so no studs show, versus the
+  default "studs visible" look.
+- **Greebling** / **greeble** — adding small, often nonfunctional detail
+  parts (technic pieces, small bricks) purely for visual texture/detail.
+- **BURP** — Big Ugly Rock Piece: informal, widely-used term for a large
+  single molded rock/boulder part, since it's a big "cheat" piece rather
+  than built from smaller bricks.
+- **Polybag** — a small set sold in a plastic bag rather than a box, often
+  a promotional/exclusive item.
+- **GWP** — Gift With Purchase: a promotional set/part given free above a
+  spend threshold, not sold on its own.
+- **PAB** — Pick A Brick: LEGO's real per-part (not per-set) retail
+  program/wall, sold by individual real part+color combination.
+
+## Real geometry & measurement terms
+
+- **Stud** — the cylindrical nub on a part's top surface.
+- **Anti-stud** / **tube** — the hollow cylindrical socket on a part's
+  underside that a stud clutches into.
+- **Stud pitch** — the real, fixed center-to-center spacing between studs:
+  **8.0 mm**. This is the single number the entire system's grid is built
+  from — every part's footprint is a whole or half multiple of it.
+- **Brick** vs. **plate** vs. **tile** — three real, standardized heights,
+  not just casual size categories:
+  - **Plate** height: **3.2 mm** (1 plate = 1/3 of a brick).
+  - **Brick** height: **9.6 mm** (= 3 plates stacked).
+  - **Tile**: a plate-height part with **no studs on top** (smooth finish),
+    used for SNOT/finished-surface builds.
+- **LDU** (LDraw Unit) — the internal unit LDraw-format files use:
+  **1 LDU = 0.4 mm**. So a stud pitch is 20 LDU, a plate is 8 LDU tall, a
+  brick is 24 LDU tall. Any voxel-grid generator working from real LDraw
+  `.dat` geometry needs to convert through this, not invent its own grid
+  unit.
+- **Nominal size** (e.g. "2×4", "1×1") — width × length in studs; height is
+  implied by whether it's a brick/plate/tile, not part of the nominal name.
+- **Jumper plate** — a plate whose studs are offset by a half-unit from its
+  own footprint grid, used to break the default half-stud alignment.
+- **Slope**, **wedge**, **arch**, **cheese slope** — real named part-shape
+  families (not bricks/plates at all) used as actual category names in
+  Rebrickable/BrickLink's own part taxonomy.
+- **Technic** — the pin-and-axle-based sub-system (round cross-sections,
+  functional connections), distinct from the stud-based **System** line and
+  from **Duplo** (System's larger-scale, younger-child-oriented sibling
+  line) — three real, separate LEGO product-line families, not marketing
+  fluff.
+
+## Rebrickable / LDraw / BrickLink data terms
+
+These matter specifically because a future generator would pull real data
+through them — get the vocabulary right here and the code that consumes it
+follows naturally:
+
+- **Part number** (a.k.a. **design ID**) — identifies a part's *mold/shape*
+  only, independent of color (e.g. the mold for a 1×1 brick).
+- **Color ID** — Rebrickable/BrickLink/LDraw each keep their own real,
+  numbered color palettes (and a mapping between them) — "color" is a
+  first-class, separately-identified real attribute, not a free-text field.
+- **Element ID** — identifies one specific real *part-number + color-ID*
+  combination as actually molded/sold — the thing that has a real physical
+  SKU, not just a shape.
+- **Set number** — identifies an official released product (a real box of
+  parts); a set's real "inventory" is its list of (element ID, quantity)
+  pairs.
+- **LDraw** — the open, real, community-maintained CAD format/standard for
+  LEGO-compatible digital models (`.ldr` model files referencing `.dat`
+  part-primitive files, one real `.dat` per real part mold). This is the
+  actual real geometry source a voxel-fill generator would read from, not
+  something to reverse-engineer from images.
+- **Rebrickable's REST API** (`/api/v3/lego/parts/`, `/colors/`, `/sets/`,
+  `/minifigs/`, ...) — the real, open, documented data source this
+  project's future milestone is meant to build against, in the same
+  "real, public, no ToS ambiguity" category as the Big Mac Index or Alpha
+  Vantage (see `TODOs.md`'s existing LEGO-price-history entry, which
+  already flagged Rebrickable as the right real source over scraping a
+  commercial hobbyist site).
+
+## How this maps onto spex (for later — nothing here is built yet)
+
+- A single real part (e.g. the smallest case: a 1×1 plate, part number and
+  color pulled live from Rebrickable) becomes a small voxel-filled point
+  cloud — one real stud-pitch/LDU-derived grid cell's worth of points per
+  occupied voxel, colored by the part's real color ID — fed through the
+  *existing* point-cloud pipeline (`spex convert`/`spex serve`), not the
+  graph pipeline (a brick's shape is a solid volume, not a tree).
+- A full set's real inventory (many elements, each with a real position —
+  from a real LDraw `.ldr` model, not guessed) would extend this to many
+  parts placed in real 3D space relative to each other — the "build
+  instructions" half of the idea, and a much bigger step than the single-
+  brick renderer.
+- Real geometry only: no fabricated brick shapes or invented color IDs —
+  the same standing rule as every other spex demo.
