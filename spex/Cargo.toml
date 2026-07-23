@@ -6,6 +6,7 @@ members = [
     "crates/spex-tiler",
     "crates/spex-server",
     "crates/spex-graph",
+    "crates/spex-ldraw",
     "crates/spex-cli",
 ]
 
@@ -19,6 +20,7 @@ spex-io = { path = "crates/spex-io" }
 spex-tiler = { path = "crates/spex-tiler" }
 spex-server = { path = "crates/spex-server" }
 spex-graph = { path = "crates/spex-graph" }
+spex-ldraw = { path = "crates/spex-ldraw" }
 anyhow = "1"
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }
