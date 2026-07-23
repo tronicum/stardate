@@ -25,7 +25,7 @@ Viewer (`viewer/`, TypeScript, embedded into the Rust binary at compile time):
 - `cd viewer && npm run build` — typechecks then builds to `viewer/dist/`. **You must rebuild the Rust workspace after this** (`cargo build --release`) to pick up the new bundle — `spex-server` embeds `viewer/dist` via `rust-embed` at Rust compile time, not at runtime.
 - `vite` is pinned to `^5` (not the current major) for compatibility with older Node versions — check `viewer/package.json` before bumping it.
 
-Point cloud pipeline (literal point clouds — `.ply`/`.xyz`/`.csv`/`.txt`):
+Point cloud pipeline (literal point clouds — `.ply`/`.xyz`/`.csv`/`.txt`/`.las`/`.laz`):
 ```
 spex info <file>                          # point count/bounds, no conversion
 spex convert <input> -o <tileset-dir>     # build octree tileset
@@ -58,7 +58,7 @@ Demo artifacts live under `demos/<name>/{graph.json, tileset/}` by convention �
 
 ### Crate layout (`crates/`)
 - **spex-core** — shared primitives: `Point` (position+color), `Aabb`, octree node-id helpers (`"r"`, `"r0"`, `"r03"`, ...). No I/O.
-- **spex-io** — point cloud file readers (hand-rolled PLY ascii/binary_little_endian parser, XYZ/CSV), dispatched by extension in `read_points()`.
+- **spex-io** — point cloud file readers (hand-rolled PLY ascii/binary_little_endian parser, XYZ/CSV, and real LAS/LAZ via the `las` crate — LAZ decompression through its `laz` feature, backed by `laz-rs`, real LASzip, not a stub), dispatched by extension in `read_points()`. A LAS/LAZ point with no real RGB (the common case for airborne LiDAR) falls back to a grayscale shade of its own real `intensity` value rather than a flat fabricated gray.
 - **spex-graph** — the tree/graph abstraction layer, and the one crate every adapter and every view depends on: `Graph` (`title`/`metric_label` describing the whole graph, plus `nodes: Vec<GraphNode>`) / `GraphNode` (`id`/`label`/`parent`/`metric`/`metadata` — trees/forests only, no cycles or multiple parents), `format_tree()` (the terminal ASCII view: header, TTY-aware ANSI-colored tree, summary footer), and `layout::build()` (radial 3D layout → `Vec<Point>` + per-node `LayoutNodeInfo`).
 - **spex-tiler** — builds the octree tileset from a flat `Vec<Point>`, used identically by both pipelines: recursively partitions by bounding-box octant, reservoir-samples a fixed point budget per node for that LOD level, writes non-overlapping `octree/<node-id>.bin` files + a `tileset.json` manifest. `build()` returns the coordinate offset it subtracted — callers with other data in the same original coordinate space (e.g. spex-graph's node centers) need it to stay aligned with the tileset's points. `read_points()` is the read-side counterpart — reads any tileset back into a flat `Vec<Point>` (used by `spex ascii`).
 - **spex-server** — axum server. Single-tileset mode (`build_router`): serves a tileset directory as static files, falls back to the viewer's built assets (embedded via `rust-embed` from `viewer/dist`). Gallery mode (`build_gallery_router`): one static `nest_service` per demo at `/d/<name>/tileset` (the demo set is fixed at startup — no dynamic axum path params needed), a pre-rendered gallery page (plain `format!`-built HTML, no templating dep) at `/`, same viewer-asset fallback for everything else including `/d/<name>/` itself. `render_gallery_html()` and `write_viewer_assets()` are `pub` so `spex-cli`'s `export-static` can reuse them outside a running server — all links/asset paths are relative (`d/<name>/`, `./assets/...`), so the same output works served from a domain root or a subpath (a GitHub Pages project site).
@@ -85,5 +85,5 @@ Recursive radial placement: root at the origin, each depth level a wider/higher 
 Formal JSON Schemas for all four (`graph.json` too) live in `spec/*.schema.json` — see `spec/README.md`.
 
 ## Known limitations
-- No LAS/LAZ input, no out-of-core tiling for point clouds too large for memory, no buffer compression (see `crates/spex-tiler`).
+- No out-of-core tiling for point clouds too large for memory, no buffer compression (see `crates/spex-tiler`). LAS/LAZ input is supported (`crates/spex-io/src/las.rs`), but still loads the whole file into memory like every other format here.
 - `Graph` models trees/forests only — no cycles or shared parents, so `brew-deps` duplicates a package under every branch that depends on it rather than merging it into one node, and `sql-schema` only draws a table's *first* foreign key as its tree parent (additional FKs are still recorded in metadata, just not drawn as a second parent edge).

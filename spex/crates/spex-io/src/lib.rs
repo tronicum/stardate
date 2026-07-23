@@ -1,3 +1,4 @@
+mod las;
 mod ply;
 mod xyz;
 
@@ -7,7 +8,8 @@ use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
-/// Reads a point cloud file, dispatching on extension. Supported: `.ply`, `.xyz`, `.csv`, `.txt`.
+/// Reads a point cloud file, dispatching on extension. Supported: `.ply`,
+/// `.xyz`, `.csv`, `.txt`, `.las`, `.laz`.
 pub fn read_points(path: &Path) -> Result<Vec<Point>> {
     let ext = path
         .extension()
@@ -15,12 +17,19 @@ pub fn read_points(path: &Path) -> Result<Vec<Point>> {
         .map(|e| e.to_ascii_lowercase())
         .unwrap_or_default();
 
+    // .las/.laz need Seek (and their own internal buffering via
+    // `Reader::from_path`), so they read straight from the path rather than
+    // sharing the plain BufRead dispatch below.
+    if ext == "las" || ext == "laz" {
+        return las::read(path);
+    }
+
     let file = File::open(path).with_context(|| format!("opening {}", path.display()))?;
     let reader = BufReader::new(file);
 
     match ext.as_str() {
         "ply" => ply::read(reader),
         "xyz" | "csv" | "txt" => xyz::read(reader),
-        other => bail!("unsupported point cloud format '.{other}' (supported: .ply, .xyz, .csv, .txt)"),
+        other => bail!("unsupported point cloud format '.{other}' (supported: .ply, .xyz, .csv, .txt, .las, .laz)"),
     }
 }

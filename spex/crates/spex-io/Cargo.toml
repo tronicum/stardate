@@ -6,3 +6,4 @@ edition.workspace = true
 [dependencies]
 spex-core = { workspace = true }
 anyhow = { workspace = true }
+las = { version = "0.10", features = ["laz"] }
