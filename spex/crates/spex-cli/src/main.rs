@@ -5,6 +5,7 @@ mod deb_deps;
 mod disk_usage;
 mod export_static;
 mod nav;
+mod npm_deps;
 mod ps_tree;
 mod pstree_demo;
 mod sql_schema;
@@ -200,6 +201,15 @@ enum Command {
         out: PathBuf,
     },
 
+    /// Run `npm ls --json --all` (from the current directory, which must be
+    /// a real npm project with node_modules installed) and write it as a
+    /// spex-graph JSON file: real subtree size (package count) drives color.
+    NpmDeps {
+        /// Output graph JSON path.
+        #[arg(short, long)]
+        out: PathBuf,
+    },
+
     /// Run `du -a -k <path>` and write the real filesystem tree as a
     /// spex-graph JSON file: size in KB drives color. The layout's fan-out
     /// cap keeps huge directories (build output, node_modules, ...) legible.
@@ -253,6 +263,7 @@ fn main() -> Result<()> {
         Command::BrewDeps { formula, out } => cmd_brew_deps(&formula, &out),
         Command::DebDeps { package, out } => cmd_deb_deps(&package, &out),
         Command::CargoDeps { package, out } => cmd_cargo_deps(&package, &out),
+        Command::NpmDeps { out } => cmd_npm_deps(&out),
         Command::DiskUsage { path, out } => cmd_disk_usage(&path, &out),
         Command::SqlSchema { db, out } => cmd_sql_schema(&db, &out),
     }
@@ -397,6 +408,20 @@ fn cmd_cargo_deps(package: &str, out: &Path) -> Result<()> {
     println!("running `cargo tree -p {package}`...");
     let graph = cargo_deps::run(package)?;
     println!("captured {} crates", graph.nodes.len());
+    if let Some(parent) = out.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent)?;
+        }
+    }
+    graph.write_json(out)?;
+    println!("wrote graph to {}", out.display());
+    Ok(())
+}
+
+fn cmd_npm_deps(out: &Path) -> Result<()> {
+    println!("running `npm ls --json --all`...");
+    let graph = npm_deps::run()?;
+    println!("captured {} packages", graph.nodes.len());
     if let Some(parent) = out.parent() {
         if !parent.as_os_str().is_empty() {
             std::fs::create_dir_all(parent)?;

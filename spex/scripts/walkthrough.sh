@@ -6,7 +6,10 @@
 set -uo pipefail
 
 cd "$(dirname "$0")/.."
-BIN=./target/release/spex
+# Absolute, not relative — the npm-deps step below needs to invoke this from
+# inside viewer/ (npm-deps has no directory argument, it operates on the
+# current directory, matching npm's own convention).
+BIN="$(pwd)/target/release/spex"
 
 say() { printf '\n\033[1m%s\033[0m\n' "$1"; }
 note() { printf '  %s\n' "$1"; }
@@ -112,6 +115,22 @@ fi
 note "spex's own real Cargo dependency tree (dogfooding — this project is a"
 note "Rust workspace, so this always works, no extra tool to install)."
 capture spex-graph-deps "$BIN" cargo-deps spex-graph
+
+if [ -d viewer/node_modules ]; then
+  note "The viewer's own real npm dependency tree (dogfooding viewer/'s"
+  note "package-lock.json)."
+  say "-> viewer-npm-deps"
+  mkdir -p demos/viewer-npm-deps
+  if (cd viewer && "$BIN" npm-deps -o "$(pwd)/../demos/viewer-npm-deps/graph.json"); then
+    "$BIN" graph-layout demos/viewer-npm-deps/graph.json -o demos/viewer-npm-deps/tileset >/dev/null
+    note "ready: spex serve demos/viewer-npm-deps/tileset"
+  else
+    note "skipped (generation failed — see message above)"
+  fi
+else
+  note "viewer/node_modules not found (run \`npm install\` in viewer/ first) —"
+  note "skipping the npm dependency-tree example"
+fi
 
 if command -v python3 >/dev/null 2>&1; then
   note "A simulated packet journey Neuss -> Hamburg -> ... -> Tegernsee, with"
