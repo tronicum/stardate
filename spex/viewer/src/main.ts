@@ -47,6 +47,7 @@ async function goToRandomOtherDemo() {
 
 const statusEl = document.getElementById('status') as HTMLDivElement;
 const hudEl = document.getElementById('hud') as HTMLDivElement;
+const debugPanelEl = document.getElementById('debug-panel') as HTMLDivElement;
 const labelsEl = document.getElementById('labels') as HTMLDivElement;
 const pointSizeInput = document.getElementById('pointSize') as HTMLInputElement;
 const pointBudgetInput = document.getElementById('pointBudget') as HTMLInputElement;
@@ -213,6 +214,28 @@ async function main() {
     el.style.display = 'block';
     el.style.left = `${(packetHitProjection.x * 0.5 + 0.5) * window.innerWidth}px`;
     el.style.top = `${(-packetHitProjection.y * 0.5 + 0.5) * window.innerHeight}px`;
+  }
+
+  // A lower-left "debug panel" for complex (chain/packet) demos — a plain-
+  // language readout of what's happening right now, so a viewer doesn't
+  // have to hover a blob or guess to follow along.
+  function updateDebugPanel() {
+    if (!packetMesh || packetPath.length < 2 || !animatePacketInput.checked) {
+      debugPanelEl.style.display = 'none';
+      return;
+    }
+    const a = packetPath[packetSegment];
+    const b = packetPath[packetSegment + 1] ?? packetPath[0];
+    const pct = Math.round(packetT * 100);
+    const lines = [`packet: ${a.label} -> ${b.label}  (${pct}%)`, `hop ${packetSegment + 1}/${packetPath.length - 1}`];
+    const metadata = b.metadata;
+    if (typeof metadata.status === 'string') lines.push(`status: ${metadata.status}`);
+    if (typeof metadata.distanceKm === 'number') lines.push(`distance: ${metadata.distanceKm} km`);
+    if (b.metric != null) {
+      lines.push(graphMeta?.metricLabel ? `${b.metric.toFixed(2)} ${graphMeta.metricLabel}` : b.metric.toFixed(2));
+    }
+    debugPanelEl.textContent = lines.join('\n');
+    debugPanelEl.style.display = 'block';
   }
 
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, Math.max(diag / 10000, 0.001), diag * 10);
@@ -386,6 +409,7 @@ async function main() {
     }
     updatePacket(deltaSeconds);
     updatePacketHitLabel();
+    updateDebugPanel();
     updateHud(fps);
     if (CYCLE_MODE) {
       cycleCountdownEl.textContent = Math.max(0, Math.ceil((cycleDeadline - now) / 1000)).toString();
