@@ -45,7 +45,12 @@ pub fn shade_color(base_rgb: [u8; 3], normal: [f64; 3]) -> [u8; 3] {
     out
 }
 
-fn sample_point_in_triangle(tri: &Triangle, rng: &mut StdRng) -> [f64; 3] {
+/// Picks a real uniform-random point on a triangle's surface (barycentric
+/// sampling) — exposed as a reusable primitive for callers (like an
+/// assembly-animation choreographer) that need to sample a scene's real
+/// surface points *once* and reuse them across many frames, rather than
+/// going through the full `sample_surface` convenience wrapper per frame.
+pub fn sample_point_in_triangle(tri: &Triangle, rng: &mut StdRng) -> [f64; 3] {
     let [v0, v1, v2] = tri.vertices;
     let mut u: f64 = rng.gen();
     let mut v: f64 = rng.gen();

@@ -35,28 +35,45 @@ pub fn run(inputs: &[PathBuf], out_dir: &Path, fps: f64, max_points_per_node: us
     }
 
     let mut per_frame_points: Vec<Vec<Point>> = Vec::with_capacity(inputs.len());
-    let mut global_bounds = Aabb::empty();
     for input in inputs {
         let points =
             spex_io::read_points(input).with_context(|| format!("reading frame {}", input.display()))?;
-        for p in &points {
-            global_bounds.expand(&p.position);
-        }
         per_frame_points.push(points);
     }
-    let shared_offset = global_bounds.min;
 
-    std::fs::create_dir_all(out_dir)?;
     let config = spex_tiler::TilerConfig {
         max_points_per_node,
         max_depth,
     };
+    run_from_frames(per_frame_points, out_dir, fps, &config)
+}
 
-    let mut frame_names = Vec::with_capacity(inputs.len());
-    for (i, points) in per_frame_points.into_iter().enumerate() {
+/// The real shared-offset-tiling core, taking already-in-memory frames
+/// directly rather than file paths — used by `run` above (file-based
+/// `spex frame-sequence`) and by `brick::cmd_brick_assembly` (which
+/// generates its frames in memory via `spex-ldraw`, no intermediate files
+/// at all). See this module's own doc comment for why every frame needs
+/// to share one coordinate offset in the first place.
+pub fn run_from_frames(frames: Vec<Vec<Point>>, out_dir: &Path, fps: f64, config: &spex_tiler::TilerConfig) -> Result<()> {
+    if frames.is_empty() {
+        anyhow::bail!("frame-sequence needs at least one frame");
+    }
+
+    let mut global_bounds = Aabb::empty();
+    for points in &frames {
+        for p in points {
+            global_bounds.expand(&p.position);
+        }
+    }
+    let shared_offset = global_bounds.min;
+
+    std::fs::create_dir_all(out_dir)?;
+
+    let mut frame_names = Vec::with_capacity(frames.len());
+    for (i, points) in frames.into_iter().enumerate() {
         let frame_name = format!("frame-{i:03}");
         let frame_dir = out_dir.join(&frame_name);
-        spex_tiler::build_with_offset(points, &frame_dir, &config, Some(shared_offset))
+        spex_tiler::build_with_offset(points, &frame_dir, config, Some(shared_offset))
             .with_context(|| format!("tiling {frame_name}"))?;
         frame_names.push(frame_name);
     }

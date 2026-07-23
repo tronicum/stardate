@@ -122,6 +122,32 @@ enum Command {
         cache_dir: PathBuf,
     },
 
+    /// Animate any real LDraw scene's placements converging from a real,
+    /// deliberately stylized scattered start into their real final
+    /// positions — a real point-cloud animation (`spex serve` plays it
+    /// back), not a hardcoded special case: any scene `spex brick-model`
+    /// can render, this can animate.
+    BrickAssembly {
+        /// A known model name or a local .ldr file path (see `brick-model`).
+        model: Option<String>,
+
+        #[arg(long, default_value_t = 6_000)]
+        points: usize,
+
+        #[arg(long, default_value_t = 30)]
+        frames: usize,
+
+        #[arg(long, default_value_t = 6.0)]
+        fps: f64,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+
+        /// Local cache directory for fetched real LDraw files.
+        #[arg(long, default_value = ".ldraw-cache")]
+        cache_dir: PathBuf,
+    },
+
     /// Serve a tileset directory and open the browser viewer.
     Serve {
         tileset_dir: PathBuf,
@@ -397,6 +423,14 @@ fn main() -> Result<()> {
             out,
             cache_dir,
         } => cmd_brick_model(model, points, out, &cache_dir),
+        Command::BrickAssembly {
+            model,
+            points,
+            frames,
+            fps,
+            out,
+            cache_dir,
+        } => cmd_brick_assembly(model, points, frames, fps, out, &cache_dir),
         Command::Serve {
             tileset_dir,
             port,
@@ -520,6 +554,32 @@ fn cmd_brick_model(model: Option<String>, points: usize, out: Option<PathBuf>, c
 
     spex_tiler::build(cloud, &out, &spex_tiler::TilerConfig::default())?;
     println!("wrote tileset to {}", out.display());
+    Ok(())
+}
+
+fn cmd_brick_assembly(model: Option<String>, points: usize, frames: usize, fps: f64, out: Option<PathBuf>, cache_dir: &Path) -> Result<()> {
+    let Some(model) = model else {
+        println!("known real official LDraw models (or pass a local .ldr file path):");
+        for name in brick::KNOWN_MODELS {
+            println!("  {name}");
+        }
+        println!("\nusage: spex brick-assembly <name-or-path.ldr> -o <sequence-dir>");
+        return Ok(());
+    };
+    let out = out.context("--out <sequence-dir> is required when animating an assembly")?;
+    let source = brick::resolve_model_source(&model);
+
+    println!("parsing real LDraw scene {model:?}...");
+    let cache = spex_ldraw::LdrawCache::new(cache_dir);
+    let scene = spex_ldraw::parse_scene(&cache, source.as_model_source())?;
+    println!(
+        "sampling {points} real points once across {} real placements, building {frames} real assembly frames...",
+        scene.placements.len()
+    );
+
+    let point_frames = brick::build_assembly_frames(&cache, &scene, points, frames, 1337)?;
+    let config = spex_tiler::TilerConfig::default();
+    frame_sequence::run_from_frames(point_frames, &out, fps, &config)?;
     Ok(())
 }
 
