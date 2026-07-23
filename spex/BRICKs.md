@@ -160,27 +160,30 @@ follows naturally:
   existing pipeline renders unchanged. Verified against real brick
   dimensions and a real headless-Chromium session — see M40 for the
   concrete numbers.
-- **Next real design step, not yet built: a `spex-brick-mesh` intermediate
-  format.** The spike currently does two jobs in one pass — resolving a
-  part's real LDraw geometry, and sampling it into points — every single
-  run, even to just try a different color or point density. Splitting
-  these means resolving a part's real geometry *once* into spex's own
-  simple intermediate format (a flat list of real triangles in real
-  millimeters, a real color reference, and real provenance metadata —
-  source part number, LDraw attribution), then reusing that for both
-  point-cloud sampling *and*, later, a true mesh/vector renderer (below) —
-  both would consume the same resolved data instead of each
-  re-implementing LDraw's real reference-tree resolution.
-- **Once that format exists, it gets a formal spec, same as everything
-  else in this project.** `spec/` already has a JSON Schema for every file
-  spex reads or writes (`graph.schema.json`, `tileset.schema.json`, ...),
-  each validated by a real test against real generated output, not just
-  described in prose (see `spec/README.md`). Any new voxel/brick-specific
-  format — the resolved-mesh intermediate format above, and later a
-  full-set "many real parts placed in real 3D space" assembly format for
-  build-instruction-style rendering — should get exactly the same
-  treatment once its shape is actually decided by real implementation,
-  not speculatively specified ahead of the code that produces it.
+- **Done: the `spex-brick-mesh` intermediate format** (see `TODOs.md`'s
+  M43). The spike originally did two jobs in one pass — resolving a part's
+  real LDraw geometry, and sampling it into points — every single run,
+  even to just try a different color or point density. `unibrick/ldraw.py`
+  (real LDraw fetch/parse), `unibrick/brickmesh.py` (resolve-once cache +
+  placement/recolor), and `unibrick/sampling.py` (point sampling + baked
+  lighting) now split those concerns: a part's real geometry is resolved
+  *once*, cached under `unibrick/.ldraw-cache/meshes/*.json` (real
+  provenance — source part number, part description, LDraw attribution —
+  travels with it), then reused for different colors, point densities, or
+  (see `gen_monolith_demo.py`) multiple placements in an assembly without
+  re-walking LDraw's real reference tree. `spec/brickmesh.schema.json` is
+  the formal spec, `unibrick/brickmesh.py`'s `validate_mesh()` the real
+  structural check run against actual generated output (see
+  `spec/README.md`'s note on why this one isn't in the Rust test suite —
+  it's a Python-only cache format, no Rust reader exists for it yet).
+- **Next real design step, not yet built:** a full-set "many real parts
+  placed in real 3D space" *assembly* format (as opposed to the
+  hand-written stack `gen_monolith_demo.py` builds today) — sourced from a
+  real LDraw `.ldr` model's own part-placement list, the actual "build
+  instructions" half of the idea, and a much bigger step than reusing
+  already-resolved single-part meshes. Once its shape is settled by real
+  implementation (not speculatively ahead of it), it gets the same
+  `spec/*.schema.json` treatment as everything else here.
 - A full set's real inventory (many elements, each with a real position —
   from a real LDraw `.ldr` model, not guessed) would extend this to many
   parts placed in real 3D space relative to each other — the "build

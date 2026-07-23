@@ -7,23 +7,20 @@ see BRICKs.md and TODOs.md's M41 entry for the honest math on why *exact*
 multiple of the real 3.2mm plate height), and the real closest-buildable
 choice this script makes instead.
 
-Reuses every real-geometry function from gen_brick_demo.py (LDraw
-fetch/parse/resolve, shading, surface sampling) rather than duplicating
-them — this script only adds *multiple* real part placements, each
-resolved independently and then merged into one combined point cloud, with
-each part's real position (not just color) also real: a vertical stack
-where each part's Y offset is the real sum of the real heights of every
-part stacked below it, in real LDraw units.
+Reuses every real-geometry function via `brickmesh.py`/`sampling.py` rather
+than duplicating them — and, unlike the first version of this script,
+resolves each *distinct* real part exactly once (via
+`brickmesh.get_or_resolve_mesh`, cached as a `spex-brick-mesh`) no matter
+how many times it's placed in the stack: this 9-part assembly only ever
+resolves 2 real LDraw files (one brick, one plate) over the network, then
+cheaply translates (`brickmesh.place_mesh`) the same resolved geometry into
+each of the 9 real stacked positions.
 """
 import sys
 
-from gen_brick_demo import (
-    IDENTITY,
-    LDU_TO_MM,
-    load_ldraw_colors,
-    resolve_geometry,
-    sample_surface,
-)
+from brickmesh import get_or_resolve_mesh, load_ldraw_colors, place_mesh
+from ldraw import LDU_TO_MM
+from sampling import sample_surface
 
 BRICK_1X4 = "3010.dat"
 PLATE_1X4 = "3710.dat"
@@ -48,11 +45,12 @@ def part_height_ldu(part_file):
 
 
 def resolve_stack(stack, color_code):
-    """Resolves every real part in `stack` (bottom to top) into one
-    combined list of (triangle, color_code), each part's real geometry
-    positioned so its own real bottom surface exactly touches the real top
-    surface of everything stacked below it — a real vertical assembly, not
-    just repeated identical geometry at the origin.
+    """Resolves every *distinct* real part in `stack` exactly once (a
+    `spex-brick-mesh` per part file, reused for every placement of that
+    part), then places each occurrence bottom-to-top so each part's own
+    real bottom surface exactly touches the real top surface of everything
+    stacked below it — a real vertical assembly, not just repeated
+    identical geometry at the origin.
 
     Every real LDraw part here shares the same real local convention (top
     surface, where studs are, at local y=0; bottom surface, the tube
@@ -66,14 +64,15 @@ def resolve_stack(stack, color_code):
     the moment two different part heights (brick vs. plate) were mixed -
     same-height parts (brick-on-brick) happened to stack correctly even
     with the bug, which is why it wasn't caught immediately."""
+    meshes = {part_file: get_or_resolve_mesh(part_file, color_code) for part_file in set(stack)}
     triangles = []
     height_from_base = 0
     for part_file in stack:
         h = part_height_ldu(part_file)
-        # LDraw's own Y-down convention (see gen_brick_demo.py): stacking
-        # "up" means moving toward more negative Y, so subtract, not add.
+        # LDraw's own Y-down convention (see ldraw.py): stacking "up" means
+        # moving toward more negative Y, so subtract, not add.
         translation = (0.0, -float(height_from_base + h), 0.0)
-        resolve_geometry(part_file, IDENTITY, translation, color_code, triangles)
+        triangles.extend(place_mesh(meshes[part_file], translation))
         height_from_base += h
     return triangles, height_from_base
 
@@ -82,7 +81,12 @@ def main():
     point_count = int(sys.argv[1]) if len(sys.argv) > 1 else 20000
     out_path = sys.argv[2] if len(sys.argv) > 2 else "out/monolith.xyz"
 
-    print(f"resolving real LDraw geometry for a {len(DEFAULT_STACK)}-part real stack...", file=sys.stderr)
+    distinct = sorted(set(DEFAULT_STACK))
+    print(
+        f"resolving {len(distinct)} distinct real LDraw part(s) for a {len(DEFAULT_STACK)}-part real stack "
+        f"(cached as spex-brick-mesh files, reused across placements)...",
+        file=sys.stderr,
+    )
     triangles, total_height_ldu = resolve_stack(DEFAULT_STACK, BLACK_COLOR_CODE)
     total_height_mm = total_height_ldu * LDU_TO_MM
     print(
