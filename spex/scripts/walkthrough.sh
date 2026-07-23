@@ -250,6 +250,17 @@ else
   note "no sqlite3/curl found — skipping the SQL schema example"
 fi
 
+note "Real SMILES molecule parsing (spex-cli, no external tool needed) — atomic"
+note "number drives color, ring-closure bonds (real chemistry, e.g. benzene's"
+note "ring) kept as metadata since Graph is tree-only, not a second parent."
+for mol in ethanol benzene aspirin caffeine; do
+  say "-> molecule-$mol"
+  mkdir -p "demos/molecule-$mol"
+  "$BIN" molecule "$mol" -o "demos/molecule-$mol/graph.json" >/dev/null
+  "$BIN" graph-layout "demos/molecule-$mol/graph.json" -o "demos/molecule-$mol/tileset" >/dev/null
+  note "ready: spex serve demos/molecule-$mol/tileset"
+done
+
 say "4. What you've got"
 "$BIN" demos
 

@@ -5,6 +5,7 @@ mod deb_deps;
 mod disk_usage;
 mod export_static;
 mod graph_diff;
+mod molecule;
 mod nav;
 mod npm_deps;
 mod ps_tree;
@@ -239,6 +240,21 @@ enum Command {
         #[arg(short, long)]
         out: PathBuf,
     },
+
+    /// Parse a real SMILES string (or a known molecule name — run with no
+    /// argument to list them) into a spex-graph JSON file: one node per
+    /// atom, atomic number drives color, bonds become tree edges (a ring
+    /// closure bond is kept as `ring_bond_to` metadata rather than a second
+    /// tree parent, since `Graph` is tree-only).
+    Molecule {
+        /// A SMILES string (e.g. "c1ccccc1") or one of the known names
+        /// (run with no argument to list them).
+        smiles_or_name: Option<String>,
+
+        /// Output graph JSON path. Required unless listing known molecules.
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+    },
 }
 
 fn main() -> Result<()> {
@@ -274,6 +290,7 @@ fn main() -> Result<()> {
         Command::NpmDeps { out } => cmd_npm_deps(&out),
         Command::DiskUsage { path, out } => cmd_disk_usage(&path, &out),
         Command::SqlSchema { db, out } => cmd_sql_schema(&db, &out),
+        Command::Molecule { smiles_or_name, out } => cmd_molecule(smiles_or_name, out),
     }
 }
 
@@ -464,6 +481,34 @@ fn cmd_sql_schema(db: &Path, out: &Path) -> Result<()> {
         }
     }
     graph.write_json(out)?;
+    println!("wrote graph to {}", out.display());
+    Ok(())
+}
+
+fn cmd_molecule(smiles_or_name: Option<String>, out: Option<PathBuf>) -> Result<()> {
+    let Some(arg) = smiles_or_name else {
+        println!("known molecules:");
+        for (name, smiles) in molecule::KNOWN_MOLECULES {
+            println!("  {name:<10} {smiles}");
+        }
+        println!("\nusage: spex molecule <name-or-smiles> -o <graph.json>");
+        return Ok(());
+    };
+    let out = out.context("--out <graph.json> is required when parsing a molecule")?;
+    let smiles = molecule::KNOWN_MOLECULES
+        .iter()
+        .find(|(name, _)| *name == arg)
+        .map(|(_, smiles)| *smiles)
+        .unwrap_or(&arg);
+    println!("parsing SMILES {smiles:?}...");
+    let graph = molecule::parse_smiles(smiles)?;
+    println!("parsed {} atoms", graph.nodes.len());
+    if let Some(parent) = out.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent)?;
+        }
+    }
+    graph.write_json(&out)?;
     println!("wrote graph to {}", out.display());
     Ok(())
 }
