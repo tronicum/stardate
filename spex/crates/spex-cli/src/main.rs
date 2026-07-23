@@ -597,8 +597,16 @@ fn cmd_graph_layout(graph_path: &Path, out: &Path) -> Result<()> {
     if let Ok(ascii_html) = ascii::run_html(out, 100, &demo_title) {
         let _ = std::fs::write(out.join("ascii.html"), ascii_html);
     }
+    // Same reasoning as the static ascii.html above — generated once here so
+    // it rides along wherever the tileset itself goes, no special-casing in
+    // spex-server/export-static. 24 frames at width 100 is cheap even for a
+    // few-thousand-point demo tileset (projection is the only per-frame cost,
+    // and it's a simple O(points) pass); non-fatal if it fails.
+    if let Ok(ascii_animated_html) = ascii::run_html_animated(out, 100, 24, 8.0, &demo_title) {
+        let _ = std::fs::write(out.join("ascii-animated.html"), ascii_animated_html);
+    }
 
-    println!("wrote tileset to {} (+ nodes.json, meta.json, ascii.html)", out.display());
+    println!("wrote tileset to {} (+ nodes.json, meta.json, ascii.html, ascii-animated.html)", out.display());
     Ok(())
 }
 

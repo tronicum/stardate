@@ -165,6 +165,7 @@ pub fn render_gallery_html(demos: &[(String, PathBuf)]) -> String {
   <div class="stats">{stats_escaped}</div>
 </a>
 <a class="card-ascii" href="d/{name_escaped}/tileset/ascii.html" title="colored ASCII-art view, same as `spex ascii` in a terminal">ascii</a>
+<a class="card-ascii card-ascii-animated" href="d/{name_escaped}/tileset/ascii-animated.html" title="animated turntable-orbit ASCII view, same as `spex ascii --animate`">ascii ↻</a>
 </div>
 "#,
             title_escaped = escape_html(&title),
@@ -205,6 +206,7 @@ pub fn render_gallery_html(demos: &[(String, PathBuf)]) -> String {
   .card .stats {{ font-size: 11px; opacity: 0.5; }}
   .card-ascii {{ position: absolute; top: 10px; right: 10px; font-size: 10px; color: inherit; text-decoration: none; background: rgba(255,255,255,0.1); padding: 2px 7px; border-radius: 4px; opacity: 0.7; }}
   .card-ascii:hover {{ opacity: 1; background: rgba(255,255,255,0.2); }}
+  .card-ascii-animated {{ top: 34px; }}
   .empty {{ opacity: 0.6; }}
   code {{ background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; }}
 </style>
