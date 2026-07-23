@@ -13,6 +13,7 @@ spex-io = { workspace = true }
 spex-tiler = { workspace = true }
 spex-server = { workspace = true }
 spex-graph = { workspace = true }
+spex-ldraw = { workspace = true }
 anyhow = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

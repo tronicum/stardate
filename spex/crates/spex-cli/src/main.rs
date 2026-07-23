@@ -1,5 +1,6 @@
 mod ascii;
 mod brew_deps;
+mod brick;
 mod cargo_deps;
 mod deb_deps;
 mod disk_usage;
@@ -76,6 +77,29 @@ enum Command {
         /// Hard cap on octree depth.
         #[arg(long, default_value_t = 16)]
         max_depth: usize,
+    },
+
+    /// Render one real Klemmbaustein/LEGO-compatible part (fetched live
+    /// from https://ldraw.org, or read from a local LDraw library mirror)
+    /// straight into an octree tileset — no intermediate point-cloud file.
+    BrickPart {
+        /// A known alias (run with no argument to list them) or a literal
+        /// real LDraw part filename (e.g. "3005.dat").
+        part: Option<String>,
+
+        /// Real LDraw color code (see LDConfig.ldr) — default 4 = Red.
+        #[arg(long, default_value_t = 4)]
+        color: u32,
+
+        #[arg(long, default_value_t = 3000)]
+        points: usize,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+
+        /// Local cache directory for fetched real LDraw files.
+        #[arg(long, default_value = ".ldraw-cache")]
+        cache_dir: PathBuf,
     },
 
     /// Serve a tileset directory and open the browser viewer.
@@ -340,6 +364,13 @@ fn main() -> Result<()> {
             max_points_per_node,
             max_depth,
         } => frame_sequence::run(&inputs, &out, fps, max_points_per_node, max_depth),
+        Command::BrickPart {
+            part,
+            color,
+            points,
+            out,
+            cache_dir,
+        } => cmd_brick_part(part, color, points, out, &cache_dir),
         Command::Serve {
             tileset_dir,
             port,
@@ -408,6 +439,28 @@ fn cmd_convert(input: &Path, out: &Path, max_points_per_node: usize, max_depth: 
         max_depth,
     };
     spex_tiler::build(points, out, &config)?;
+    println!("wrote tileset to {}", out.display());
+    Ok(())
+}
+
+fn cmd_brick_part(part: Option<String>, color: u32, points: usize, out: Option<PathBuf>, cache_dir: &Path) -> Result<()> {
+    let Some(part) = part else {
+        println!("known real LDraw part aliases:");
+        for (alias, part_file) in brick::KNOWN_PARTS {
+            println!("  {alias:<12} {part_file}");
+        }
+        println!("\nusage: spex brick-part <alias-or-part.dat> -o <tileset-dir>");
+        return Ok(());
+    };
+    let out = out.context("--out <tileset-dir> is required when rendering a part")?;
+    let part_file = brick::resolve_part_alias(&part);
+
+    println!("resolving real LDraw part {part_file:?}...");
+    let cache = spex_ldraw::LdrawCache::new(cache_dir);
+    let cloud = brick::render_part_to_points(&cache, part_file, color, points, 0xC0FFEE)?;
+    println!("sampled {} real points, building octree tileset...", cloud.len());
+
+    spex_tiler::build(cloud, &out, &spex_tiler::TilerConfig::default())?;
     println!("wrote tileset to {}", out.display());
     Ok(())
 }

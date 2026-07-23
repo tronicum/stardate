@@ -4,9 +4,13 @@
 //! root for the domain glossary/licensing background.
 pub mod cache;
 pub mod colors;
+pub mod geometry;
+pub mod sampling;
 
 pub use cache::LdrawCache;
 pub use colors::{load_colors, ColorTable};
+pub use geometry::{place, resolve_part, Triangle};
+pub use sampling::{sample_surface, to_point_cloud, Sample};
 
 /// Real LDraw unit conversion — 1 LDU = 0.4mm.
 pub const LDU_TO_MM: f64 = 0.4;
