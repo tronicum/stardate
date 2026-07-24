@@ -149,6 +149,44 @@ enum Command {
         cache_dir: PathBuf,
     },
 
+    /// A real cinematic demo: one real hero part spinning solo at center
+    /// stage, cutting into a real scene's own assembly animation — e.g.
+    /// the classic 1x1 brick, then the monolith converging into a stack.
+    BrickCinematic {
+        /// Hero part alias/filename to spin solo (see `brick-part`).
+        #[arg(long, default_value = "1x1-brick")]
+        hero: String,
+
+        /// Scene to assemble after the hero spin (see `brick-model`).
+        #[arg(long, default_value = "ldraw-scenes/monolith.ldr")]
+        scene: String,
+
+        #[arg(long, default_value_t = 3_000)]
+        hero_points: usize,
+
+        #[arg(long, default_value_t = 36)]
+        hero_frames: usize,
+
+        #[arg(long, default_value_t = 1.0)]
+        hero_revolutions: f64,
+
+        #[arg(long, default_value_t = 6_000)]
+        scene_points: usize,
+
+        #[arg(long, default_value_t = 30)]
+        scene_frames: usize,
+
+        #[arg(long, default_value_t = 6.0)]
+        fps: f64,
+
+        #[arg(short, long)]
+        out: PathBuf,
+
+        /// Local cache directory for fetched real LDraw files.
+        #[arg(long, default_value = ".ldraw-cache")]
+        cache_dir: PathBuf,
+    },
+
     /// Serve a tileset directory and open the browser viewer.
     Serve {
         tileset_dir: PathBuf,
@@ -432,6 +470,18 @@ fn main() -> Result<()> {
             out,
             cache_dir,
         } => cmd_brick_assembly(model, points, frames, fps, out, &cache_dir),
+        Command::BrickCinematic {
+            hero,
+            scene,
+            hero_points,
+            hero_frames,
+            hero_revolutions,
+            scene_points,
+            scene_frames,
+            fps,
+            out,
+            cache_dir,
+        } => cmd_brick_cinematic(hero, scene, hero_points, hero_frames, hero_revolutions, scene_points, scene_frames, fps, out, &cache_dir),
         Command::Serve {
             tileset_dir,
             port,
@@ -581,6 +631,48 @@ fn cmd_brick_assembly(model: Option<String>, points: usize, frames: usize, fps: 
     let point_frames = brick::build_assembly_frames(&cache, &scene, points, frames, 1337)?;
     let config = spex_tiler::TilerConfig::default();
     frame_sequence::run_from_frames(point_frames, &out, fps, &config)?;
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn cmd_brick_cinematic(
+    hero: String,
+    scene: String,
+    hero_points: usize,
+    hero_frames: usize,
+    hero_revolutions: f64,
+    scene_points: usize,
+    scene_frames: usize,
+    fps: f64,
+    out: PathBuf,
+    cache_dir: &Path,
+) -> Result<()> {
+    const HERO_COLOR_CODE: u32 = 4; // real LDraw "Red" - a bright hero shot against the monolith's real black
+
+    let cache = spex_ldraw::LdrawCache::new(cache_dir);
+    let hero_part = brick::resolve_part_alias(&hero).to_string();
+
+    println!("parsing real LDraw scene {scene:?}...");
+    let source = brick::resolve_model_source(&scene);
+    let parsed_scene = spex_ldraw::parse_scene(&cache, source.as_model_source())?;
+
+    println!("resolving hero part {hero_part:?} for scale computation...");
+    let hero_triangles = spex_ldraw::resolve_part(&cache, &hero_part, HERO_COLOR_CODE)?;
+    let hero_scale = brick::compute_hero_scale(&hero_triangles, &parsed_scene);
+    println!("real hero scale: {hero_scale:.2}x (real scene-diag/hero-diag ratio, times a tuned prominence fraction)");
+
+    println!(
+        "building {hero_frames} real hero-spin frames + {scene_frames} real assembly frames ({} real placements)...",
+        parsed_scene.placements.len()
+    );
+    let spin_frames = brick::build_spin_frames(&cache, &hero_part, HERO_COLOR_CODE, hero_points, hero_frames, hero_revolutions, hero_scale, 0xC0FFEE)?;
+    let assembly_frames = brick::build_assembly_frames(&cache, &parsed_scene, scene_points, scene_frames, 1337)?;
+
+    let mut combined = spin_frames;
+    combined.extend(assembly_frames);
+
+    let config = spex_tiler::TilerConfig::default();
+    frame_sequence::run_from_frames(combined, &out, fps, &config)?;
     Ok(())
 }
 

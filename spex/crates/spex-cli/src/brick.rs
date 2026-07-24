@@ -1,16 +1,18 @@
-//! `spex brick-part`/`brick-model`/`brick-assembly` — real Klemmbaustein/
-//! LEGO-compatible rendering via `spex-ldraw`, replacing what used to be
-//! prototyped in `unibrick/`'s Python scripts. See `BRICKs.md` for the
-//! domain glossary and licensing background.
+//! `spex brick-part`/`brick-model`/`brick-assembly`/`brick-cinematic` —
+//! real Klemmbaustein/LEGO-compatible rendering via `spex-ldraw`,
+//! replacing what used to be prototyped in `unibrick/`'s Python scripts.
+//! See `BRICKs.md` for the domain glossary and licensing background.
 use anyhow::Result;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
+use spex_core::Aabb;
 use spex_ldraw::geometry::mat_vec;
 use spex_ldraw::{
-    load_colors, place, resolve_part, sample_point_in_triangle, sample_surface, shade_color, to_point_cloud,
-    triangle_area, triangle_normal, ColorTable, LdrawCache, ModelSource, Scene, Triangle, IDENTITY, LDU_TO_MM,
+    load_colors, place, resolve_part, rotation_y, sample_point_in_triangle, sample_surface, shade_color, to_point_cloud,
+    triangle_area, triangle_normal, ColorTable, LdrawCache, ModelSource, Scene, Triangle, IDENTITY, LDU_TO_MM, ZERO,
 };
 use std::collections::HashMap;
+use std::f64::consts::TAU;
 use std::path::Path;
 
 /// A handful of known real LDraw part numbers, so `spex brick-part` has
@@ -293,4 +295,69 @@ pub fn build_assembly_frames(cache: &LdrawCache, scene: &Scene, point_count: usi
         frames.push(render_frame(&samples, &transforms));
     }
     Ok(frames)
+}
+
+// --- brick-cinematic: a real hero part spinning solo, then cutting into a
+// real scene's own assembly animation ---
+
+/// Builds `frame_count` real frames of a single real part spinning in
+/// place at the scene origin — real constant angular velocity (no easing;
+/// a hero spin should read as continuous motion, not settle to a stop,
+/// since it cuts directly into another animation with no hold), one full
+/// real rotation about LDraw's own Y axis per `revolutions`. `hero_scale`
+/// uniformly scales the part's own *sampled positions* (never its
+/// normals — see `Transform`) around its own center, a deliberate
+/// cinematic choice so a small hero part reads as prominent even though
+/// the viewer computes one shared camera framing across every frame in
+/// the whole sequence (see `compute_hero_scale`).
+pub fn build_spin_frames(
+    cache: &LdrawCache,
+    part_file: &str,
+    color_code: u32,
+    point_count: usize,
+    frame_count: usize,
+    revolutions: f64,
+    hero_scale: f64,
+    seed: u64,
+) -> Result<Vec<Vec<spex_core::Point>>> {
+    let triangles = resolve_part(cache, part_file, color_code)?;
+    let colors = load_colors(cache)?;
+    let samples = sample_placements_once(&[triangles], &colors, point_count, seed);
+
+    let mut frames = Vec::with_capacity(frame_count);
+    for f in 0..frame_count {
+        // Exclusive framing (divide by frame_count, not frame_count - 1):
+        // frame 0 and a hypothetical "next full loop" frame aren't a
+        // visually duplicated pair, which matters here since this phase
+        // cuts directly into another one with no hold on the last frame.
+        let theta = revolutions * TAU * f as f64 / frame_count as f64;
+        let transforms = vec![Transform { translation: ZERO, rotation: rotation_y(theta), scale: hero_scale }];
+        frames.push(render_frame(&samples, &transforms));
+    }
+    Ok(frames)
+}
+
+/// A real, computed scale ratio (not a fabricated constant) for the hero
+/// spin: the viewer frames its camera once across every frame in a whole
+/// sequence, so a small solo part sharing a sequence with a much larger
+/// multi-part scene would otherwise render as a barely-visible speck
+/// during its own hero shot. Scales the hero part up to roughly a real
+/// fraction of the scene's own real spatial extent (`scene_diag`, from
+/// the scene's own placement translations — cheap, no full resolve
+/// needed) relative to the part's own real resolved size (`part_diag`).
+/// The fraction is a deliberate cinematic choice (prominent, not
+/// literally to-scale against the context shot that follows), tuned
+/// visually against a real headless-Chromium screenshot the same way
+/// this project has always tuned constants like M38's animated-ASCII
+/// width or M42's auto-rotate speed — an initial `0.5` measured as only
+/// ~30x40px in an 800px-tall real screenshot (too modest to read as a
+/// hero shot); `2.5` (roughly a 5x jump) was the real, re-verified fix.
+pub fn compute_hero_scale(hero_triangles: &[Triangle], scene: &Scene) -> f64 {
+    const HERO_PROMINENCE_FRACTION: f64 = 2.5;
+    let part_diag = Aabb::from_points(hero_triangles.iter().flat_map(|t| t.vertices)).diagonal();
+    let scene_diag = Aabb::from_points(scene.placements.iter().map(|p| p.translation)).diagonal();
+    if part_diag <= 0.0 || scene_diag <= 0.0 {
+        return 1.0;
+    }
+    (scene_diag / part_diag) * HERO_PROMINENCE_FRACTION
 }
