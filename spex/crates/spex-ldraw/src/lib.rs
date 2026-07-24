@@ -10,7 +10,7 @@ pub mod scene;
 
 pub use cache::LdrawCache;
 pub use colors::{load_colors, ColorTable};
-pub use geometry::{place, resolve_part, triangle_area, triangle_normal, Triangle};
+pub use geometry::{place, resolve_part, rotation_y, triangle_area, triangle_normal, Triangle, IDENTITY, ZERO};
 pub use sampling::{sample_point_in_triangle, sample_surface, shade_color, to_point_cloud, Sample};
 pub use scene::{parse_scene, ModelSource, Placement, Scene};
 

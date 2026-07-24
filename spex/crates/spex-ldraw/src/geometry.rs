@@ -43,6 +43,21 @@ pub fn vec_add(a: &[f64; 3], b: &[f64; 3]) -> [f64; 3] {
     [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
 }
 
+/// A pure rotation about LDraw's own Y axis by `theta` radians — row-major
+/// flat `[f64;9]`, same convention as `IDENTITY`/`mat_vec`. Orthonormal,
+/// determinant +1 by construction: safe to apply to a normal with the
+/// *exact same* matrix used for a position (no inverse-transpose needed) —
+/// unlike an arbitrary LDraw-authored placement matrix (which could in
+/// principle carry scale/mirroring), this one is always a pure rotation.
+/// Used to spin a single real part in place (see `brick.rs`'s
+/// `build_spin_frames`) — rotating in LDraw's native frame, before the
+/// one real Y-flip every output point gets at the very end, exactly like
+/// every other transform in this pipeline.
+pub fn rotation_y(theta: f64) -> [f64; 9] {
+    let (s, c) = theta.sin_cos();
+    [c, 0.0, s, 0.0, 1.0, 0.0, -s, 0.0, c]
+}
+
 /// A referenced LDraw filename doesn't say which real library folder it
 /// lives in — try the same real candidate folders any real LDraw resolver
 /// does, using whichever the cache/server actually has.
@@ -248,6 +263,35 @@ mod tests {
     fn mat_vec_scales_correctly() {
         let m = [2.0, 0.0, 0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 4.0];
         assert_eq!(mat_vec(&m, &[1.0, 1.0, 1.0]), [2.0, 3.0, 4.0]);
+    }
+
+    #[test]
+    fn rotation_y_at_zero_is_identity() {
+        let m = rotation_y(0.0);
+        for i in 0..9 {
+            assert!((m[i] - IDENTITY[i]).abs() < 1e-12, "index {i}: {m:?} != {IDENTITY:?}");
+        }
+    }
+
+    #[test]
+    fn rotation_y_quarter_turn_maps_x_to_negative_z() {
+        let m = rotation_y(std::f64::consts::FRAC_PI_2);
+        let rotated = mat_vec(&m, &[1.0, 0.0, 0.0]);
+        assert!((rotated[0]).abs() < 1e-9, "{rotated:?}");
+        assert!((rotated[1]).abs() < 1e-9, "{rotated:?}");
+        assert!((rotated[2] - -1.0).abs() < 1e-9, "{rotated:?}");
+    }
+
+    #[test]
+    fn rotation_y_preserves_unit_length_and_leaves_y_untouched() {
+        let m = rotation_y(0.73); // an arbitrary, non-special angle
+        let v = [1.0, 0.0, 0.0];
+        let rotated = mat_vec(&m, &v);
+        let length = (rotated[0] * rotated[0] + rotated[1] * rotated[1] + rotated[2] * rotated[2]).sqrt();
+        assert!((length - 1.0).abs() < 1e-9, "rotation must preserve length, got {length}");
+
+        let up = [0.0, 1.0, 0.0];
+        assert_eq!(mat_vec(&m, &up), up, "a rotation about Y must leave the Y axis itself fixed");
     }
 
     #[test]
