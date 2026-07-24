@@ -5,9 +5,10 @@
 use anyhow::Result;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
+use spex_ldraw::geometry::mat_vec;
 use spex_ldraw::{
     load_colors, place, resolve_part, sample_point_in_triangle, sample_surface, shade_color, to_point_cloud,
-    triangle_area, triangle_normal, ColorTable, LdrawCache, ModelSource, Scene, Triangle, LDU_TO_MM,
+    triangle_area, triangle_normal, ColorTable, LdrawCache, ModelSource, Scene, Triangle, IDENTITY, LDU_TO_MM,
 };
 use std::collections::HashMap;
 use std::path::Path;
@@ -136,36 +137,50 @@ fn start_translations(final_translations: &[[f64; 3]]) -> Vec<[f64; 3]> {
         .collect()
 }
 
-struct AssemblySample {
+/// One real sampled surface point, in a placement's own local
+/// (untransformed) frame — deliberately storing the *unshaded* normal and
+/// base color rather than a pre-baked one, so a caller can reshade it
+/// correctly under whatever real rotation that frame applies (see
+/// `Transform`/`render_frame`). The local point/normal themselves never
+/// need resampling across frames — only the transform applied to them
+/// changes — which is what keeps animated points moving smoothly instead
+/// of shimmering.
+struct PlacementSample {
     placement_idx: usize,
     local_point: [f64; 3],
-    color: [u8; 3],
+    local_normal: [f64; 3],
+    base_rgb: [u8; 3],
 }
 
-/// Samples every real output point exactly once, in each placement's own
-/// local (untransformed) frame, with shading baked in immediately
-/// (translation-invariant, since it only depends on the local triangle
-/// normal). Recomputing a frame's *world* points is then just adding that
-/// frame's own per-placement translation — cheap, and crucially avoids
-/// resampling with a fresh random draw every frame, which would make
-/// points visibly "shimmer" instead of moving smoothly.
-fn sample_scene_once(cache: &LdrawCache, scene: &Scene, colors: &ColorTable, point_count: usize, seed: u64) -> Result<Vec<AssemblySample>> {
-    let mut resolved: HashMap<(String, u32), Vec<Triangle>> = HashMap::new();
-    for placement in &scene.placements {
-        let key = (placement.part_file.clone(), placement.color_code);
-        if !resolved.contains_key(&key) {
-            let triangles = resolve_part(cache, &placement.part_file, placement.color_code)?;
-            resolved.insert(key.clone(), triangles);
-        }
-    }
-    let per_placement_triangles: Vec<&Vec<Triangle>> = scene
-        .placements
-        .iter()
-        .map(|placement| &resolved[&(placement.part_file.clone(), placement.color_code)])
-        .collect();
+/// A real per-placement, per-frame transform: `world_point =
+/// rotate(rotation, local_point) * scale + translation`, `world_normal =
+/// rotate(rotation, local_normal)` (rotation only — a uniform position
+/// scale about the origin doesn't change face orientation, so `scale`
+/// deliberately never touches the normal). `rotation` must be a pure
+/// rotation (orthonormal, det +1) for the normal transform to be valid —
+/// true for `IDENTITY` and for `spex_ldraw::rotation_y`, the only two
+/// rotations this module ever constructs.
+struct Transform {
+    translation: [f64; 3],
+    rotation: [f64; 9],
+    scale: f64,
+}
 
-    let per_placement_weights: Vec<Vec<f64>> = per_placement_triangles.iter().map(|tris| tris.iter().map(triangle_area).collect()).collect();
-    let placement_totals: Vec<f64> = per_placement_weights.iter().map(|w| w.iter().sum::<f64>().max(f64::MIN_POSITIVE)).collect();
+impl Transform {
+    fn translate(translation: [f64; 3]) -> Self {
+        Transform { translation, rotation: IDENTITY, scale: 1.0 }
+    }
+}
+
+/// Real face-area-weighted sampling across several placements' worth of
+/// local (untransformed) triangles at once — the core both
+/// `sample_scene_once` (multi-placement assembly) and `build_spin_frames`
+/// (a single "placement") share. Returns `PlacementSample`s carrying the
+/// *unshaded* normal/base color, so a caller reshades per frame under
+/// whatever real transform it applies (see `Transform`/`render_frame`).
+fn sample_placements_once(triangles_per_placement: &[Vec<Triangle>], colors: &ColorTable, point_count: usize, seed: u64) -> Vec<PlacementSample> {
+    let weights: Vec<Vec<f64>> = triangles_per_placement.iter().map(|tris| tris.iter().map(triangle_area).collect()).collect();
+    let placement_totals: Vec<f64> = weights.iter().map(|w| w.iter().sum::<f64>().max(f64::MIN_POSITIVE)).collect();
     let grand_total: f64 = placement_totals.iter().sum::<f64>().max(f64::MIN_POSITIVE);
 
     let mut rng = StdRng::seed_from_u64(seed);
@@ -173,7 +188,7 @@ fn sample_scene_once(cache: &LdrawCache, scene: &Scene, colors: &ColorTable, poi
     for _ in 0..point_count {
         let r: f64 = rng.gen::<f64>() * grand_total;
         let mut acc = 0.0;
-        let mut placement_idx = per_placement_triangles.len() - 1;
+        let mut placement_idx = triangles_per_placement.len() - 1;
         for (i, total) in placement_totals.iter().enumerate() {
             acc += total;
             if r <= acc {
@@ -181,12 +196,12 @@ fn sample_scene_once(cache: &LdrawCache, scene: &Scene, colors: &ColorTable, poi
                 break;
             }
         }
-        let tris = per_placement_triangles[placement_idx];
-        let weights = &per_placement_weights[placement_idx];
+        let tris = &triangles_per_placement[placement_idx];
+        let tri_weights = &weights[placement_idx];
         let r2: f64 = rng.gen::<f64>() * placement_totals[placement_idx];
         let mut acc2 = 0.0;
         let mut tri_idx = tris.len() - 1;
-        for (i, w) in weights.iter().enumerate() {
+        for (i, w) in tri_weights.iter().enumerate() {
             acc2 += w;
             if r2 <= acc2 {
                 tri_idx = i;
@@ -195,24 +210,56 @@ fn sample_scene_once(cache: &LdrawCache, scene: &Scene, colors: &ColorTable, poi
         }
         let tri = &tris[tri_idx];
         let local_point = sample_point_in_triangle(tri, &mut rng);
+        let local_normal = triangle_normal(tri);
         let base_rgb = colors.get(&tri.color_code).map(|(_, rgb)| *rgb).unwrap_or([200, 200, 200]);
-        let color = shade_color(base_rgb, triangle_normal(tri));
-        samples.push(AssemblySample { placement_idx, local_point, color });
+        samples.push(PlacementSample { placement_idx, local_point, local_normal, base_rgb });
     }
-    Ok(samples)
+    samples
 }
 
-fn render_frame(samples: &[AssemblySample], translations: &[[f64; 3]]) -> Vec<spex_core::Point> {
+/// Resolves every real distinct `(part, color)` pair in a scene exactly
+/// once, then samples across all its placements at once.
+fn sample_scene_once(cache: &LdrawCache, scene: &Scene, point_count: usize, seed: u64) -> Result<(Vec<PlacementSample>, ColorTable)> {
+    let colors = load_colors(cache)?;
+    let mut resolved: HashMap<(String, u32), Vec<Triangle>> = HashMap::new();
+    for placement in &scene.placements {
+        let key = (placement.part_file.clone(), placement.color_code);
+        if !resolved.contains_key(&key) {
+            let triangles = resolve_part(cache, &placement.part_file, placement.color_code)?;
+            resolved.insert(key.clone(), triangles);
+        }
+    }
+    let triangles_per_placement: Vec<Vec<Triangle>> = scene
+        .placements
+        .iter()
+        .map(|placement| resolved[&(placement.part_file.clone(), placement.color_code)].clone())
+        .collect();
+    let samples = sample_placements_once(&triangles_per_placement, &colors, point_count, seed);
+    Ok((samples, colors))
+}
+
+/// Applies each sample's placement's real `Transform` and reshades it
+/// fresh from the *rotated* normal — correct for both the translate-only
+/// assembly case (`rotation: IDENTITY` is a no-op on the normal, so this
+/// is bit-for-bit what baking the color once used to produce) and the
+/// rotate-in-place spin case (where the normal genuinely does change
+/// frame to frame under a fixed world-space light).
+fn render_frame(samples: &[PlacementSample], transforms: &[Transform]) -> Vec<spex_core::Point> {
     samples
         .iter()
         .map(|s| {
-            let t = translations[s.placement_idx];
-            let x = s.local_point[0] + t[0];
-            let y = s.local_point[1] + t[1];
-            let z = s.local_point[2] + t[2];
+            let t = &transforms[s.placement_idx];
+            let rotated_point = mat_vec(&t.rotation, &s.local_point);
+            let world_point = [
+                rotated_point[0] * t.scale + t.translation[0],
+                rotated_point[1] * t.scale + t.translation[1],
+                rotated_point[2] * t.scale + t.translation[2],
+            ];
+            let world_normal = mat_vec(&t.rotation, &s.local_normal);
+            let color = shade_color(s.base_rgb, world_normal);
             spex_core::Point {
-                position: [x * LDU_TO_MM, -y * LDU_TO_MM, z * LDU_TO_MM],
-                color: s.color,
+                position: [world_point[0] * LDU_TO_MM, -world_point[1] * LDU_TO_MM, world_point[2] * LDU_TO_MM],
+                color,
             }
         })
         .collect()
@@ -228,23 +275,22 @@ fn render_frame(samples: &[AssemblySample], translations: &[[f64; 3]]) -> Vec<sp
 /// position animates, a real, honest scope limit shared with the
 /// original Python version.
 pub fn build_assembly_frames(cache: &LdrawCache, scene: &Scene, point_count: usize, frame_count: usize, seed: u64) -> Result<Vec<Vec<spex_core::Point>>> {
-    let colors = load_colors(cache)?;
     let final_translations: Vec<[f64; 3]> = scene.placements.iter().map(|p| p.translation).collect();
     let start = start_translations(&final_translations);
-    let samples = sample_scene_once(cache, scene, &colors, point_count, seed)?;
+    let (samples, _colors) = sample_scene_once(cache, scene, point_count, seed)?;
 
     let mut frames = Vec::with_capacity(frame_count);
     for f in 0..frame_count {
         let t = if frame_count > 1 { f as f64 / (frame_count - 1) as f64 } else { 1.0 };
         let eased = ease_in_out_cubic(t);
-        let translations: Vec<[f64; 3]> = (0..final_translations.len())
+        let transforms: Vec<Transform> = (0..final_translations.len())
             .map(|i| {
                 let s = start[i];
                 let fi = final_translations[i];
-                [s[0] + (fi[0] - s[0]) * eased, s[1] + (fi[1] - s[1]) * eased, s[2] + (fi[2] - s[2]) * eased]
+                Transform::translate([s[0] + (fi[0] - s[0]) * eased, s[1] + (fi[1] - s[1]) * eased, s[2] + (fi[2] - s[2]) * eased])
             })
             .collect();
-        frames.push(render_frame(&samples, &translations));
+        frames.push(render_frame(&samples, &transforms));
     }
     Ok(frames)
 }
