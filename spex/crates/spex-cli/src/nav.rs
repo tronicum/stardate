@@ -2,6 +2,8 @@
 //! output: move through the list, view a demo's tree inline, or launch its
 //! web view, without re-typing a path into a fresh command each time.
 use crate::{discover_demos, DemoEntry};
+#[cfg(test)]
+use crate::DemoKind;
 use ansi_to_tui::IntoText;
 use anyhow::{Context, Result};
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
@@ -172,10 +174,15 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, mut app: App) 
                         // which is true here (nav only ever runs attached to a
                         // real terminal), so this already carries real ANSI
                         // truecolor codes — render_detail() converts them to
-                        // real ratatui styling via ansi_to_tui.
-                        let text = spex_graph::Graph::read_json(&demo.graph_path)
-                            .map(|g| spex_graph::format_tree(&g))
-                            .unwrap_or_else(|e| format!("failed to read {}: {e}", demo.graph_path.display()));
+                        // real ratatui styling via ansi_to_tui. Point-cloud/
+                        // sequence demos have no real tree to show at all —
+                        // say so plainly rather than erroring.
+                        let text = match &demo.graph_path {
+                            Some(graph_path) => spex_graph::Graph::read_json(graph_path)
+                                .map(|g| spex_graph::format_tree(&g))
+                                .unwrap_or_else(|e| format!("failed to read {}: {e}", graph_path.display())),
+                            None => format!("{} is a point cloud/animation, not a graph — no tree to show. Press 'w' to view it in the browser.", demo.name),
+                        };
                         app.mode = Mode::Detail { text, scroll: 0 };
                     }
                 }
@@ -206,10 +213,14 @@ fn port_for(name: &str) -> u16 {
 /// navigator down with it.
 fn open_web_view(demo: &DemoEntry) -> String {
     if !demo.web_ready {
+        // Only a Graph demo can reach this not-web-ready state today (a
+        // PointCloud/Sequence demo is only ever discovered once its real
+        // tileset/sequence already exists) — graph_path is real here.
+        let graph_path = demo.graph_path.as_deref().map(|p| p.display().to_string()).unwrap_or_default();
         return format!(
             "{} has no tileset yet — run `spex graph-layout {} -o {}` first",
             demo.name,
-            demo.graph_path.display(),
+            graph_path,
             demo.tileset_dir.display()
         );
     }
@@ -318,7 +329,8 @@ mod tests {
         DemoEntry {
             name: name.to_string(),
             title: Some(title.to_string()),
-            graph_path: Path::new("/tmp/does-not-matter/graph.json").to_path_buf(),
+            kind: DemoKind::Graph,
+            graph_path: Some(Path::new("/tmp/does-not-matter/graph.json").to_path_buf()),
             tileset_dir: Path::new("/tmp/does-not-matter/tileset").to_path_buf(),
             node_count,
             web_ready,

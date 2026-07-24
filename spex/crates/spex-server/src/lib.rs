@@ -157,6 +157,22 @@ pub fn render_gallery_html(demos: &[(String, PathBuf)]) -> String {
         }
 
         let name_escaped = escape_html(name);
+
+        // ascii.html/ascii-animated.html are only ever written by
+        // `spex graph-layout` — a plain point-cloud or frame-sequence demo
+        // (e.g. from `spex brick-part`/`brick-assembly`) never gets them,
+        // so only link to whichever actually exists rather than pointing
+        // at a real 404.
+        let ascii_link = if tileset_dir.join("ascii.html").exists() {
+            format!(r#"<a class="card-ascii" href="d/{name_escaped}/tileset/ascii.html" title="colored ASCII-art view, same as `spex ascii` in a terminal">ascii</a>"#)
+        } else {
+            String::new()
+        };
+        let ascii_animated_link = if tileset_dir.join("ascii-animated.html").exists() {
+            format!(r#"<a class="card-ascii card-ascii-animated" href="d/{name_escaped}/tileset/ascii-animated.html" title="animated turntable-orbit ASCII view, same as `spex ascii --animate`">ascii ↻</a>"#)
+        } else {
+            String::new()
+        };
         cards.push_str(&format!(
             r#"<div class="card-wrap">
 <a class="card" href="d/{name_escaped}/">
@@ -164,8 +180,8 @@ pub fn render_gallery_html(demos: &[(String, PathBuf)]) -> String {
   <p class="title">{title_escaped}</p>
   <div class="stats">{stats_escaped}</div>
 </a>
-<a class="card-ascii" href="d/{name_escaped}/tileset/ascii.html" title="colored ASCII-art view, same as `spex ascii` in a terminal">ascii</a>
-<a class="card-ascii card-ascii-animated" href="d/{name_escaped}/tileset/ascii-animated.html" title="animated turntable-orbit ASCII view, same as `spex ascii --animate`">ascii ↻</a>
+{ascii_link}
+{ascii_animated_link}
 </div>
 "#,
             title_escaped = escape_html(&title),

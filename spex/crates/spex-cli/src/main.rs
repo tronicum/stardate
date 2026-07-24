@@ -886,12 +886,30 @@ fn cmd_ascii(tileset_dir: &Path, width: usize, animate: bool, frames: usize, fps
     Ok(())
 }
 
+/// What kind of real demo a `demos/<name>/` directory holds — determines
+/// what `cmd_demos`'s terminal printout suggests, but not how it's served
+/// (`cmd_gallery`/`cmd_export_static`/`render_gallery_html` are already
+/// entirely tileset-dir-driven and need no kind-specific handling at all).
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum DemoKind {
+    /// A real `graph.json` + `graph-layout`'d tileset (the original,
+    /// still-most-common shape).
+    Graph,
+    /// A plain point cloud (`spex convert`/`spex brick-part`/`brick-model`) —
+    /// no graph, no tree, just points.
+    PointCloud,
+    /// A real multi-frame animation (`spex frame-sequence`/`brick-assembly`/
+    /// `brick-cinematic`) — `sequence.json` + `frame-NNN/` subdirectories.
+    Sequence,
+}
+
 /// A demo found under a demos root — shared by the terminal listing
 /// (`spex demos`) and the web gallery (`spex gallery`).
 struct DemoEntry {
     name: String,
     title: Option<String>,
-    graph_path: PathBuf,
+    kind: DemoKind,
+    graph_path: Option<PathBuf>,
     tileset_dir: PathBuf,
     node_count: usize,
     web_ready: bool,
@@ -912,14 +930,43 @@ fn discover_demos(dir: &Path) -> Result<Vec<DemoEntry>> {
         let name = entry.file_name().to_string_lossy().to_string();
         let graph_path = entry.path().join("graph.json");
         let tileset_dir = entry.path().join("tileset");
-        if !graph_path.exists() {
-            continue;
+
+        if graph_path.exists() {
+            let graph = Graph::read_json(&graph_path).ok();
+            let node_count = graph.as_ref().map(|g| g.nodes.len()).unwrap_or(0);
+            let title = graph.and_then(|g| g.title);
+            let web_ready = tileset_dir.join("tileset.json").exists();
+            demos.push(DemoEntry {
+                name,
+                title,
+                kind: DemoKind::Graph,
+                graph_path: Some(graph_path),
+                tileset_dir,
+                node_count,
+                web_ready,
+            });
+        } else if tileset_dir.join("sequence.json").exists() {
+            demos.push(DemoEntry {
+                name,
+                title: None,
+                kind: DemoKind::Sequence,
+                graph_path: None,
+                tileset_dir,
+                node_count: 0,
+                web_ready: true,
+            });
+        } else if tileset_dir.join("tileset.json").exists() {
+            demos.push(DemoEntry {
+                name,
+                title: None,
+                kind: DemoKind::PointCloud,
+                graph_path: None,
+                tileset_dir,
+                node_count: 0,
+                web_ready: true,
+            });
         }
-        let graph = Graph::read_json(&graph_path).ok();
-        let node_count = graph.as_ref().map(|g| g.nodes.len()).unwrap_or(0);
-        let title = graph.and_then(|g| g.title);
-        let web_ready = tileset_dir.join("tileset.json").exists();
-        demos.push(DemoEntry { name, title, graph_path, tileset_dir, node_count, web_ready });
+        // else: not a recognized demo shape (yet) — skip.
     }
     Ok(demos)
 }
@@ -934,17 +981,30 @@ fn cmd_demos(dir: &Path) -> Result<()> {
 
     println!("available demos in {}:", dir.display());
     for demo in demos {
-        println!("\n{}  ({} nodes)", demo.name, demo.node_count);
-        println!("  json:     {}", demo.graph_path.display());
-        println!("  terminal: spex graph-print {}", demo.graph_path.display());
-        if demo.web_ready {
-            println!("  web:      spex serve {}", demo.tileset_dir.display());
-        } else {
-            println!(
-                "  web:      spex graph-layout {} -o {}   (then `spex serve` that dir)",
-                demo.graph_path.display(),
-                demo.tileset_dir.display()
-            );
+        match demo.kind {
+            DemoKind::Graph => {
+                let graph_path = demo.graph_path.expect("Graph demos always have a graph_path");
+                println!("\n{}  ({} nodes)", demo.name, demo.node_count);
+                println!("  json:     {}", graph_path.display());
+                println!("  terminal: spex graph-print {}", graph_path.display());
+                if demo.web_ready {
+                    println!("  web:      spex serve {}", demo.tileset_dir.display());
+                } else {
+                    println!(
+                        "  web:      spex graph-layout {} -o {}   (then `spex serve` that dir)",
+                        graph_path.display(),
+                        demo.tileset_dir.display()
+                    );
+                }
+            }
+            DemoKind::PointCloud => {
+                println!("\n{}  (point cloud)", demo.name);
+                println!("  web:      spex serve {}", demo.tileset_dir.display());
+            }
+            DemoKind::Sequence => {
+                println!("\n{}  (animation)", demo.name);
+                println!("  web:      spex serve {}", demo.tileset_dir.display());
+            }
         }
     }
     Ok(())
@@ -990,4 +1050,59 @@ fn cmd_export_static(dir: &Path, out: &Path) -> Result<()> {
     println!("wrote a static site to {} — serve it with any static file host, e.g.:", out.display());
     println!("  cd {} && python3 -m http.server 8000", out.display());
     Ok(())
+}
+
+#[cfg(test)]
+mod discover_demos_tests {
+    use super::*;
+
+    #[test]
+    fn discover_demos_recognizes_all_three_real_demo_kinds() {
+        let dir = tempfile::tempdir().unwrap();
+
+        // A real graph demo: graph.json + tileset/tileset.json.
+        let graph_demo = dir.path().join("a-graph-demo");
+        std::fs::create_dir_all(graph_demo.join("tileset")).unwrap();
+        std::fs::write(
+            graph_demo.join("graph.json"),
+            r#"{"title":"a real graph","nodes":[{"id":"n0","label":"root","parent":null}]}"#,
+        )
+        .unwrap();
+        std::fs::write(graph_demo.join("tileset").join("tileset.json"), "{}").unwrap();
+
+        // A real point-cloud demo: tileset/tileset.json only, no graph.json.
+        let point_cloud_demo = dir.path().join("a-point-cloud-demo");
+        std::fs::create_dir_all(point_cloud_demo.join("tileset")).unwrap();
+        std::fs::write(point_cloud_demo.join("tileset").join("tileset.json"), "{}").unwrap();
+
+        // A real sequence demo: tileset/sequence.json, no graph.json, no
+        // top-level tileset.json (a sequence dir never has one).
+        let sequence_demo = dir.path().join("a-sequence-demo");
+        std::fs::create_dir_all(sequence_demo.join("tileset")).unwrap();
+        std::fs::write(sequence_demo.join("tileset").join("sequence.json"), "{}").unwrap();
+
+        // A directory that's neither — must be silently skipped, not error.
+        std::fs::create_dir_all(dir.path().join("not-a-demo-at-all")).unwrap();
+
+        let demos = discover_demos(dir.path()).unwrap();
+        assert_eq!(demos.len(), 3, "the unrecognized directory must be skipped, not counted");
+
+        let by_name = |name: &str| demos.iter().find(|d| d.name == name).unwrap_or_else(|| panic!("missing demo {name}"));
+
+        let graph = by_name("a-graph-demo");
+        assert!(graph.kind == DemoKind::Graph);
+        assert!(graph.graph_path.is_some());
+        assert_eq!(graph.title.as_deref(), Some("a real graph"));
+        assert!(graph.web_ready);
+
+        let point_cloud = by_name("a-point-cloud-demo");
+        assert!(point_cloud.kind == DemoKind::PointCloud);
+        assert!(point_cloud.graph_path.is_none());
+        assert!(point_cloud.web_ready);
+
+        let sequence = by_name("a-sequence-demo");
+        assert!(sequence.kind == DemoKind::Sequence);
+        assert!(sequence.graph_path.is_none());
+        assert!(sequence.web_ready);
+    }
 }
