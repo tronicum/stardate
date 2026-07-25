@@ -211,7 +211,9 @@ fetched from where.
 - **D9 closes.** The Cousin/Girlot attribution correction is Stefan's to make.
   What the spec keeps is the *statement* it is allowed to render, fixed in
   [`screenplay.md`](screenplay.md) §5: Cousin's block is patented in 1923; the
-  eight-stud two-row brick is published under Girlot's name in 1927.
+  eight-stud two-row brick is published under Girlot's name in 1927. The
+  hand-work itself is written up separately, in German, at
+  [`../human-todo.md`](../human-todo.md).
 - `spex heritage-index` / `heritage-sync` become **importers of a supplied
   snapshot**, not acquisition tools with their own terms-of-use reasoning.
   M73 and M77 shrink accordingly.

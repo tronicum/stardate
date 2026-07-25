@@ -31,6 +31,7 @@ the centenary of GB 263865, the eight-studs-in-two-rows patent. See
 | [`licensing.md`](licensing.md) | Licensing, attribution, and the ethics constraints |
 | [`plan.md`](plan.md) | The calendar, the human gates, the risks, the definition of done |
 | [`decisions.md`](decisions.md) | **What was decided, when, and what it rules out.** Append-only |
+| [`../human-todo.md`](../human-todo.md) | Wikipedia / Wikidata / Commons corrections Stefan makes by hand (German). Not engine work |
 | [`../FUGEN-ENGINE-REVIEW-01.md`](../FUGEN-ENGINE-REVIEW-01.md) | **Review 01** — seven specialist reviews, with a decision and a reason for every finding |
 
 Also required background, outside this directory: `AGENTS.md`, `CLAUDE.md`,
