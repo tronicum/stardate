@@ -102,27 +102,30 @@ whether to pursue World Heritage Centre data authorisation
 ([`licensing.md`](licensing.md)), which has institutional lead times measured
 in months.
 
-## 4. Two decisions that must be taken in week 1–2
+## 4. Decisions taken, and what is still open
 
-**(a) The premiere date.** GB 263865's own acceptance date, from the patent.
-Blocking everything downstream that says "2027".
+Settled on 2026-07-25 — see [`decisions.md`](decisions.md) for the full
+reasoning and what each one rules out:
 
-**(b) The three patent bricks have no LDraw geometry.** Batima (1924) and
-Kiddicraft (1940) are not in the LDraw library, and the project's own rule 4
-forbids inventing geometry — so A3-S02 and A3-S03, and therefore M80's gate,
-are currently unmeetable and nobody had noticed. Two honest options:
+- **D1 — the premiere is the centenary of GB 263865's acceptance.** The date
+  itself is still needed from the patent; Stefan is bringing it. Everything
+  below that says "2027" hangs on it.
+- **D2 — the three patent bricks are reconstructed from their real published
+  drawings, and declared as reconstructions everywhere they appear.** They
+  live in `ldraw-scenes/reconstructions/`, never mixed with resolved library
+  parts. The real-data rule continues to govern everything the work presents
+  as *evidence* — dates, patent numbers, colours, dimensions, metadata.
+- **D3 — the Postillen move to 2027.** October 2026 becomes an honest Act I
+  technical preview instead of a delivery date.
+- **D4 (provisional) — the protocol is announced in advance, by email**, so
+  that silence becomes a measurable result rather than a failure state. This
+  deletes the success ladder and the Louis Cousin genealogy from
+  `masterplan-bewegung-postillen.md`.
 
-1. **Hand-author three `.dat` files** from the real published patent
-   drawings, labelled unambiguously as this project's own reconstructions,
-   with the drawing cited in each file's header. The archive already has
-   `FR588985A` at 900×602 and a CC0 photograph of real Batima bricks — enough
-   to reconstruct responsibly.
-2. **Restage A3-S02/S03** around parts that exist, and carry the patent
-   evidence as overlay and citation rather than as geometry.
-
-Option 1 is stronger and is the recommendation, *provided* the reconstruction
-is declared everywhere it appears. Decide before P1 ends, because it changes
-what M74's recipes need.
+Still open and scheduled: **D1a** (the acceptance date), **D5** (split the
+Fisher Page recognition ask from the patronage letters?), **D6** (which three
+Atlas sites), **D7** (is the fugue alive?), **D8** (does mesh beat points?).
+D7 and D8 are answered by the P0 spikes in weeks 1–3.
 
 ## 5. Risks
 

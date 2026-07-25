@@ -29,6 +29,7 @@ of GB 263865 — see [`plan.md`](plan.md) §1.
 | [`budgets.md`](budgets.md) | Device, memory, long-run and AI budgets. **Numbers that fail a build** |
 | [`licensing.md`](licensing.md) | Licensing, attribution, and the ethics constraints |
 | [`plan.md`](plan.md) | The calendar, the human gates, the risks, the definition of done |
+| [`decisions.md`](decisions.md) | **What was decided, when, and what it rules out.** Append-only |
 | [`../FUGEN-ENGINE-REVIEW-01.md`](../FUGEN-ENGINE-REVIEW-01.md) | **Review 01** — seven specialist reviews, with a decision and a reason for every finding |
 
 Also required background, outside this directory: `AGENTS.md`, `CLAUDE.md`,
