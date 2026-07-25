@@ -22,48 +22,55 @@ of the 2×4 studded brick as a documented standard.** The archive's own
 research (`claude/quellenlage-alle-artikel.md`) identifies **GB 263865** —
 Batima, Belgian priority **31 December 1925** — as the patent that contains
 "eight studs in two rows", i.e. the 2×4 canon, and calls it *"das wichtigste
-Dokument"* of the whole chain. A British specification filed on that priority
-was accepted in **1927**.
+Dokument"* of the whole chain. That was right.
 
-> **ACTION, week 1, blocking the premiere date:** pull GB 263865's own
-> "Complete Accepted" date from Espacenet or Google Patents and record it in
-> `TODOs.md`. The premiere is that date + 100 years. Everything below assumes
-> a premiere in the second half of 2027; the exact day comes from the patent,
-> not from us. The Belgian priority centenary (31 December 2025) has already
-> passed, which is precisely why GB 263865's 1927 acceptance is the right
-> anchor.
+**RESOLVED, 2026-07-25 — the premiere is Wednesday, 23 June 2027.**
+GB 263865 A, *Improvements in building blocks*, applicant J. Girlot, priority
+31 December 1925, filed 31 December 1926, **published 23 June 1927**. Its
+abstract is the reason it is the right document: *"A set of toy bricks formed
+with two rows of pegs a on one face and corresponding rows of recesses b on
+the opposite face… the quarter brick having four pegs, the half brick six, and
+the full brick eight."* Eight studs in two rows, in print, in 1927.
+
+The earlier candidates are both past: BE 311029's priority is 6 June 1923, and
+GB 217243 (the *solid* carton-pierre block, "J. Girlot, assignee of L. Cousin")
+was published 21 May 1925. See [`decisions.md`](decisions.md) D1a for the full
+table and for the sourcing caution that came with it.
 
 This gives roughly **52 weeks of build plus real buffer** instead of 26 weeks
 with none. Consequences, all adopted:
 
 - **Full scope is back in.** Phase 6 (wasm), M77 (the XML autopilot), Atlas
   tier C and the 60-minute installation cut return to the plan.
-- **The 4:00 canonical cut still exists by early May 2027** — nine months
-  before it is needed, which is the correct amount of slack for a piece whose
-  hardest risk ("is the fugue musically dead?") is a taste judgement.
+- **The 4:00 canonical cut still exists by early May 2027** — seven weeks
+  before the premiere, with Phase 6, Phase 7 and the extended cuts sitting in
+  between as compressible work. The slack is real but it is not nine months:
+  a slip in Phase 5 eats the wasm phase first, then tier C, then the
+  60-minute cut, in that order.
 - **The October 2026 collision dissolves.** `masterplan-iunctura-site.md`
   promised a running loop by end of October 2026; that becomes an honest
   **Act I technical preview** instead of a broken promise.
-- **The Postillen should probably move too.** Sealed letters arriving in the
-  centenary year, referring to the centenary, are a far stronger object than
-  letters arriving in October 2026 about a work that does not exist yet.
-  **Stefan's call, and worth making early** — it changes the printing,
-  sealing and diplomatic-post lead times.
+- **The Postillen move with it (D3, decided).** Sealed letters arriving in
+  the centenary year, referring to the centenary, are a far stronger object
+  than letters arriving in October 2026 about a work that does not exist yet.
+  Printing, sealing, translation and diplomatic post now schedule backwards
+  from 23 June 2027 — and if D4's pre-announced protocol holds, the email
+  goes out earlier still, with X+90 landing after the premiere.
 
 ## 2. The calendar
 
 | Weeks | Dates | Phase | Milestones | Gate |
 |---|---|---|---|---|
-| 1–3 | Jul 27 – Aug 16 2026 | **P0 Spikes** | — | Four questions answered before any production code: (a) GB 263865's acceptance date; (b) fugue spike — theory + counterpoint + MIDI export, **listened to by a human**; (c) do the three patent bricks have usable geometry (see §4); (d) does mesh beat points on the monolith, yes or no |
+| 1–3 | Jul 27 – Aug 16 2026 | **P0 Spikes** | — | Three questions answered before any production code (the fourth, the premiere date, is resolved — see §1): (a) fugue spike — theory + counterpoint + MIDI export, **listened to by a human**; (b) reconstruct the three patent bricks from their drawings (D2); (c) does mesh beat points on the monolith, yes or no |
 | 4–12 | Aug 17 – Oct 18 2026 | **P1 Renderer** | M51–M59 | A 1×1 brick renders with catalogue-quality edges at 60 fps, and the 200 k-instance synthetic scene holds its budget. **Safari on real hardware by week 8.** |
 | 13–18 | Oct 19 – Nov 29 2026 | **P2 Show engine** | M60–M66 | Act I plays end to end from `show.json`, silent, at all four durations |
 | 19–24 | Nov 30 2026 – Jan 10 2027 | **P3 Audio** | M67–M71 | Four voices, in tune, in time, generated in the browser, in sync |
 | 25–33 | Jan 11 – Mar 14 2027 | **P4 Kit / Atlas / flags** | M72–M77 | Sites and flags build from recipes; the autopilot's classifier is *scored* against the hand-curated tiers before it ships |
 | 34–40 | Mar 15 – May 2 2027 | **P5 The work** | M78–M85 | **The canonical 4:00 cut exists, end to end, with sound, looping seamlessly.** The real deadline; everything after is improvement |
 | 41–43 | May 3 – May 23 2027 | **P6 wasm** | M86–M90 | One implementation of the evaluator and the resolver, measurably faster |
-| 44–47 | May 24 – Jun 20 2027 | **P7 Ship** | M91–M97 | Deployed, documented, licensed, reproducible |
-| 48–52 | Jun 21 – Jul 25 2027 | **Extended cuts** | tier C, 60:00 | The installation cut, if the Atlas holds its performance budget |
-| — | Jul – premiere 2027 | **Buffer + apparatus** | — | Installation build-out, Postillen, on-chain edition, press. Not engineering weeks |
+| 44–46 | May 24 – Jun 13 2027 | **P7 Ship + extended cuts** | M91–M97, tier C, 60:00 | Deployed, documented, licensed, reproducible. The installation cut if the Atlas holds its budget |
+| 47 | Jun 14 – Jun 22 2027 | **Apparatus** | — | Installation build-out, the Postillen in the post, the on-chain edition, press. Not engineering days |
+| — | **Wed 23 Jun 2027** | **PREMIERE** | — | **100 years of GB 263865 — eight studs in two rows** |
 
 **Milestone-week interim deliverable, October 2026:** the vector-accurate
 monolith running in a browser. That is what goes on the USB stick if the
@@ -80,7 +87,6 @@ slip, not a silent block. Batch them into one weekly review.
 
 | When | Gate | Cost |
 |---|---|---|
-| Week 1 | GB 263865 acceptance date → the premiere date | 1 h |
 | Week 2 | Patent-brick geometry decision (§4) | 1 h |
 | **Week 3** | **Listen to the fugue spike.** If it is dead, the fallback (hand-composed subject *and* exposition, generated episodes only) is decided here — not in month six | 2 h |
 | Week 3 | Mesh-vs-points verdict on the monolith | 1 h |
@@ -107,9 +113,8 @@ in months.
 Settled on 2026-07-25 — see [`decisions.md`](decisions.md) for the full
 reasoning and what each one rules out:
 
-- **D1 — the premiere is the centenary of GB 263865's acceptance.** The date
-  itself is still needed from the patent; Stefan is bringing it. Everything
-  below that says "2027" hangs on it.
+- **D1 — the premiere is 23 June 2027**, the centenary of GB 263865's
+  publication: eight studs in two rows, in print, in 1927. **Resolved.**
 - **D2 — the three patent bricks are reconstructed from their real published
   drawings, and declared as reconstructions everywhere they appear.** They
   live in `ldraw-scenes/reconstructions/`, never mixed with resolved library
@@ -122,7 +127,7 @@ reasoning and what each one rules out:
   deletes the success ladder and the Louis Cousin genealogy from
   `masterplan-bewegung-postillen.md`.
 
-Still open and scheduled: **D1a** (the acceptance date), **D5** (split the
+Still open and scheduled: **D5** (split the
 Fisher Page recognition ask from the patronage letters?), **D6** (which three
 Atlas sites), **D7** (is the fugue alive?), **D8** (does mesh beat points?).
 D7 and D8 are answered by the P0 spikes in weeks 1–3.

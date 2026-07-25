@@ -7,8 +7,9 @@ are one human instinct.
 show engine, and a procedural fugue, all built *inside* `spex`, reusing what
 M1–M50 already shipped.
 **Archive signature:** IA-2026-002
-**Spec revision:** **rev 3**, 2026-07-25 · **Premiere:** the 2027 centenary
-of GB 263865 — see [`plan.md`](plan.md) §1.
+**Spec revision:** **rev 3**, 2026-07-25 · **Premiere:** **Wednesday, 23 June 2027** —
+the centenary of GB 263865, the eight-studs-in-two-rows patent. See
+[`decisions.md`](decisions.md) D1a.
 
 ---
 
@@ -77,7 +78,7 @@ centenary ([`plan.md`](plan.md) §1): all seven phases, the Atlas at 40 sites,
 the wasm phase, and all four cuts — 4:00, 10:00, 60:00 and endless.
 
 **The deliverable that matters** is the **4:00 canonical cut with three Atlas
-sites, complete by early May 2027.** Everything after that gate is
+sites, complete by early May 2027** — seven weeks before the premiere. Everything after that gate is
 improvement, and the extra nine months are buffer and apparatus, not licence
 to reopen Phase 1.
 

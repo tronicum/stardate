@@ -24,9 +24,56 @@ The Belgian priority centenary (31 December 2025) has already passed, which is
 why the British acceptance in 1927 is the right anchor: it is the centenary of
 the *standard*, not of a filing.
 
-**Open, and blocking:** the patent's own "Complete Accepted" date, from
-Espacenet or Google Patents. Stefan is bringing it to the next session.
-Premiere = that date + 100 years.
+### D1a — the date, resolved: **23 June 2027**
+
+**Resolved:** 2026-07-25, from the patents' own front-page data (Google
+Patents / Espacenet), not from a secondary source.
+
+| Patent | Title | Applicant | Priority | Filed | **Published** | Centenary |
+|---|---|---|---|---|---|---|
+| **BE 311029** | — | — | **6 Jun 1923** | — | — | 2023 — passed |
+| **GB 217243 A** | *Improvements in toy building blocks* | **J. Girlot (assignee of L. Cousin)** | 6 Jun 1923 | 6 Jun 1924 | **21 May 1925** | 2025 — passed |
+| **GB 263865 A** | *Improvements in building blocks* | **J. Girlot** | 31 Dec 1925 | 31 Dec 1926 | **23 Jun 1927** | **23 Jun 2027** |
+
+**The premiere is Wednesday, 23 June 2027** — 47 weeks from this spec, and
+the hundredth anniversary of the publication of the 2×4 stud canon.
+
+GB 263865's own abstract is the reason this is the right document and not
+merely the conveniently dated one:
+
+> "A set of toy bricks formed with two rows of pegs *a* on one face and
+> corresponding rows of recesses *b* on the opposite face… the quarter brick
+> having four pegs, the half brick six, and the full brick eight."
+
+Eight pegs in two rows. That is the 2×4, in print, in 1927 — and the archive's
+own note calling GB 263865 *"das wichtigste Dokument"* was right.
+
+**A correction to the record, and a caution.** A search-engine AI summary
+asserted that "the UK patent related to Batima is GB 217243 (**not**
+GB 263865)". That exclusion is false: **both exist, both are Girlot, and they
+are two different inventions.** GB 217243 (1923/25) is *solid* blocks in
+carton pierre, interlocking on their upper and lower faces. GB 263865
+(1925/27) is the pegs-and-recesses brick with eight studs in two rows. The
+archive had already distinguished them correctly; the summary had not.
+
+**A second caution, which matters more.** GB 217243's front page reads
+"J. Girlot (assignee of **L. Cousin**)" — so Louis Cousin as the inventor of
+the 1923 block rests on the patent record itself, not only on a Wikipedia
+article this project may have written. That is a real relief, because citing
+our own Wikipedia edits back to ourselves would be circular sourcing.
+
+But **GB 263865 names Girlot alone.** The 2×4 canon patent does not name
+Cousin. Any claim that Louis Cousin invented the 2×4 stud brick is therefore
+an overclaim and must not appear in the work, the Postillen, or any Wikipedia
+edit. The defensible statement is narrower and still strong:
+
+> Louis Cousin's interlocking block is patented in 1923. The eight-stud,
+> two-row brick is published under Joseph Girlot's name in 1927. Both are
+> Batima. Neither is in Billund.
+
+**Still to pull, for the archive rather than for the date:** the full
+specification PDFs of both, and the "Complete Accepted" line from each front
+page, to sit alongside `FR588985A` in `quellenregister.json`.
 
 **What this rules out:** the 26-week calendar of rev 1 and the scope cut of
 rev 2. Phase 6, M77, Atlas tier C and the 60:00 cut are back in
@@ -146,7 +193,7 @@ Worth splitting off from the patronage letters — open for D5.
 
 | # | Question | Who | Blocks |
 |---|---|---|---|
-| **D1a** | GB 263865's "Complete Accepted" date | Stefan — bringing it | The premiere date, and every 2027 date downstream of it |
+| **D9** | **The live Wikipedia articles need correcting.** GB 263865 names Girlot alone, so any claim that Louis Cousin invented the 2×4 brick is an overclaim — and the project's own "Louis Cousin (inventor)" articles are already live in several languages. Citing them back to ourselves would be circular sourcing on top of an error | Stefan | Everything the Postillen and the work assert about attribution. **Time-sensitive: the longer it stands, the more it propagates** |
 | **D5** | Split the Fisher Page recognition ask from the patronage Postillen? | Stefan | Postillen texts, and their addressees |
 | **D6** | Which three Atlas sites for the canonical cut — the thesis's three (a brick site, a stone-arch site, one non-European) or the Postilla states? | Stefan | M74's tier A, and the Atlas's on-screen reading |
 | **D7** | Is the generated fugue musically alive? | Stefan, after the P0 spike | The whole audio phase, and its fallback |
