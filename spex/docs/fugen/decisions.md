@@ -241,7 +241,7 @@ is clean.
 |---|---|---|---|
 | ~~D9~~ | ~~The live Wikipedia articles need correcting.~~ **Closed by D10** — Stefan's lane. The spec keeps only the wording it is allowed to render.
 <!-- original:  GB 263865 names Girlot alone, so any claim that Louis Cousin invented the 2×4 brick is an overclaim — and the project's own "Louis Cousin (inventor)" articles are already live in several languages. Citing them back to ourselves would be circular sourcing on top of an error | Stefan | Everything the Postillen and the work assert about attribution. -->
-| **D5** | Split the Fisher Page recognition ask from the patronage Postillen? | Stefan | Postillen texts, and their addressees |
+| **D5** | What is actually demanded for Fisher Page, and from whom. **Decision paper with four variants: [`d5-entscheidungsvorlage.md`](d5-entscheidungsvorlage.md)** — the ask is upgraded from a plaque to a permanent exhibition or a foundation for pedagogical play built on his writings | Stefan | Postilla II and Postilla IV, and their timelines |
 | **D6** | Which three Atlas sites for the canonical cut. **Decision paper with five variants, criteria and a recommendation: [`d6-entscheidungsvorlage.md`](d6-entscheidungsvorlage.md)** | Stefan | M74's tier A, one M72 primitive, and the Atlas's on-screen reading |
 | **D7** | Is the generated fugue musically alive? | Stefan, after the P0 spike | The whole audio phase, and its fallback |
 | **D8** | Does the mesh renderer beat the point renderer on the monolith? | Stefan, after the P0 spike | Whether Phase 1 proceeds as specified |

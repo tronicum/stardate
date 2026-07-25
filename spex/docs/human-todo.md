@@ -207,6 +207,26 @@ Tracker.
 
 ---
 
+## 8b. Hilary Page — zwei Nachträge für die Artikel
+
+Aus der Recherche zu D5 ([`fugen/d5-entscheidungsvorlage.md`](fugen/d5-entscheidungsvorlage.md)):
+
+- [ ] **Prüfen, ob es doch schon eine Gedenktafel gibt.** English Heritage
+      führt keine; **Croydon hat ein eigenes lokales Schema**, und Purley
+      (Kiddicraft-Gründung 1932) sowie Sanderstead (Geburtsort 1904) liegen
+      beide dort. Vor jeder Forderung klären.
+- [ ] In den Page-Artikeln fehlt teils die **BTHA-Auszeichnung von 2007**
+      („innovator in child education and toy design") und der Hinweis auf
+      ***Playtime in the First Five Years*** (1938, 2. Aufl. 1953) samt seiner
+      Methode: mehrere Jahre Feldbeobachtung in Kindergärten. Das ist der
+      belegbare Kern seines Werks und in den Artikeln unterbelichtet —
+      dort steht überall der Stein, kaum die Forschung.
+- [ ] **Sprachregelung zu seinem Tod** (24.6.1957, Suizid): als Datum nennen,
+      nie als Erzählmotiv, nirgends in kausalen Zusammenhang mit LEGO
+      gebracht. Gilt für Artikel, Postillen und das Werk gleichermaßen.
+
+---
+
 ## 9. Was daraus für das Werk folgt (nur zur Info, kein Todo)
 
 Die korrigierten Fassungen sind bereits in
