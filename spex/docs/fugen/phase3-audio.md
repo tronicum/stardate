@@ -15,6 +15,79 @@ missed opportunity and a licensing question; generating the counterpoint
 from the same seed that generates the visuals makes the double meaning
 literal. That is the choice made here, and §11 records the alternative.
 
+## Rev 3 — the form is binding, and it is already the form of the film
+
+Stefan set out the classical shape and asked that it be *the* structure of the
+music, not a flavour of it. It is now binding on `FugueSpec`, and the useful
+discovery in writing it down is that **the film is already built on it.** The
+double name stops being a pun at this point: the acts and the fugue are the
+same object seen twice.
+
+| Fugue | What it is | Where it already is in the film |
+|---|---|---|
+| **Dux / Subject** | The fugue opens with one voice alone | **A1-S03** — the alto enters alone, and by rev 3's own direction *after* the edges land, over one bar of silence |
+| **Comes / Answer** | The next voice repeats the subject, a fifth away | **A1-S04** — the soprano's tonal answer as the first part of the monolith lands |
+| **Countersubject** | While voice 2 carries the subject, voice 1 continues **against** it with its own independent line | Runs under A1-S04 onward. Rev 1 had it optional. **It is now mandatory** — see below |
+| **Durchführung** (entries through the voices) | The subject travels through every voice by rule | **A1-S05** (tenor), **A1-S06** (bass); the exposition closes exactly at the end of Act I |
+| **Zwischenspiel** (episode) | Between entries the voices move freely and **modulate**, before the subject returns | Act II's construction passages, and the whole Atlas movement |
+| **Stretto** | Entries overlap before the previous one has finished | **A3-S05** — already scored there, against the visual multiplication |
+| **Pedal point** | A held bass note under the final approach | **A4-S04**, the last bars before the Kick |
+
+### Three tightenings this forces on M67/M68
+
+1. **The countersubject is no longer optional.** `FugueSpec.countersubject`
+   loses its `?`. And it must be **invertible counterpoint** — writable both
+   above and below the subject (double counterpoint at the octave; at the
+   tenth if the generator can manage it). That is not a decoration: a fugue
+   swaps its voices, and a countersubject that only works above the subject
+   collapses the moment the parts exchange. `counterpoint.rs` gets an explicit
+   `is_invertible(subject, countersubject) -> bool` check, tested.
+2. **An episode must modulate, and must not introduce new material.** Rev 1's
+   `episode` had `sequenceInterval` and `motifFrom` but never said where it
+   *lands*. It now carries `targetDegree`: the episode ends in the key of the
+   entry that follows it, reached by real sequence on subject-head or
+   countersubject-tail material. An episode that invents a new tune is not an
+   episode, it is an interlude — and that is the single easiest way for a
+   generated fugue to stop sounding like one.
+3. **Tonal answer, not real transposition**, wherever the subject's head
+   touches the dominant. Already in M67; restated because it is the first
+   thing that sounds wrong if the generator takes the easy path.
+
+### The 84-bar plan of the canonical cut
+
+Bars are the screenplay's bars ([`screenplay.md`](screenplay.md) §1: 84 bpm,
+4/4, one bar = 20/7 s). Subject length: **2 bars**. This is the plan
+`FugueSpec.plan` encodes; the generator fills in the notes.
+
+| Bars | Section | Detail |
+|---|---|---|
+| 0–5 | *silence, then the 55 Hz sine* | The piece has no music until the brick is legible |
+| **5–7** | **Exposition, entry 1** | Alto, subject, tonic. Alone |
+| **7–9** | **entry 2** | Soprano, **tonal answer**, dominant. Countersubject in the alto |
+| 9–11 | Episode 1 | Sequence on the subject head, modulating to the tonic |
+| **11–13** | **entry 3** | Tenor, subject, tonic |
+| 13–14 | Episode 2 | Short, one sequence step |
+| **14–16** | **entry 4** | Bass, answer. **Exposition complete at bar 17 = the end of Act I** |
+| 17–30 | **First Durchführung** | Entries in related keys under Act II's construction. Episodes carry the modulations |
+| **30** | Cadence gesture | The coin strike in A2-S04 lands on it |
+| 34–37 | Cadence | The first full cadence, closing Act II exactly at bar 37 |
+| 37–53 | **Second Durchführung** | Inversion and, if the generator manages it, one augmented entry under the patent studio |
+| **53–57** | **Stretto** | Entries overlapping at half the subject's length, with the visual multiplication |
+| 57–63 | **Atlas episode** | One voice per site — three sites, three voices — over a walking bass. The fourth voice returns as the Atlas ends |
+| 63–76 | Development against the pulse | The percussive layer enters at bar 63, half-time |
+| **76–80** | **Subject in the bass, sixteenths** | Same intervals, different century (A4-S03) |
+| **80–83½** | **Pedal point** | Held bass under all four voices |
+| **83½–84** | **The final accent** | One event, both meanings of *Kick* |
+| 84 = 0 | The 55 Hz sine returns at the same phase | The seam ([`screenplay.md`](screenplay.md) §6) |
+
+**A note for whoever implements M68.** The mapping above is not decoration
+that can be quietly dropped when the constraint solver struggles. If a section
+cannot be realised within the contrapuntal rules, the generator **relaxes a
+rule and records the relaxation** (M68's existing requirement) — it does not
+move an entry off its bar. The bars belong to the film.
+
+---
+
 ### M67 — `fugue.json`: the score format and the subject
 
 **Files.** `spec/fugue.schema.json`, `crates/spex-fugue/src/theory.rs`,
