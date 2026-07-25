@@ -56,6 +56,97 @@ exactly am I building?"
    written so that the repository is in a working, demoable state at the
    end of it.
 
+---
+
+## 0.1 BINDING AMENDMENTS (rev 2) — read before implementing anything below
+
+Rev 1 was reviewed by seven specialists (architecture, technical art,
+screenplay, production, creative direction, cultural history, browser
+performance) plus an agentic-coding budget review. The full record, with an
+adopt/reject decision and a reason for every finding, is
+**`docs/FUGEN-ENGINE-REVIEW-01.md`**. Where that document and the text below
+disagree, **the review wins**. The items here are the ones that would
+otherwise cause days of wasted work.
+
+**Scope decision, taken in week 1 and overriding §10:** the deliverable is
+the **4:00 cut with 3 Atlas sites**. October ships an **Act I preview**, not
+the piece — this resolves a collision with
+`claude/masterplan-iunctura-site.md`, which promises a running loop by end of
+October. **Phase 6 (wasm), M77 (Atlas autopilot), Atlas tier C and the 60:00
+cut are explicitly post-date.** An independent estimate put rev 1's full
+scope at 41 weeks, not 26.
+
+**Correctness (fix before writing M51):**
+
+- **B1 — the conditional-edge test in §3 M51/M57 is inverted.** A type-5 line
+  is a silhouette when both control points project to the **same** side of
+  the edge. Draw when signs agree; collapse when they differ.
+- **B2 — geometry must stay colour-neutral.** `resolve_part_full` preserves
+  LDraw code 16 as `color_code: Option<u32>` (`None` = inherit); parts key on
+  `part_file` only; `submeshes[].material: number | null`.
+- **B3 — do not change `load_colors`'s signature.** Two real call sites
+  destructure the tuple. Add `load_colors_full()` for `spex-mesh` only.
+- **B4 —** `spex serve` bails unless `tileset.json`/`sequence.json` exists;
+  M53 must add `mesh.json` and `show-resolved.json` to that guard.
+- **B5 —** `PartGeometry` needs `sources: Vec<String>` and a per-triangle
+  `source: u16` **in M51**, or M59's LOD1 has nothing to gate on.
+- **B11 — `mesh.json` must not carry an `instances[]` array.** 250 k
+  instances is 37 MB of JSON → ~120 MB heap → 1.5 s of main-thread parse.
+  Binary: `(i16 x,y,z; u8 orientation; u8 material; u16 part)` = 10 B each.
+- **B12/B13/B14 — colour and post.** Store **linear** colour in `mesh.json`;
+  `NoToneMapping` on the renderer with ACES last in `OutputPass` (bloom must
+  run in linear HDR); add triangular dither + ~1.5% grain, or the black field
+  bands.
+
+**Performance (binding budgets, per §2 of the review):**
+
+- **Evaluate only dirty instances**, never all of them. M87's "<2 ms for
+  250 k" is not achievable; touching the ~20 k instances an active track
+  actually moves is <1 ms. *Largest single correction in the document.*
+- **Geometric edges only above ~40 px projected height** (hero shots, ≤3 k
+  bricks). Everything else gets a screen-space depth+normal outline pass,
+  whose cost is independent of instance count.
+- **`setPixelRatio(Math.min(devicePixelRatio, 1.5))`**, partial buffer
+  uploads via `addUpdateRange`, visible-instance compaction into
+  `mesh.count`.
+- Long runs: no `innerHTML` per frame, no `setInterval` for audio scheduling
+  (use an `AudioWorklet` pump — hidden tabs throttle to 1/min), **f64 for
+  absolute time** (f32 resolves to 16 ms after three days), a
+  `webglcontextlost` handler, a fixed WebAudio voice pool, and wasm linear
+  memory with `initial == maximum` so a grow traps instead of silently
+  detaching every `Float32Array` view.
+- **CI asserts counters, never fps.** `--disable-gpu` is SwiftShader and is
+  rejected as a "Low tier proxy".
+- **WebGPU: not this year.** Deferred with reasons in the review.
+
+**The work (§8 is superseded by the review's §3):**
+
+- The screenplay is **re-authored in bars**: 84 bpm, 4/4 ⇒ 1 bar = 2.857 s,
+  the canonical cut is **84 bars**. Rev 1's second-based timings are not
+  bar-aligned and made rule 2 unsatisfiable.
+- Act budget **17 / 20 / 20 / 6 / 21 bars**; **the Kick becomes 2 beats**
+  (still `fixed` in every cut); **A4-S01b "Der letzte Stein" is added**;
+  the HUD numeral in A2-S03 is cut in favour of an overrunning count; the
+  Atlas **accumulates** instead of resetting; the monolith becomes a visible
+  continuity object; **A1-S03 is the centre of the piece** and its edges must
+  land in one frame with the music entering *after*.
+- **Flags: no poles, no wind by default**, and per-site flag suppression is
+  mandatory — never for transboundary or contested-sovereignty sites.
+
+**Facts (all of §8's dates were checked and several were wrong):** Uruk is
+not "the first standardised brick"; the token thesis is contested and
+"the invention of number" must go; Lydia is *not* the first fungible unit
+(Kroisos's mid-6th-century reform is); the Pont du Gard has no brick and is
+c. 40–60 CE; Stonehenge's mortice-and-tenon sarsens are c. 2500 BCE, not
+3000; `GB 529580` was filed in **1940**; **`BE 311029` is unconfirmed — use
+FR 588985**; **Interlego v Tyco was lost by Lego**; and the AI "token" is a
+pun on the clay token, not a descent — the work must say so. The Louis Cousin
+genealogy in the Bewegung masterplan fuses two different people (the Cour des
+Monnaies president died in 1707) and must be cut. Full corrections, with
+sources and suggested wording, in the review's §4.
+
+---
+
 **A note on the name.** `BRICKs.md`'s naming convention holds throughout:
 "Klemmbaustein" in prose, `brick` in code, never the trademarked brand name
 in identifiers or commands. The project's own backronym — L.E.G.O., "Local
@@ -291,9 +382,11 @@ pub fn determinant3(m: &[f64; 9]) -> f64;
 // edges.rs
 /// A real LDraw line primitive. `Hard` is a type-2 edge (always drawn);
 /// `Conditional` is a type-5 optional line, drawn only when its two
-/// control points fall on opposite sides of the edge in screen space —
-/// the real mechanism that keeps a curved surface's silhouette crisp
-/// without drawing its whole tessellation.
+/// control points project to the SAME side of the edge in screen space
+/// (i.e. the two adjacent facets face the same way, so the edge is a
+/// silhouette) — the real mechanism that keeps a curved surface's
+/// silhouette crisp without drawing its whole tessellation. Rev 1 stated
+/// this backwards; see §0.1 B1.
 #[derive(Clone, Debug, PartialEq)]
 pub enum EdgeKind {
     Hard,
@@ -750,10 +843,13 @@ reads as the catalogue image everybody has in their head.
   acceptable if it instances correctly; if it does not, write the shader).
   Width in device pixels is a controls-panel parameter, default 1.4.
 - **Conditional edges** (type 5) drawn only when the two control points
-  project to opposite sides of the line in clip space. This is a per-frame,
-  per-edge test and must run on the GPU: pass both control points as vertex
-  attributes, compute the two 2D cross products in the vertex shader,
-  and collapse the quad to zero area when their signs agree.
+  project to the **same** side of the line (§0.1 B1 — rev 1 had this
+  inverted). This is a per-frame, per-edge test and must run on the GPU:
+  pass both control points as vertex attributes **to all four quad
+  corners** (so the collapse decision is identical per corner and cannot
+  produce flickering half-quads), do the test after the perspective divide
+  with a `w > 0` guard on all four points, and collapse the quad to zero
+  area when the signs **differ**.
 - **Depth bias.** Edges must not z-fight with the faces they bound. Use a
   small view-space depth offset (`gl_Position.z -= bias * gl_Position.w`),
   parameterised, default tuned against the monolith at both extreme camera
