@@ -31,6 +31,7 @@ the centenary of GB 263865, the eight-studs-in-two-rows patent. See
 | [`licensing.md`](licensing.md) | Licensing, attribution, and the ethics constraints |
 | [`plan.md`](plan.md) | The calendar, the human gates, the risks, the definition of done |
 | [`decisions.md`](decisions.md) | **What was decided, when, and what it rules out.** Append-only |
+| [`epics-sprints.md`](epics-sprints.md) | The same plan as a backlog: 15 epics, 16 sprints, every one pointing at real M-numbers |
 | [`backlog.md`](backlog.md) | Ideas captured but not decided. Nothing here is in the plan |
 | [`d5-entscheidungsvorlage.md`](d5-entscheidungsvorlage.md) | Decision paper (German): what is actually demanded for Hilary Fisher Page — plaque, exhibition, or a foundation for pedagogical play |
 | [`d6-entscheidungsvorlage.md`](d6-entscheidungsvorlage.md) | Decision paper (German): which three Atlas sites the 4:00 cut shows. Five variants, criteria, recommendation |
