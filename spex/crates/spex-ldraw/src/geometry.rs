@@ -248,6 +248,289 @@ pub fn triangle_normal(tri: &Triangle) -> [f64; 3] {
     }
 }
 
+// ---------------------------------------------------------------------------
+// M51 — full resolution: BFC-correct winding, real edges, real provenance.
+//
+// `resolve_part` above is deliberately untouched. Every existing caller (the
+// point pipeline, `brick.rs`, every shipped demo) keeps producing byte-
+// identical output; this is a second, additive entry point.
+//
+// Three things it does that `resolve_part` does not:
+//   1. composes BFC winding (see `bfc.rs`) so normals come out pointing
+//      outward without a per-caller correction;
+//   2. keeps type-2 and type-5 lines instead of discarding them;
+//   3. records, per triangle and per edge, which real LDraw file it came
+//      from — which is what lets a LOD pass drop studs and tubes by
+//      reference path rather than by guessing.
+//
+// It also does NOT bake colour. LDraw code 16 ("inherit") is preserved as
+// `None`, so one resolved part can be instanced in any colour without being
+// resolved again. Baking it here would defeat instancing at Atlas scale.
+//
+// Coordinates stay in LDraw's own frame: LDU, Y-down. The conversion to
+// spex's mm/Y-up frame is a *mirror* and must reverse triangle winding to
+// stay consistent with the normals established here — that belongs at the
+// bundle boundary (M52), in exactly one place. See `bfc.rs`'s module doc.
+// ---------------------------------------------------------------------------
+
+use crate::bfc::BfcState;
+use crate::edges::{Edge, EdgeKind};
+
+/// A real triangle with its colour left unresolved and its origin recorded.
+#[derive(Clone, Debug, PartialEq)]
+pub struct FullTriangle {
+    pub vertices: [[f64; 3]; 3],
+    /// `None` = LDraw colour 16, "inherit" — resolved per instance.
+    pub color_code: Option<u32>,
+    /// Index into `PartGeometry::sources`.
+    pub source: u16,
+}
+
+/// Everything M52 needs from one real part: geometry, lines, provenance.
+#[derive(Clone, Debug, Default)]
+pub struct PartGeometry {
+    pub triangles: Vec<FullTriangle>,
+    pub edges: Vec<Edge>,
+    /// Every real LDraw file that contributed, in first-seen order. A
+    /// triangle's or edge's `source` indexes into this.
+    pub sources: Vec<String>,
+    /// The part's own title — LDraw's convention is that a file's first line
+    /// is `0 <description>`.
+    pub description: Option<String>,
+    /// `0 !LICENSE ...`, carried through so a mesh bundle can state its own
+    /// terms rather than the build asserting them.
+    pub license: Option<String>,
+    /// `0 Author: ...`
+    pub author: Option<String>,
+    /// Files that never declared `BFC CERTIFY`. Real official parts are
+    /// certified essentially without exception, so a non-empty list here is
+    /// worth looking at rather than assuming.
+    pub uncertified: Vec<String>,
+}
+
+impl PartGeometry {
+    pub fn conditional_edge_count(&self) -> usize {
+        self.edges.iter().filter(|e| e.is_conditional()).count()
+    }
+    pub fn hard_edge_count(&self) -> usize {
+        self.edges.len() - self.conditional_edge_count()
+    }
+}
+
+struct FullCtx<'a> {
+    cache: &'a LdrawCache,
+    geo: PartGeometry,
+    source_index: std::collections::HashMap<String, u16>,
+}
+
+impl FullCtx<'_> {
+    fn intern(&mut self, name: &str) -> u16 {
+        if let Some(i) = self.source_index.get(name) {
+            return *i;
+        }
+        let i = u16::try_from(self.geo.sources.len()).unwrap_or(u16::MAX);
+        self.geo.sources.push(name.to_string());
+        self.source_index.insert(name.to_string(), i);
+        i
+    }
+}
+
+/// Effective colour for a face/line: an explicit code wins, code 16 inherits
+/// from whatever the referencing chain carried (which may itself be `None`,
+/// meaning the instance decides).
+fn effective_color(code: u32, inherited: Option<u32>) -> Option<u32> {
+    if code == 16 {
+        inherited
+    } else {
+        Some(code)
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn resolve_full_into(
+    ctx: &mut FullCtx,
+    part_file: &str,
+    matrix: &[f64; 9],
+    translation: &[f64; 3],
+    inherited_color: Option<u32>,
+    depth: u32,
+    inherited_reversed: bool,
+    top_level: bool,
+) -> Result<()> {
+    if depth > 8 {
+        bail!("LDraw reference recursion too deep at {part_file:?} - likely a real cycle or bug");
+    }
+    let (path, text) = if top_level {
+        let p = format!("parts/{part_file}");
+        let t = ctx.cache.fetch(&p)?;
+        (p, t)
+    } else {
+        resolve_ref_path(ctx.cache, part_file)?
+    };
+    let source = ctx.intern(&path);
+    let mut bfc = BfcState::new(inherited_reversed);
+    let mut first_comment_seen = false;
+
+    for line in text.lines() {
+        let tokens: Vec<&str> = line.split_whitespace().collect();
+        let Some(&line_type) = tokens.first() else {
+            continue;
+        };
+        match line_type {
+            "0" => {
+                bfc.apply_meta(&tokens);
+                if top_level {
+                    let rest = line.trim_start().trim_start_matches('0').trim();
+                    if let Some(v) = rest.strip_prefix("Author:") {
+                        ctx.geo.author = Some(v.trim().to_string());
+                    } else if let Some(v) = rest.strip_prefix("!LICENSE") {
+                        ctx.geo.license = Some(v.trim().to_string());
+                    } else if !first_comment_seen
+                        && !rest.is_empty()
+                        && !rest.starts_with('!')
+                        && !rest.starts_with("//")
+                        && !rest.starts_with("Name:")
+                        && !rest.starts_with("BFC")
+                    {
+                        ctx.geo.description = Some(rest.to_string());
+                        first_comment_seen = true;
+                    }
+                }
+            }
+            "1" => {
+                if tokens.len() < 15 {
+                    continue;
+                }
+                let sub_color: u32 = tokens[1].parse().unwrap_or(16);
+                let Ok(nums) = tokens[2..14].iter().map(|t| t.parse::<f64>()).collect::<Result<Vec<f64>, _>>() else {
+                    continue;
+                };
+                let sub_translation = [nums[0], nums[1], nums[2]];
+                let sub_matrix: [f64; 9] = nums[3..12].try_into().unwrap();
+                let child_reversed = bfc.winding_for_reference(&sub_matrix);
+                let new_matrix = mat_mul(matrix, &sub_matrix);
+                let new_translation = vec_add(&mat_vec(matrix, &sub_translation), translation);
+                let sub_file = tokens[14..].join(" ");
+                resolve_full_into(
+                    ctx,
+                    &sub_file,
+                    &new_matrix,
+                    &new_translation,
+                    effective_color(sub_color, inherited_color),
+                    depth + 1,
+                    child_reversed,
+                    false,
+                )?;
+            }
+            "3" | "4" => {
+                if tokens.len() < 2 {
+                    continue;
+                }
+                let face_code: u32 = tokens[1].parse().unwrap_or(16);
+                let Ok(nums) = tokens[2..].iter().map(|t| t.parse::<f64>()).collect::<Result<Vec<f64>, _>>() else {
+                    continue;
+                };
+                let verts: Vec<[f64; 3]> = nums
+                    .chunks(3)
+                    .filter(|c| c.len() == 3)
+                    .map(|c| vec_add(&mat_vec(matrix, &[c[0], c[1], c[2]]), translation))
+                    .collect();
+                let needed = if line_type == "3" { 3 } else { 4 };
+                if verts.len() < needed {
+                    continue;
+                }
+                let color_code = effective_color(face_code, inherited_color);
+                let reversed = bfc.face_reversed();
+                let mut push = |a: usize, b: usize, c: usize| {
+                    let v = if reversed {
+                        [verts[c], verts[b], verts[a]]
+                    } else {
+                        [verts[a], verts[b], verts[c]]
+                    };
+                    ctx.geo.triangles.push(FullTriangle { vertices: v, color_code, source });
+                };
+                push(0, 1, 2);
+                if line_type == "4" {
+                    push(0, 2, 3);
+                }
+            }
+            "2" => {
+                if tokens.len() < 8 {
+                    continue;
+                }
+                let code: u32 = tokens[1].parse().unwrap_or(16);
+                let Ok(nums) = tokens[2..8].iter().map(|t| t.parse::<f64>()).collect::<Result<Vec<f64>, _>>() else {
+                    continue;
+                };
+                let a = vec_add(&mat_vec(matrix, &[nums[0], nums[1], nums[2]]), translation);
+                let b = vec_add(&mat_vec(matrix, &[nums[3], nums[4], nums[5]]), translation);
+                ctx.geo.edges.push(Edge {
+                    vertices: [a, b],
+                    color_code: effective_color(code, inherited_color),
+                    kind: EdgeKind::Hard,
+                    source,
+                });
+            }
+            "5" => {
+                if tokens.len() < 14 {
+                    continue;
+                }
+                let code: u32 = tokens[1].parse().unwrap_or(16);
+                let Ok(nums) = tokens[2..14].iter().map(|t| t.parse::<f64>()).collect::<Result<Vec<f64>, _>>() else {
+                    continue;
+                };
+                let p: Vec<[f64; 3]> = (0..4)
+                    .map(|i| {
+                        vec_add(
+                            &mat_vec(matrix, &[nums[i * 3], nums[i * 3 + 1], nums[i * 3 + 2]]),
+                            translation,
+                        )
+                    })
+                    .collect();
+                // The control points are transformed by the same composed
+                // matrix as the endpoints; a conditional edge whose controls
+                // were left untransformed would test against the wrong
+                // geometry and flicker.
+                ctx.geo.edges.push(Edge {
+                    vertices: [p[0], p[1]],
+                    color_code: effective_color(code, inherited_color),
+                    kind: EdgeKind::Conditional { control: [p[2], p[3]] },
+                    source,
+                });
+            }
+            _ => {}
+        }
+    }
+
+    if !bfc.certified {
+        ctx.geo.uncertified.push(path);
+    }
+    Ok(())
+}
+
+/// Resolves one real top-level LDraw part into triangles **and** edges, with
+/// BFC-correct winding, unresolved colour, and per-primitive provenance.
+///
+/// Output stays in LDraw's native frame (LDU, Y-down). See this section's
+/// header for why that matters.
+pub fn resolve_part_full(cache: &LdrawCache, part_file: &str) -> Result<PartGeometry> {
+    let mut ctx = FullCtx {
+        cache,
+        geo: PartGeometry::default(),
+        source_index: std::collections::HashMap::new(),
+    };
+    resolve_full_into(&mut ctx, part_file, &IDENTITY, &ZERO, None, 0, false, true)
+        .with_context(|| format!("fully resolving real LDraw part {part_file:?}"))?;
+    Ok(ctx.geo)
+}
+
+/// Right-hand-rule normal of a `FullTriangle` — the same rule as
+/// `triangle_normal`, which is correct here precisely because
+/// `resolve_part_full` already reversed the vertex order wherever BFC said to.
+pub fn full_triangle_normal(tri: &FullTriangle) -> [f64; 3] {
+    triangle_normal(&Triangle { vertices: tri.vertices, color_code: 0 })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -387,5 +670,225 @@ mod tests {
         let tri = Triangle { vertices: [[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0]], color_code: 0 };
         let n = triangle_normal(&tri);
         assert!((n[2].abs() - 1.0).abs() < 1e-9);
+    }
+
+    // ---------------------------------------------------------------- M51 ---
+
+    /// Writes a synthetic library and returns a cache over it.
+    fn fixture(files: &[(&str, &str)]) -> (tempfile::TempDir, LdrawCache) {
+        let dir = tempfile::tempdir().unwrap();
+        for (path, body) in files {
+            let full = dir.path().join(path);
+            std::fs::create_dir_all(full.parent().unwrap()).unwrap();
+            std::fs::write(full, body).unwrap();
+        }
+        let cache = LdrawCache::new(dir.path());
+        (dir, cache)
+    }
+
+    fn positions(tris: &[FullTriangle]) -> Vec<[u64; 3]> {
+        let mut v: Vec<[u64; 3]> = tris
+            .iter()
+            .flat_map(|t| t.vertices)
+            .map(|p| [p[0].to_bits(), p[1].to_bits(), p[2].to_bits()])
+            .collect();
+        v.sort_unstable();
+        v
+    }
+
+    #[test]
+    fn full_resolution_leaves_colour_16_unresolved_and_keeps_explicit_codes() {
+        let (_d, cache) = fixture(&[(
+            "parts/c.dat",
+            "0 Colour Test\n0 BFC CERTIFY CCW\n\
+             3 16 0 0 0 1 0 0 0 1 0\n\
+             3 4 0 0 0 1 0 0 0 1 0\n",
+        )]);
+        let g = resolve_part_full(&cache, "c.dat").unwrap();
+        assert_eq!(g.triangles[0].color_code, None, "16 must stay unresolved for per-instance colour");
+        assert_eq!(g.triangles[1].color_code, Some(4), "an explicit accent colour is kept");
+    }
+
+    #[test]
+    fn an_explicit_colour_on_a_reference_is_inherited_by_its_faces() {
+        let (_d, cache) = fixture(&[
+            ("parts/outer.dat", "0 Outer\n0 BFC CERTIFY CCW\n1 7 0 0 0 1 0 0 0 1 0 0 0 1 inner.dat\n"),
+            ("p/inner.dat", "0 Inner\n0 BFC CERTIFY CCW\n3 16 0 0 0 1 0 0 0 1 0\n"),
+        ]);
+        let g = resolve_part_full(&cache, "outer.dat").unwrap();
+        assert_eq!(g.triangles[0].color_code, Some(7));
+    }
+
+    #[test]
+    fn type_2_and_type_5_lines_are_kept_and_their_control_points_transformed() {
+        let (_d, cache) = fixture(&[
+            ("parts/e.dat", "0 Edges\n0 BFC CERTIFY CCW\n1 16 10 0 0 1 0 0 0 1 0 0 0 1 lines.dat\n"),
+            (
+                "p/lines.dat",
+                "0 Lines\n\
+                 2 24 0 0 0 1 0 0\n\
+                 5 24 0 0 0 1 0 0 0 1 0 0 -1 0\n",
+            ),
+        ]);
+        let g = resolve_part_full(&cache, "e.dat").unwrap();
+        assert_eq!(g.hard_edge_count(), 1);
+        assert_eq!(g.conditional_edge_count(), 1);
+        let hard = g.edges.iter().find(|e| !e.is_conditional()).unwrap();
+        assert_eq!(hard.vertices[0], [10.0, 0.0, 0.0], "the reference's translation applies");
+        let cond = g.edges.iter().find(|e| e.is_conditional()).unwrap();
+        match cond.kind {
+            EdgeKind::Conditional { control } => {
+                assert_eq!(control[0], [10.0, 1.0, 0.0], "control points move with the edge");
+                assert_eq!(control[1], [10.0, -1.0, 0.0]);
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    #[test]
+    fn invertnext_reverses_exactly_one_reference_subtree() {
+        let body = "0 Prim\n0 BFC CERTIFY CCW\n3 16 0 0 0 1 0 0 0 1 0\n";
+        let (_d, cache) = fixture(&[
+            (
+                "parts/inv.dat",
+                "0 Invert Test\n0 BFC CERTIFY CCW\n\
+                 0 BFC INVERTNEXT\n\
+                 1 16 0 0 0 1 0 0 0 1 0 0 0 1 prim.dat\n\
+                 1 16 0 0 0 1 0 0 0 1 0 0 0 1 prim.dat\n",
+            ),
+            ("p/prim.dat", body),
+        ]);
+        let g = resolve_part_full(&cache, "inv.dat").unwrap();
+        assert_eq!(g.triangles.len(), 2);
+        let a = full_triangle_normal(&g.triangles[0]);
+        let b = full_triangle_normal(&g.triangles[1]);
+        assert!((a[2] + b[2]).abs() < 1e-12, "the flagged one faces the other way: {a:?} vs {b:?}");
+        assert!(a[2] * b[2] < 0.0, "and only the flagged one");
+    }
+
+    /// A mirrored reference must come out with its outward normal still
+    /// pointing outward. That is the *whole* job of the determinant check: a
+    /// negative-determinant matrix flips the geometry's handedness, so the
+    /// stored winding has to flip too, and the two cancel. Without the check,
+    /// the mirrored copy would face inward — which is invisible until the
+    /// part is lit and culled, and is exactly the class of defect
+    /// `scripts/mesh-vs-points-spike/` caught in the coordinate conversion.
+    #[test]
+    fn a_mirrored_reference_still_faces_outward() {
+        let body = "0 Prim\n0 BFC CERTIFY CCW\n3 16 0 0 0 1 0 0 0 1 0\n";
+        let (_d, cache) = fixture(&[
+            (
+                "parts/mir.dat",
+                "0 Mirror Test\n0 BFC CERTIFY CCW\n\
+                 1 16 0 0 0 1 0 0 0 1 0 0 0 1 prim.dat\n\
+                 1 16 0 0 0 -1 0 0 0 1 0 0 0 1 prim.dat\n",
+            ),
+            ("p/prim.dat", body),
+        ]);
+        let g = resolve_part_full(&cache, "mir.dat").unwrap();
+        let plain = full_triangle_normal(&g.triangles[0]);
+        let mirrored = full_triangle_normal(&g.triangles[1]);
+        assert!(plain[2] > 0.9, "the unmirrored face points +Z: {plain:?}");
+        assert!(
+            mirrored[2] > 0.9,
+            "so must the mirrored one — the winding flip cancels the handedness flip: {mirrored:?}"
+        );
+        // And the geometry really was mirrored — the fixture negates X, so
+        // the (1,0,0) corner has to come back as (-1,0,0). Without this the
+        // normal assertions above would pass even if the matrix were ignored.
+        assert_eq!(
+            g.triangles[1].vertices.iter().filter(|v| v[0] < 0.0).count(),
+            1,
+            "got {:?}",
+            g.triangles[1].vertices
+        );
+    }
+
+    #[test]
+    fn a_cw_certified_file_has_its_faces_reversed() {
+        let (_d, cache) = fixture(&[
+            ("parts/cw.dat", "0 CW\n0 BFC CERTIFY CW\n3 16 0 0 0 1 0 0 0 1 0\n"),
+            ("parts/ccw.dat", "0 CCW\n0 BFC CERTIFY CCW\n3 16 0 0 0 1 0 0 0 1 0\n"),
+        ]);
+        let cw = resolve_part_full(&cache, "cw.dat").unwrap();
+        let ccw = resolve_part_full(&cache, "ccw.dat").unwrap();
+        let a = full_triangle_normal(&cw.triangles[0]);
+        let b = full_triangle_normal(&ccw.triangles[0]);
+        assert!(a[2] * b[2] < 0.0);
+    }
+
+    #[test]
+    fn provenance_is_recorded_per_primitive() {
+        let (_d, cache) = fixture(&[
+            (
+                "parts/p.dat",
+                "0 Provenance\n0 BFC CERTIFY CCW\n0 Author: A Real Author\n\
+                 0 !LICENSE Redistributable under CCAL version 2.0\n\
+                 3 16 0 0 0 1 0 0 0 1 0\n\
+                 1 16 0 0 0 1 0 0 0 1 0 0 0 1 stud.dat\n",
+            ),
+            ("p/stud.dat", "0 Stud\n0 BFC CERTIFY CCW\n3 16 0 0 0 1 0 0 0 1 0\n2 24 0 0 0 1 0 0\n"),
+        ]);
+        let g = resolve_part_full(&cache, "p.dat").unwrap();
+        assert_eq!(g.description.as_deref(), Some("Provenance"));
+        assert_eq!(g.author.as_deref(), Some("A Real Author"));
+        assert_eq!(g.license.as_deref(), Some("Redistributable under CCAL version 2.0"));
+        assert_eq!(g.sources, vec!["parts/p.dat".to_string(), "p/stud.dat".to_string()]);
+        assert_eq!(g.triangles[0].source, 0, "the part's own face");
+        assert_eq!(g.triangles[1].source, 1, "the stud's face — this is what M59 gates LOD on");
+        assert_eq!(g.edges[0].source, 1);
+        assert!(g.uncertified.is_empty());
+    }
+
+    #[test]
+    fn an_uncertified_file_is_reported_rather_than_silently_assumed() {
+        let (_d, cache) = fixture(&[("parts/u.dat", "0 No BFC here\n3 16 0 0 0 1 0 0 0 1 0\n")]);
+        let g = resolve_part_full(&cache, "u.dat").unwrap();
+        assert_eq!(g.uncertified, vec!["parts/u.dat".to_string()]);
+    }
+
+    #[test]
+    fn full_resolution_and_resolve_part_agree_on_the_geometry_itself() {
+        // The point of M51 is that it is ADDITIVE. `resolve_part` keeps
+        // producing what it always produced; the two must describe the same
+        // surface. Compared as an unordered set of vertex positions, because
+        // full resolution deliberately reverses winding where BFC says to —
+        // and a reversal is not a rotation of the vertex order.
+        let (_d, cache) = fixture(&[
+            (
+                "parts/same.dat",
+                "0 Same\n0 BFC CERTIFY CCW\n\
+                 4 16 0 0 0 1 0 0 1 1 0 0 1 0\n\
+                 0 BFC INVERTNEXT\n\
+                 1 16 5 0 0 1 0 0 0 1 0 0 0 1 prim.dat\n\
+                 1 4 0 0 5 1 0 0 0 1 0 0 0 1 prim.dat\n\
+                 2 24 0 0 0 1 0 0\n",
+            ),
+            ("p/prim.dat", "0 Prim\n0 BFC CERTIFY CCW\n3 16 0 0 0 1 0 0 0 1 0\n2 24 0 0 0 0 1 0\n"),
+        ]);
+        let plain = resolve_part(&cache, "same.dat", 16).unwrap();
+        let full = resolve_part_full(&cache, "same.dat").unwrap();
+        assert_eq!(plain.len(), full.triangles.len(), "same triangle count");
+        let plain_full: Vec<FullTriangle> = plain
+            .iter()
+            .map(|t| FullTriangle { vertices: t.vertices, color_code: None, source: 0 })
+            .collect();
+        assert_eq!(positions(&plain_full), positions(&full.triangles), "same surface");
+        assert_eq!(full.hard_edge_count(), 3, "and the edges resolve_part throws away");
+    }
+
+    #[test]
+    #[ignore = "real live network fetch against ldraw.org, not run by default"]
+    fn real_1x1_brick_resolves_with_edges_and_no_uncertified_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let cache = LdrawCache::new(dir.path());
+        let g = resolve_part_full(&cache, "3005.dat").unwrap();
+        // Numbers measured by scripts/mesh-vs-points-spike/ against the real
+        // library; they are a regression guard, not a specification.
+        assert_eq!(g.triangles.len(), 76);
+        assert_eq!(g.hard_edge_count(), 56);
+        assert_eq!(g.conditional_edge_count(), 16);
+        assert!(g.uncertified.is_empty(), "real official parts are BFC-certified: {:?}", g.uncertified);
+        assert_eq!(g.description.as_deref(), Some("Brick  1 x  1"));
     }
 }
