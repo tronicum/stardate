@@ -84,9 +84,9 @@ verfolgen.
 ## B4 — MIDI hinaus: eine mechanische Aufführung
 
 Aufgekommen aus Stefans Frage, ob die Musik nicht per MIDI aufgeführt werde.
-Im Browser: nein, denn dort gibt es keinen Klangerzeuger — MIDI ist das
-Ereignismodell, geklungen wird per WebAudio-Synthese
-([`phase3-audio.md`](phase3-audio.md)).
+Doch — seit rev 4 ist die `.mid` die Partitur, die der Browser lädt und
+abspielt ([`phase3-audio.md`](phase3-audio.md)). Nur klingen muss sie
+irgendwo: einen MIDI-Klangerzeuger hat der Browser nicht, deshalb der Synth.
 
 **Aber die Web MIDI API kann MIDI *hinaus*schicken.** Für die
 Installationsfassung heißt das: das Stück könnte ein echtes Instrument

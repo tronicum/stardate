@@ -33,42 +33,33 @@ same object seen twice.
 | **Stretto** | Entries overlap before the previous one has finished | **A3-S05** — already scored there, against the visual multiplication |
 | **Pedal point** | A held bass note under the final approach | **A4-S04**, the last bars before the Kick |
 
-### What MIDI is here, and what it is not
+### MIDI is the format. One file, no second one.
 
-Worth stating plainly, because it is the first thing anyone asks and the
-first thing an implementer could get wrong.
+Rev 3 had two score formats: `fugue.json` as the runtime path and a `.mid`
+export as a review tool, plus a `.mid` reader as an "escape hatch". That is
+one format too many. **Dropped: the generator emits a standard SMF, the
+browser loads it, and that is the score.**
 
-**MIDI is the score format and the runtime event model. It is not the
-performance.** `midi.ts` defines `NoteOn` / `NoteOff` / `Tempo` / `Marker`
-with tick and second stamps, and the scheduler works in exactly those terms —
-so in the sense that matters, the piece *is* MIDI-driven at runtime. What
-does not happen is MIDI *playback*: a `.mid` file is a list of notes, and
-something still has to turn a note into a sound.
-
-**A browser has no MIDI synthesizer.** There is no General MIDI device behind
-`AudioContext`. The only ways to make a `.mid` audible in a page are to ship a
-soundfont — a multi-megabyte asset with its own licence, against
-[`budgets.md`](budgets.md)'s loading budget and this project's no-audio-assets
-rule — or to synthesise the notes yourself. M69 synthesises them. That is why
-the WebAudio engine exists at all, and why the S0 spike
-(`scripts/fugue-spike/`) renders its own WAV through an additive organ written
-into the script rather than handing anyone a `.mid` and hoping.
-
-So there are three artefacts, and only one of them is the piece:
-
-| Artefact | What it is for |
+| Was (rev 3) | Is (rev 4) |
 |---|---|
-| `fugue.json` | The generated score. **The runtime path.** Read by `fugue.ts`, scheduled by `scheduler.ts`, sounded by `synth.ts` |
-| `.mid` export (M68 `--midi`) | **A review tool.** Open it in notation software, look at the counterpoint, hear it on someone else's synth. Never loaded by the piece |
-| `.mid` *reader* (M70, optional) | An escape hatch, so a real, clearly-licensed score could be substituted later without touching the synth or the scheduler. Not used by the shipped work |
+| `fugue.json` — runtime score | **gone** |
+| `.mid` export — review only, never loaded | **`fugue.mid` — the score. Loaded at runtime, and openable in any DAW** |
+| `.mid` reader — optional escape hatch | **the runtime path**, so it is exercised every single run instead of rotting |
+| `fugue.schema.json` | **stays**, but only for the *plan* — subject, sections, tempo map. The input, not the output |
 
-**One thing this does open up, and it is filed rather than planned:** the Web
-MIDI API can *send* MIDI out of a browser to real hardware. For the
-installation cut that means the piece could drive an actual instrument — a
-synthesiser, a disklavier, an organ — instead of a loudspeaker. For a work
-about a hundred-year-old mechanical standard, a mechanical performance is not
-a gimmick. See [`backlog.md`](backlog.md) B4; nothing in the shipped web piece
-depends on it.
+What this buys, beyond one less format: the review tool and the runtime are
+the same file, so anything Stefan hears in Logic is exactly what the piece
+plays. A bar can be hand-edited and it just works. And the SMF reader cannot
+silently rot, because nothing plays without it.
+
+**The one thing MIDI cannot do for us**, and the only reason `synth.ts`
+exists: a browser has no MIDI sound generator. `AudioContext` is not a
+General MIDI device — a `.mid` is a note list, and something still has to
+make a sound. Shipping a soundfont would be several megabytes with its own
+licence, against the loading budget and the no-audio-assets rule. So the
+synth stays. It is ~200 lines and it was always going to exist.
+
+Sending MIDI *out* to real hardware is [`backlog.md`](backlog.md) B4.
 
 ### Three tightenings this forces on M67/M68
 
@@ -213,10 +204,10 @@ tonal/real-answer distinction and test it).
   rule. Honest output over pretend-perfect output — the same standard the
   rest of this project holds data to.
 - Deterministic from `(seed, spec)`.
-- Optional `--midi <file.mid>` export via a minimal SMF type-1 writer
-  (hand-rolled, ~150 lines; no new dependency) so the score can be opened in
-  any notation program for human review. **This is a review tool, not the
-  runtime path.**
+- **The output is a type-1 SMF, and it is the only score artefact.** A
+  hand-rolled writer (~150 lines, no new dependency). It is what the browser
+  loads and what a human opens in a DAW — the same file, so review and
+  runtime can never disagree.
 
 **Acceptance criteria.**
 
@@ -293,10 +284,10 @@ mix bus   -> master EQ (3-band BiquadFilter) -> DynamicsCompressor (limiter)
 - The scheduler reads the *same* `ShowClock`; on `seek`, it flushes pending
   voices with a 20 ms release ramp (never an abrupt cut) and re-primes.
 - `midi.ts` defines the event model (`NoteOn`/`NoteOff`/`Tempo`/`Marker`
-  with tick and second stamps) and an optional SMF *reader*, so a real,
-  clearly-licensed `.mid` can be substituted for the generator later
-  without touching the synth or the scheduler. The generator is the default
-  and the only path used by the shipped piece.
+  with tick and second stamps) **and the SMF reader, which is the runtime
+  path** — the piece loads `fugue.mid` and plays it. Substituting a
+  different, clearly-licensed `.mid` therefore needs no code at all: drop in
+  another file.
 - Cue emission: every subject entry, every section boundary, and every
   pulse accent emits a `Cue` the visual side can bind to (M71).
 
