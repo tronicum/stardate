@@ -9,6 +9,6 @@ pub mod weld;
 
 pub use bundle::{
     srgb_to_linear, to_output_matrix, to_output_position, to_output_triangles, Manifest,
-    MeshBundleBuilder, MeshBundleStats, FORMAT_VERSION,
+    MeshBundleBuilder, MeshBundleStats, PartBuffers, FORMAT_VERSION,
 };
 pub use weld::{weld_and_smooth, WeldedMesh, DEFAULT_CREASE_DEGREES};

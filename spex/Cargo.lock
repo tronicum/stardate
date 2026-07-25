@@ -2499,6 +2499,7 @@ dependencies = [
  "spex-graph",
  "spex-io",
  "spex-ldraw",
+ "spex-mesh",
  "spex-server",
  "spex-tiler",
  "tempfile",

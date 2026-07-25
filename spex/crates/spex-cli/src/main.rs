@@ -7,6 +7,7 @@ mod disk_usage;
 mod export_static;
 mod frame_sequence;
 mod graph_diff;
+mod mesh;
 mod molecule;
 mod nav;
 mod npm_deps;
@@ -181,6 +182,51 @@ enum Command {
 
         #[arg(short, long)]
         out: PathBuf,
+
+        /// Local cache directory for fetched real LDraw files.
+        #[arg(long, default_value = ".ldraw-cache")]
+        cache_dir: PathBuf,
+    },
+
+    /// Render one real Klemmbaustein part as a MESH bundle — real triangles,
+    /// real BFC-correct normals and real LDraw edge lines — instead of a
+    /// sampled point cloud. The point-cloud verbs are unaffected.
+    MeshPart {
+        /// A known alias (see `brick-part`) or a literal real LDraw part
+        /// filename (e.g. "3005.dat").
+        part: Option<String>,
+
+        /// Real LDraw color code (see LDConfig.ldr) — default 4 = Red.
+        #[arg(long, default_value_t = 4)]
+        color: u32,
+
+        /// Dihedral angle below which normals are averaged. 30 smooths
+        /// LDraw's cylinder facets and leaves a brick's corners sharp.
+        #[arg(long, default_value_t = spex_mesh::DEFAULT_CREASE_DEGREES)]
+        crease: f64,
+
+        /// Output bundle directory.
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+
+        /// Local cache directory for fetched real LDraw files.
+        #[arg(long, default_value = ".ldraw-cache")]
+        cache_dir: PathBuf,
+    },
+
+    /// Render a full real multi-part LDraw scene as a MESH bundle. Each
+    /// distinct real part is resolved exactly once no matter how many times
+    /// the scene places it, and — because the geometry carries no colour —
+    /// one mesh serves every colour it is placed in.
+    MeshModel {
+        /// A known model name or a local .ldr file path (see `brick-model`).
+        model: Option<String>,
+
+        #[arg(long, default_value_t = spex_mesh::DEFAULT_CREASE_DEGREES)]
+        crease: f64,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
 
         /// Local cache directory for fetched real LDraw files.
         #[arg(long, default_value = ".ldraw-cache")]
@@ -482,6 +528,8 @@ fn main() -> Result<()> {
             out,
             cache_dir,
         } => cmd_brick_cinematic(hero, scene, hero_points, hero_frames, hero_revolutions, scene_points, scene_frames, fps, out, &cache_dir),
+        Command::MeshPart { part, color, crease, out, cache_dir } => cmd_mesh_part(part, color, crease, out, &cache_dir),
+        Command::MeshModel { model, crease, out, cache_dir } => cmd_mesh_model(model, crease, out, &cache_dir),
         Command::Serve {
             tileset_dir,
             port,
@@ -676,14 +724,86 @@ fn cmd_brick_cinematic(
     Ok(())
 }
 
+fn cmd_mesh_part(part: Option<String>, color: u32, crease: f64, out: Option<PathBuf>, cache_dir: &Path) -> Result<()> {
+    let Some(part) = part else {
+        println!("known real LDraw part aliases:");
+        for (alias, part_file) in brick::KNOWN_PARTS {
+            println!("  {alias:<12} {part_file}");
+        }
+        println!("\nusage: spex mesh-part <alias-or-part.dat> -o <bundle-dir>");
+        return Ok(());
+    };
+    let out = out.context("--out <bundle-dir> is required when rendering a part")?;
+    let part_file = brick::resolve_part_alias(&part);
+
+    println!("resolving real LDraw part {part_file:?} (triangles + edges)...");
+    let cache = spex_ldraw::LdrawCache::new(cache_dir);
+    let stats = mesh::build_part_bundle(&cache, part_file, color, crease, &out)?;
+    report(&stats, &out);
+    Ok(())
+}
+
+fn cmd_mesh_model(model: Option<String>, crease: f64, out: Option<PathBuf>, cache_dir: &Path) -> Result<()> {
+    let Some(model) = model else {
+        println!("known real official LDraw models (or pass a local .ldr file path):");
+        for name in brick::KNOWN_MODELS {
+            println!("  {name}");
+        }
+        println!("\nusage: spex mesh-model <name-or-path.ldr> -o <bundle-dir>");
+        return Ok(());
+    };
+    let out = out.context("--out <bundle-dir> is required when rendering a model")?;
+
+    println!("parsing real LDraw scene {model:?}...");
+    let cache = spex_ldraw::LdrawCache::new(cache_dir);
+    let scene = mesh::parse_scene_arg(&cache, &model)?;
+    println!(
+        "parsed {} real placements ({} distinct real parts) from {:?} (author: {:?})",
+        scene.placements.len(),
+        mesh::distinct_parts(&scene),
+        scene.source_description,
+        scene.source_author
+    );
+
+    let stats = mesh::build_scene_bundle(&cache, &scene, crease, &out)?;
+    report(&stats, &out);
+    Ok(())
+}
+
+/// One shared summary, so both verbs report the same real numbers — including
+/// the quantisation error, which is 0 for grid-legal geometry and is printed
+/// rather than hidden when it is not.
+fn report(stats: &spex_mesh::MeshBundleStats, out: &Path) {
+    println!(
+        "{} distinct part(s), {} instance(s), {} material(s), {} orientation(s)",
+        stats.part_count, stats.instance_count, stats.material_count, stats.orientation_count
+    );
+    println!(
+        "{} vertices, {} triangles, {} hard edges, {} conditional edges",
+        stats.total_vertices, stats.total_triangles, stats.total_hard_edges, stats.total_conditional_edges
+    );
+    if stats.max_translation_error_mm > 0.0 {
+        println!(
+            "note: instance translations are off the LDraw grid by up to {:.3} mm",
+            stats.max_translation_error_mm
+        );
+    }
+    println!("wrote {} bytes to {}", stats.bytes_written, out.display());
+}
+
 fn cmd_serve(tileset_dir: &Path, port: u16, open_browser: bool) -> Result<()> {
     // A real `spex frame-sequence` output has no root-level tileset.json —
     // just sequence.json plus a frame-NNN/ subdirectory per frame (each one
     // its own real tileset) — so accept either shape rather than assuming
     // every servable directory is a single plain tileset.
-    if !tileset_dir.join("tileset.json").exists() && !tileset_dir.join("sequence.json").exists() {
+    // A servable directory is now one of three shapes: a plain tileset, a
+    // frame-sequence root, or a mesh bundle (`spex mesh-part`/`mesh-model`).
+    // The viewer picks its render path by which manifest it finds, so the
+    // server only has to agree that all three are servable at all.
+    let servable = ["tileset.json", "sequence.json", "mesh.json"];
+    if !servable.iter().any(|f| tileset_dir.join(f).exists()) {
         bail!(
-            "{} does not look like a tileset directory (no tileset.json or sequence.json found) — did you run `spex convert` or `spex frame-sequence`?",
+            "{} does not look like a servable directory (no tileset.json, sequence.json or mesh.json found) — did you run `spex convert`, `spex frame-sequence` or `spex mesh-model`?",
             tileset_dir.display()
         );
     }

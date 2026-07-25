@@ -116,3 +116,71 @@ fn real_decix_trace_demo_matches_schemas_too() {
     validate(&base.join("tileset/nodes.json"), "nodes.schema.json");
     validate(&base.join("tileset/meta.json"), "meta.schema.json");
 }
+
+/// `spex mesh-model` end to end against the real LDraw library: the bundle
+/// validates, the numbers are the ones the repo already established, and two
+/// runs are byte-identical.
+///
+/// Network-gated like every other live-fetch test here — but unlike them it
+/// is worth running by hand after any change to `spex-mesh` or `spex-ldraw`,
+/// because it is the only check that the manifest agrees with the bytes
+/// beside it on *real* geometry rather than a fixture.
+#[test]
+#[ignore = "real live network fetch against ldraw.org, not run by default"]
+fn mesh_bundle_matches_its_schema_and_is_deterministic() {
+    let dir = std::env::temp_dir().join(format!("spex-mesh-test-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    let scene = repo_root().join("ldraw-scenes/monolith.ldr");
+    let cache = repo_root().join(".ldraw-cache");
+
+    let run = |out: &Path| {
+        let status = Command::new(spex_bin())
+            .arg("mesh-model")
+            .arg(&scene)
+            .arg("-o")
+            .arg(out)
+            .arg("--cache-dir")
+            .arg(&cache)
+            .status()
+            .expect("running spex mesh-model");
+        assert!(status.success(), "spex mesh-model failed");
+    };
+    let a = dir.join("a");
+    let b = dir.join("b");
+    run(&a);
+    run(&b);
+
+    validate(&a.join("mesh.json"), "mesh.schema.json");
+
+    let manifest: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(a.join("mesh.json")).unwrap()).unwrap();
+    assert_eq!(manifest["parts"].as_array().unwrap().len(), 2, "3010 and 3710");
+    assert_eq!(manifest["instanceEncoding"]["count"], 9);
+    assert_eq!(
+        manifest["instanceEncoding"]["maxTranslationErrorMm"], 0.0,
+        "the monolith stacks on whole LDU, so quantisation is exact"
+    );
+    assert_eq!(manifest["orientations"].as_array().unwrap().len(), 1, "all nine share one");
+
+    // 75.2 mm, not the 73.6 mm the .ldr header quotes. Both are real and they
+    // measure different things: 73.6 is the STACK (7*24 + 2*8 = 184 LDU),
+    // 75.2 is the RENDERED extent, which includes the topmost stud's 4 LDU.
+    // A bounding box is the second one. The spec's own acceptance criterion
+    // had quoted the first.
+    let bounds = &manifest["bounds"];
+    let height = bounds["max"][1].as_f64().unwrap() - bounds["min"][1].as_f64().unwrap();
+    assert!((height - 75.2).abs() < 0.01, "monolith height {height} mm");
+
+    // Ten bytes per instance is the whole reason instances are not JSON.
+    assert_eq!(std::fs::metadata(a.join("instances.bin")).unwrap().len(), 90);
+
+    for f in ["mesh.json", "instances.bin"] {
+        assert_eq!(
+            std::fs::read(a.join(f)).unwrap(),
+            std::fs::read(b.join(f)).unwrap(),
+            "{f} must be byte-identical across runs"
+        );
+    }
+    let _ = std::fs::remove_dir_all(&dir);
+}

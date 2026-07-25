@@ -123,6 +123,22 @@ pub struct SubmeshRange {
     pub index_count: usize,
 }
 
+/// The five buffer paths, as a struct rather than a map — a `HashMap` here
+/// serialises its keys in a different order on every run, which silently
+/// breaks byte-for-byte reproducibility of the manifest. Determinism is an
+/// acceptance criterion for this format and the foundation of M91's frame-hash
+/// regression fixture, so nothing in it may iterate a hash map.
+#[derive(Serialize)]
+pub struct PartBuffers {
+    pub position: String,
+    pub normal: String,
+    pub index: String,
+    #[serde(rename = "hardEdge")]
+    pub hard_edge: String,
+    #[serde(rename = "condEdge")]
+    pub cond_edge: String,
+}
+
 #[derive(Serialize)]
 pub struct PartEntry {
     pub index: usize,
@@ -138,7 +154,7 @@ pub struct PartEntry {
     #[serde(rename = "conditionalEdgeCount")]
     pub conditional_edge_count: usize,
     pub bounds: Bounds,
-    pub buffers: HashMap<String, String>,
+    pub buffers: PartBuffers,
     pub submeshes: Vec<SubmeshRange>,
     /// Real LDraw files this part's geometry came from — what M59's LOD pass
     /// gates stud/tube removal on.
@@ -268,6 +284,15 @@ impl MeshBundleBuilder {
         }
     }
 
+    /// Whether this part is already in the bundle, and where — so a caller
+    /// can skip resolving it a second time. Resolution is the expensive half
+    /// (car.ldr's 61 placements are 26 distinct parts, each a whole
+    /// subpart/primitive tree), and `add_part` would deduplicate anyway, but
+    /// only after the work had already been done.
+    pub fn part_index(&self, part_file: &str) -> Option<usize> {
+        self.part_index.get(part_file).copied()
+    }
+
     /// Adds a distinct real part's geometry exactly once, keyed on the part
     /// file **alone** — deliberately not on (part, colour), because the
     /// geometry carries no colour. Two colours of the same part share one
@@ -353,6 +378,7 @@ impl MeshBundleBuilder {
             }
             let r = in_units.round();
             let err = ((in_units - r).abs()) * TRANSLATION_UNIT_MM;
+            let err = if err < 1e-9 { 0.0 } else { err };
             if err > self.max_translation_error_mm {
                 self.max_translation_error_mm = err;
             }
@@ -381,6 +407,7 @@ impl MeshBundleBuilder {
         };
         let mut bytes = 0u64;
         let mut parts = Vec::new();
+        let mut part_local_bounds: Vec<([f64; 3], [f64; 3])> = Vec::new();
         let mut global = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
 
         for (i, p) in self.parts.iter().enumerate() {
@@ -394,8 +421,6 @@ impl MeshBundleBuilder {
                     nrm.extend_from_slice(&n[k].to_le_bytes());
                     mn[k] = mn[k].min(v[k] as f64);
                     mx[k] = mx[k].max(v[k] as f64);
-                    global.0[k] = global.0[k].min(v[k] as f64);
-                    global.1[k] = global.1[k].max(v[k] as f64);
                 }
             }
             // Triangles are grouped by colour so a submesh is one contiguous
@@ -455,26 +480,28 @@ impl MeshBundleBuilder {
                 }
             }
 
-            let mut buffers = HashMap::new();
-            for (name, key, data) in [
-                ("pos", "position", &pos),
-                ("nrm", "normal", &nrm),
-                ("idx", "index", &idx),
-                ("edge", "hardEdge", &edge),
-                ("cond", "condEdge", &cond),
-            ] {
+            let mut written = Vec::new();
+            for (name, data) in [("pos", &pos), ("nrm", &nrm), ("idx", &idx), ("edge", &edge), ("cond", &cond)] {
                 let rel = format!("buffers/p{i}.{name}.bin");
                 std::fs::write(out_dir.join(&rel), data)
                     .with_context(|| format!("writing {rel}"))?;
                 bytes += data.len() as u64;
-                buffers.insert(key.to_string(), rel);
+                written.push(rel);
             }
+            let buffers = PartBuffers {
+                position: written[0].clone(),
+                normal: written[1].clone(),
+                index: written[2].clone(),
+                hard_edge: written[3].clone(),
+                cond_edge: written[4].clone(),
+            };
 
             stats.total_vertices += w.vertex_count();
             stats.total_triangles += w.triangle_count();
             stats.total_hard_edges += hard_n;
             stats.total_conditional_edges += cond_n;
 
+            part_local_bounds.push(([mn[0], mn[1], mn[2]], [mx[0], mx[1], mx[2]]));
             parts.push(PartEntry {
                 index: i,
                 part_file: p.part_file.clone(),
@@ -506,7 +533,27 @@ impl MeshBundleBuilder {
         std::fs::write(out_dir.join("instances.bin"), &inst)?;
         bytes += inst.len() as u64;
 
-        if self.parts.is_empty() {
+        // Scene bounds are the ASSEMBLED extent — each part's local box put
+        // where its instances actually place it — not the union of parts sitting
+        // at the origin. A viewer frames its camera from this, and a nine-brick
+        // stack whose bounds were one brick tall would frame the wrong object.
+        for it in &self.instances {
+            let (mn, mx) = part_local_bounds[it.part];
+            let m = &self.orientations[it.orientation as usize];
+            for cx in [mn[0], mx[0]] {
+                for cy in [mn[1], mx[1]] {
+                    for cz in [mn[2], mx[2]] {
+                        for k in 0..3 {
+                            let v = m[k * 3] * cx + m[k * 3 + 1] * cy + m[k * 3 + 2] * cz
+                                + it.translation_ldu[k] as f64 * TRANSLATION_UNIT_MM;
+                            global.0[k] = global.0[k].min(v);
+                            global.1[k] = global.1[k].max(v);
+                        }
+                    }
+                }
+            }
+        }
+        if self.instances.is_empty() {
             global = ([0.0; 3], [0.0; 3]);
         }
         let manifest = Manifest {
