@@ -235,13 +235,72 @@ is clean.
 
 ---
 
+## D5 — What is demanded for Fisher Page: a foundation, staged
+
+**Date:** 2026-07-25 · **Decided by:** Stefan · **Status:** adopted — confirm the wording before anything is sent
+
+Variant **V-D** of [`d5-entscheidungsvorlage.md`](d5-entscheidungsvorlage.md).
+Stefan's ruling that a plaque is too little turned out to be supported by the
+record: Page's work was several years of field observation in nursery schools,
+published as *Playtime in the First Five Years* (1938). The brick was an
+output. **No plaque exists** — English Heritage lists none; the Croydon local
+scheme is still to be checked.
+
+1. **Postilla II (Charles III) loses the Page request entirely.** It keeps the
+   cultural-history thesis and Stonehenge as its opening image. This is what
+   stops the royal letter reading as a petition.
+2. **ODNB suggestion and plaque nomination go out immediately**, on their own
+   timeline, to the bodies that actually decide them — and stay **outside** the
+   artwork. The submission is published; the answer is not pulled into D4's
+   X+90 protocol. A nominating panel does not become an unwilling participant.
+3. **Postilla IV (LEGO Group / LEGO Foundation) carries the real demand**, in
+   this order: **a foundation for pedagogical play built on his writings —
+   alternatively a permanent exhibition in the LEGO House.** This one stays
+   *inside* the work and the protocol.
+
+**Why this ask and not the plaque:** it is the only demand in the apparatus
+that is constructive rather than retrospective — it requires nobody to admit
+anything — and for the LEGO Foundation it is the thing they already do, in the
+name of the man whose work they built on.
+
+**Two constraints that are not optional.** The descendants sold the rights in
+1981; they exist, and a foundation bearing his name is built *with* them. And
+he died by suicide at 52 — recorded here so the apparatus knows not to use it:
+a date, never a lever, never in causal proximity to Billund.
+
+---
+
+## D6 — The three Atlas sites: the joint itself
+
+**Date:** 2026-07-25 · **Decided by:** Stefan · **Status:** adopted on a general approval — re-confirm before M74 authoring starts
+
+Variant **V5** of [`d6-entscheidungsvorlage.md`](d6-entscheidungsvorlage.md):
+**Stonehenge · Mohenjo-daro · a dougong hall (Foguang Si)** — three
+civilisations answering one structural question, *how does something hold
+together that is not glued*. Mortise and tenon in stone, brick bond in clay,
+bracket sets in timber. Three joints, no mortar.
+
+It is the only variant in which the Atlas argues instead of illustrating,
+which matters for a work named after the joint. Two side effects decided it:
+Stonehenge's return becomes a rhyme rather than a repeat (Act I shows it as an
+object, the Atlas as a connection), and Mohenjo-daro's 1 : 2 : 4 brick ratio
+rhymes with the monolith's own 1 : 4 : 9.
+
+**Carried risk:** Foguang Si needs a `Bracket` primitive in M72. If that costs
+more than three days, the third site falls back to a simpler dougong hall or
+to Teotihuacán. The first two are unaffected.
+
+**Honest note on how this was adopted:** confirmed by a general *"passt alles
+erstmal"* rather than a variant-by-variant answer. If the choice turns out to
+matter more than expected during M74, re-ask before authoring rather than
+assuming.
+
+---
+
 ## Open, awaiting the next session
 
 | # | Question | Who | Blocks |
 |---|---|---|---|
-| ~~D9~~ | ~~The live Wikipedia articles need correcting.~~ **Closed by D10** — Stefan's lane. The spec keeps only the wording it is allowed to render.
-<!-- original:  GB 263865 names Girlot alone, so any claim that Louis Cousin invented the 2×4 brick is an overclaim — and the project's own "Louis Cousin (inventor)" articles are already live in several languages. Citing them back to ourselves would be circular sourcing on top of an error | Stefan | Everything the Postillen and the work assert about attribution. -->
-| **D5** | What is actually demanded for Fisher Page, and from whom. **Decision paper with four variants: [`d5-entscheidungsvorlage.md`](d5-entscheidungsvorlage.md)** — the ask is upgraded from a plaque to a permanent exhibition or a foundation for pedagogical play built on his writings | Stefan | Postilla II and Postilla IV, and their timelines |
-| **D6** | Which three Atlas sites for the canonical cut. **Decision paper with five variants, criteria and a recommendation: [`d6-entscheidungsvorlage.md`](d6-entscheidungsvorlage.md)** | Stefan | M74's tier A, one M72 primitive, and the Atlas's on-screen reading |
+| ~~D9~~ | ~~Correct the live Wikipedia attribution record.~~ **Closed by D10** — Stefan's lane; the hand-work is written up at [`../human-todo.md`](../human-todo.md). The spec keeps only the wording it is allowed to render | — | — |
 | **D7** | Is the generated fugue musically alive? | Stefan, after the P0 spike | The whole audio phase, and its fallback |
 | **D8** | Does the mesh renderer beat the point renderer on the monolith? | Stefan, after the P0 spike | Whether Phase 1 proceeds as specified |

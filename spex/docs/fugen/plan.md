@@ -134,10 +134,11 @@ reasoning and what each one rules out:
   acquisition tool reasoning about terms of use. Provenance, attribution and
   the exclusion list all stay: acquisition is his, publication is the work's.
 
-Still open and scheduled: **D5** (split the
-Fisher Page recognition ask from the patronage letters?), **D6** (which three
-Atlas sites), **D7** (is the fugue alive?), **D8** (does mesh beat points?).
-D7 and D8 are answered by the P0 spikes in weeks 1–3.
+**D5** (the Fisher Page ask becomes a foundation, staged) and **D6** (the three
+Atlas sites are Stonehenge, Mohenjo-daro and a dougong hall) are now closed
+too. **Only D7 — is the generated fugue musically alive? — and D8 — does the
+mesh renderer beat the point renderer? — remain, and both are answered by the
+P0 spikes in weeks 1–3.** Nothing else blocks the start.
 
 ## 5. Risks
 
