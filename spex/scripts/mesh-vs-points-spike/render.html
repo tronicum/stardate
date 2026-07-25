@@ -1,0 +1,76 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;background:#05070a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden}
+.row{display:flex}canvas{display:block}
+.lab{position:absolute;color:#a8ffc8;font-size:12px;letter-spacing:.10em;text-transform:uppercase;opacity:.8}
+.sub{position:absolute;color:#7e8ea6;font-size:11px;letter-spacing:.04em;opacity:.8}
+</style></head><body>
+<div class="row"><div id="a"></div><div id="b"></div></div>
+<div class="row"><div id="c"></div><div id="d"></div></div>
+<div class="lab" style="left:16px;top:12px">Punktwolke — der bestehende Pfad</div>
+<div class="lab" style="left:916px;top:12px">Mesh + echte LDraw-Kanten</div>
+<div class="sub" style="left:16px;top:32px">3005.dat · 90 000 Punkte · Beleuchtung eingebacken</div>
+<div class="sub" style="left:916px;top:32px">76 Dreiecke · 56 Typ-2-Kanten · Backface-Culling an</div>
+<div class="lab" style="left:16px;top:712px">Monolith — Punktwolke</div>
+<div class="lab" style="left:916px;top:712px">Monolith — Mesh</div>
+<div class="sub" style="left:16px;top:732px">180 000 Punkte · 9 Teile</div>
+<div class="sub" style="left:916px;top:732px">3 276 Dreiecke · 2 232 Kanten · 1 008 bedingte</div>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from 'three';
+const W=900,H=700;
+const J=async f=>await (await fetch(f)).json();
+const [bm,bp,mm,mp]=await Promise.all([J('./brick-mesh.json'),J('./brick-points.json'),
+                                       J('./scene-mesh.json'),J('./scene-points.json')]);
+const s2l=a=>{const o=new Float32Array(a.length);
+ for(let i=0;i<a.length;i++){const c=a[i];o[i]=c<=0.04045?c/12.92:Math.pow((c+0.055)/1.055,2.4);}return o;};
+function bnds(arr){const mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
+ for(let i=0;i<arr.length;i+=3)for(let k=0;k<3;k++){mn[k]=Math.min(mn[k],arr[i+k]);mx[k]=Math.max(mx[k],arr[i+k]);}return{mn,mx};}
+function bgm(d){return new THREE.Mesh(new THREE.SphereGeometry(d*14,32,16),
+ new THREE.ShaderMaterial({side:THREE.BackSide,
+  vertexShader:'varying vec3 p;void main(){p=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
+  fragmentShader:'varying vec3 p;void main(){float t=clamp(normalize(p).y*.5+.5,0.,1.);gl_FragColor=vec4(mix(vec3(.030,.040,.055),vec3(.085,.110,.145),t),1.);}'}));}
+function lights(s,k){
+ const key=new THREE.DirectionalLight(0xfff2e4,k);key.position.set(1,1.5,1.0);s.add(key);
+ const fill=new THREE.DirectionalLight(0xbcd2ff,k*0.45);fill.position.set(-0.9,0.5,0.8);s.add(fill);
+ const rim=new THREE.DirectionalLight(0x9dc0ff,k*0.85);rim.position.set(-1.2,0.4,-1.2);s.add(rim);
+ s.add(new THREE.HemisphereLight(0xa9bcd8,0x101620,k*0.35));}
+function ptScene(d,data,sz){const s=new THREE.Scene();s.add(bgm(d));
+ const g=new THREE.BufferGeometry();
+ g.setAttribute('position',new THREE.Float32BufferAttribute(data.position,3));
+ g.setAttribute('color',new THREE.Float32BufferAttribute(s2l(data.color),3));
+ s.add(new THREE.Points(g,new THREE.PointsMaterial({size:sz,vertexColors:true,sizeAttenuation:true})));return s;}
+function mshScene(d,data,k){const s=new THREE.Scene();s.add(bgm(d));
+ const g=new THREE.BufferGeometry();
+ g.setAttribute('position',new THREE.Float32BufferAttribute(data.position,3));
+ g.setAttribute('normal',new THREE.Float32BufferAttribute(data.normal,3));
+ g.setAttribute('color',new THREE.Float32BufferAttribute(s2l(data.color),3));
+ s.add(new THREE.Mesh(g,new THREE.MeshPhysicalMaterial({vertexColors:true,roughness:0.30,metalness:0.0,
+  clearcoat:0.30,clearcoatRoughness:0.20,side:THREE.FrontSide})));
+ const eg=new THREE.BufferGeometry();
+ eg.setAttribute('position',new THREE.Float32BufferAttribute(data.edgePosition,3));
+ eg.setAttribute('color',new THREE.Float32BufferAttribute(s2l(data.edgeColor),3));
+ s.add(new THREE.LineSegments(eg,new THREE.LineBasicMaterial({vertexColors:true,transparent:true,opacity:1.0})));
+ lights(s,k);return s;}
+function cam(bb,fov,az,el,fit){const c=new THREE.PerspectiveCamera(fov,W/H,1e-3,1e6);
+ const ctr=[0,1,2].map(k=>(bb.mn[k]+bb.mx[k])/2);
+ const sz=[0,1,2].map(k=>bb.mx[k]-bb.mn[k]);
+ const r=Math.max(sz[1]*0.5,Math.hypot(sz[0],sz[2])*0.5*0.7);
+ const d=r/Math.tan(fov*Math.PI/360)*fit;
+ c.near=d/200;c.far=d*40;
+ c.position.set(ctr[0]+d*Math.cos(el)*Math.sin(az),ctr[1]+d*Math.sin(el),ctr[2]+d*Math.cos(el)*Math.cos(az));
+ c.lookAt(ctr[0],ctr[1],ctr[2]);c.updateProjectionMatrix();return c;}
+function shoot(el,scene,c,exp){
+ const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+ r.setPixelRatio(1);r.setSize(W,H);r.outputColorSpace=THREE.SRGBColorSpace;
+ if(exp){r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=exp;}
+ el.appendChild(r.domElement);r.render(scene,c);}
+const bbB=bnds(bm.position), bbM=bnds(mm.position);
+const dB=Math.hypot(bbB.mx[0]-bbB.mn[0],bbB.mx[1]-bbB.mn[1],bbB.mx[2]-bbB.mn[2]);
+const dM=Math.hypot(bbM.mx[0]-bbM.mn[0],bbM.mx[1]-bbM.mn[1],bbM.mx[2]-bbM.mn[2]);
+const cB=cam(bbB,30,0.62,0.42,1.55), cM=cam(bbM,30,0.55,0.20,1.25);
+shoot(document.getElementById('a'),ptScene(dB,bp,dB*0.0075),cB,0);
+shoot(document.getElementById('b'),mshScene(dB,bm,1.9),cB,0.92);
+shoot(document.getElementById('c'),ptScene(dM,mp,dM*0.0026),cM,0);
+shoot(document.getElementById('d'),mshScene(dM,mm,3.4),cM,1.15);
+document.title='ready';
+</script></body></html>
