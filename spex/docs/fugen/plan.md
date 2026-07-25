@@ -103,10 +103,13 @@ slip, not a silent block. Batch them into one weekly review.
 
 Plus the items only Stefan can do at all, from
 `claude/masterplan-iunctura-site.md`: DNS, Pinata/IPFS, the Ethereum wallet,
-the physical Postillen, the LEGO Group contact — and, decided once and early,
-whether to pursue World Heritage Centre data authorisation
-([`licensing.md`](licensing.md)), which has institutional lead times measured
-in months.
+the physical Postillen, and the LEGO Group contact.
+
+**Data acquisition is no longer among them, in the sense of blocking anything
+(D10).** Stefan sources the underlying data legally and supplies it; no
+milestone waits on an authorisation. What the spec still owns is what the work
+*publishes*: provenance, attribution, the reconstruction declaration, and the
+exclusion list — none of which are acquisition questions.
 
 ## 4. Decisions taken, and what is still open
 
@@ -126,6 +129,10 @@ reasoning and what each one rules out:
   that silence becomes a measurable result rather than a failure state. This
   deletes the success ladder and the Louis Cousin genealogy from
   `masterplan-bewegung-postillen.md`.
+- **D10 — data acquisition is Stefan's lane and out of scope here.** The
+  heritage tooling becomes an importer of a supplied snapshot rather than an
+  acquisition tool reasoning about terms of use. Provenance, attribution and
+  the exclusion list all stay: acquisition is his, publication is the work's.
 
 Still open and scheduled: **D5** (split the
 Fisher Page recognition ask from the patronage letters?), **D6** (which three

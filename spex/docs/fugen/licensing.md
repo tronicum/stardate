@@ -8,6 +8,13 @@ Review record and the reasoning behind every rev-2 change: [`../FUGEN-ENGINE-REV
 
 ---
 
+> **D10 — scope.** Sourcing the underlying data is Stefan's responsibility and
+> is obtained legally by him; no milestone in this spec waits on an
+> authorisation, and the heritage tooling is an *importer of a supplied
+> snapshot*. This section therefore governs **publication**, not acquisition:
+> what the work renders, credits and claims. Acquisition is his; publication
+> is the work's.
+
 ## Licensing, attribution, and the things we must not do
 
 Every item here is a real constraint that was checked, not an assumption.

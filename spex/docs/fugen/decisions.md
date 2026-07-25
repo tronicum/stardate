@@ -189,11 +189,56 @@ Worth splitting off from the patronage letters — open for D5.
 
 ---
 
+## D10 — Data acquisition is Stefan's lane, and out of scope for this spec
+
+**Date:** 2026-07-25 · **Decided by:** Stefan · **Status:** adopted
+
+> *"Korrigierte Daten kann ich legal besorgen. Out of scope."*
+
+Sourcing the underlying data — patent full texts, the corrected attribution
+record, heritage metadata, flag construction specifications — is Stefan's
+responsibility and is obtained legally by him. **The spec stops caring how
+data arrives.** That removes a class of work the engine plan had been quietly
+carrying: chasing authorisations, negotiating terms, deciding what may be
+fetched from where.
+
+**What this takes off the plan:**
+
+- The World Heritage Centre authorisation question leaves the human-gates
+  table and the critical path. The pipeline reads whatever Stefan supplies;
+  if that is a legally obtained WHC extract, it works, and if it is CC0
+  Wikidata, it also works. No milestone waits on an institution.
+- **D9 closes.** The Cousin/Girlot attribution correction is Stefan's to make.
+  What the spec keeps is the *statement* it is allowed to render, fixed in
+  [`screenplay.md`](screenplay.md) §5: Cousin's block is patented in 1923; the
+  eight-stud two-row brick is published under Girlot's name in 1927.
+- `spex heritage-index` / `heritage-sync` become **importers of a supplied
+  snapshot**, not acquisition tools with their own terms-of-use reasoning.
+  M73 and M77 shrink accordingly.
+
+**What this explicitly does NOT take off the plan**, because it is a different
+thing wearing similar clothes:
+
+| Stays | Why |
+|---|---|
+| **Provenance** — every part, colour, site, flag and figure carries its source through to a generated `PROVENANCE.md` | This is a *build* property, not an acquisition question. A source that cannot be named cannot be rendered |
+| **Attribution on screen** — LDraw CCAL, and whatever licence the supplied data carries | Governs what the work *publishes*, which is ours regardless of who fetched the input |
+| **The reconstruction declaration** (D2) | Same reason: it is about what the frame claims, not where a file came from |
+| **The exclusion list and the custodian/Indigenous/Danger clauses** | Editorial and ethical, not legal. Nobody's licence tells us whether to build Auschwitz out of bricks |
+| **No UNESCO emblem, no brand name** | Marks, not data |
+
+The line, stated once so it does not blur later: **acquisition is Stefan's;
+publication is the work's.** The spec governs the second and assumes the first
+is clean.
+
+---
+
 ## Open, awaiting the next session
 
 | # | Question | Who | Blocks |
 |---|---|---|---|
-| **D9** | **The live Wikipedia articles need correcting.** GB 263865 names Girlot alone, so any claim that Louis Cousin invented the 2×4 brick is an overclaim — and the project's own "Louis Cousin (inventor)" articles are already live in several languages. Citing them back to ourselves would be circular sourcing on top of an error | Stefan | Everything the Postillen and the work assert about attribution. **Time-sensitive: the longer it stands, the more it propagates** |
+| ~~D9~~ | ~~The live Wikipedia articles need correcting.~~ **Closed by D10** — Stefan's lane. The spec keeps only the wording it is allowed to render.
+<!-- original:  GB 263865 names Girlot alone, so any claim that Louis Cousin invented the 2×4 brick is an overclaim — and the project's own "Louis Cousin (inventor)" articles are already live in several languages. Citing them back to ourselves would be circular sourcing on top of an error | Stefan | Everything the Postillen and the work assert about attribution. -->
 | **D5** | Split the Fisher Page recognition ask from the patronage Postillen? | Stefan | Postillen texts, and their addressees |
 | **D6** | Which three Atlas sites for the canonical cut — the thesis's three (a brick site, a stone-arch site, one non-European) or the Postilla states? | Stefan | M74's tier A, and the Atlas's on-screen reading |
 | **D7** | Is the generated fugue musically alive? | Stefan, after the P0 spike | The whole audio phase, and its fallback |
