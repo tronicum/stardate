@@ -302,5 +302,5 @@ assuming.
 | # | Question | Who | Blocks |
 |---|---|---|---|
 | ~~D9~~ | ~~Correct the live Wikipedia attribution record.~~ **Closed by D10** — Stefan's lane; the hand-work is written up at [`../human-todo.md`](../human-todo.md). The spec keeps only the wording it is allowed to render | — | — |
-| **D7** | Is the generated fugue musically alive? | Stefan, after the P0 spike | The whole audio phase, and its fallback |
+| **D7** | Is the generated fugue musically alive? **The spike is built and rendered** — `scripts/fugue-spike/`, 49.6 s, the exposition on bars 5/7/11/14 with a rule-checked, octave-invertible countersubject. Everything verifiable was verified: no parallel fifths or octaves, entries on their bars, every note in range. Whether it is *alive* is not measurable here | Stefan — 20 min with headphones | The whole audio phase, and whether the fallback (hand-composed subject and exposition) is triggered |
 | **D8** | Does the mesh renderer beat the point renderer on the monolith? | Stefan, after the P0 spike | Whether Phase 1 proceeds as specified |
