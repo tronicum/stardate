@@ -81,6 +81,34 @@ verfolgen.
 
 ---
 
+## B4 — MIDI hinaus: eine mechanische Aufführung
+
+Aufgekommen aus Stefans Frage, ob die Musik nicht per MIDI aufgeführt werde.
+Im Browser: nein, denn dort gibt es keinen Klangerzeuger — MIDI ist das
+Ereignismodell, geklungen wird per WebAudio-Synthese
+([`phase3-audio.md`](phase3-audio.md)).
+
+**Aber die Web MIDI API kann MIDI *hinaus*schicken.** Für die
+Installationsfassung heißt das: das Stück könnte ein echtes Instrument
+spielen statt eines Lautsprechers. Ein Synthesizer, ein Disklavier, eine
+Orgel.
+
+**Warum das mehr wäre als eine Spielerei.** Das Werk handelt von einem
+genormten Modul, das seit hundert Jahren unverändert funktioniert, und von
+der Behauptung, dass Fügung in Wahrheit Fertigung ist. Eine Fuge, die von
+einer Mechanik gespielt wird — Hämmer, Ventile, Luft —, führt genau das vor,
+statt es zu behaupten. Und die Orgel ist ohnehin das Instrument der Form.
+
+**Was es kostet:** im Browser fast nichts (die Ereignisse liegen schon in
+MIDI-Semantik vor, es fehlt nur der Ausgang). Vor Ort alles: ein Instrument,
+das man ansteuern darf, Latenzabgleich gegen die Bildspur, ein Ausfallplan,
+wenn die Mechanik klemmt. Gehört zu B2, nicht zum Webschnitt.
+
+**Offen:** dasselbe wie bei B2 — gibt es einen Raum, und steht dort etwas,
+das MIDI annimmt?
+
+---
+
 ## B3 — Die Schleife, die etwas behält
 
 Aus Review 01 §3, als Kompromiss aufgenommen und hier als Vollversion

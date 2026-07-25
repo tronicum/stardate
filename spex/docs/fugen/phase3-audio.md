@@ -33,6 +33,43 @@ same object seen twice.
 | **Stretto** | Entries overlap before the previous one has finished | **A3-S05** — already scored there, against the visual multiplication |
 | **Pedal point** | A held bass note under the final approach | **A4-S04**, the last bars before the Kick |
 
+### What MIDI is here, and what it is not
+
+Worth stating plainly, because it is the first thing anyone asks and the
+first thing an implementer could get wrong.
+
+**MIDI is the score format and the runtime event model. It is not the
+performance.** `midi.ts` defines `NoteOn` / `NoteOff` / `Tempo` / `Marker`
+with tick and second stamps, and the scheduler works in exactly those terms —
+so in the sense that matters, the piece *is* MIDI-driven at runtime. What
+does not happen is MIDI *playback*: a `.mid` file is a list of notes, and
+something still has to turn a note into a sound.
+
+**A browser has no MIDI synthesizer.** There is no General MIDI device behind
+`AudioContext`. The only ways to make a `.mid` audible in a page are to ship a
+soundfont — a multi-megabyte asset with its own licence, against
+[`budgets.md`](budgets.md)'s loading budget and this project's no-audio-assets
+rule — or to synthesise the notes yourself. M69 synthesises them. That is why
+the WebAudio engine exists at all, and why the S0 spike
+(`scripts/fugue-spike/`) renders its own WAV through an additive organ written
+into the script rather than handing anyone a `.mid` and hoping.
+
+So there are three artefacts, and only one of them is the piece:
+
+| Artefact | What it is for |
+|---|---|
+| `fugue.json` | The generated score. **The runtime path.** Read by `fugue.ts`, scheduled by `scheduler.ts`, sounded by `synth.ts` |
+| `.mid` export (M68 `--midi`) | **A review tool.** Open it in notation software, look at the counterpoint, hear it on someone else's synth. Never loaded by the piece |
+| `.mid` *reader* (M70, optional) | An escape hatch, so a real, clearly-licensed score could be substituted later without touching the synth or the scheduler. Not used by the shipped work |
+
+**One thing this does open up, and it is filed rather than planned:** the Web
+MIDI API can *send* MIDI out of a browser to real hardware. For the
+installation cut that means the piece could drive an actual instrument — a
+synthesiser, a disklavier, an organ — instead of a loudspeaker. For a work
+about a hundred-year-old mechanical standard, a mechanical performance is not
+a gimmick. See [`backlog.md`](backlog.md) B4; nothing in the shipped web piece
+depends on it.
+
 ### Three tightenings this forces on M67/M68
 
 1. **The countersubject is no longer optional.** `FugueSpec.countersubject`
