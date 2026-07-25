@@ -1,0 +1,692 @@
+# Phase 1 - the vector-accurate renderer (M51-M59)
+
+*Real LDraw triangles and edges, rendered as meshes. This is what 'vektorgenau' means.*
+
+**Part of [`docs/fugen/`](README.md) — the Fugen Engine implementation spec, rev 3.**
+Read [`README.md`](README.md) first: it carries the working rules, the scope decision and the milestone index.
+Review record and the reasoning behind every rev-2 change: [`../FUGEN-ENGINE-REVIEW-01.md`](../FUGEN-ENGINE-REVIEW-01.md).
+
+---
+
+
+## Rev 3 corrections — these override the milestone text below
+
+Seven specialist reviews (`../FUGEN-ENGINE-REVIEW-01.md`) found nine defects
+in this phase. Six of them would have invalidated an acceptance criterion
+*after* the code was written. Read these before M51.
+
+| # | What rev 1 said | What is actually true |
+|---|---|---|
+| **B1** | A type-5 conditional edge is drawn when its control points fall on **opposite** sides. | **Inverted.** It is a silhouette when both project to the **same** side. As written it would have drawn the cylinder tessellation and hidden the silhouette. *Already corrected inline in M51/M57 below.* |
+| **B2** | `MeshBundleBuilder::add_part` keys on `(part, colour)`; `resolve_part` bakes colour during recursion. | **Geometry must stay colour-neutral**, or per-instance colour is impossible and instancing is defeated. `resolve_part_full` preserves LDraw code 16 as `color_code: Option<u32>` (`None` = inherit). Parts key on `part_file` **only**. `submeshes[].material: number \| null`, where `null` means "take the instance's material". |
+| **B3** | M56 replaces `ColorTable`'s tuple value with a struct and adds an `rgb()` accessor. | **That breaks the point pipeline** — `sampling.rs:95` and `brick.rs:216` both *destructure the tuple*, which an accessor cannot rescue, contradicting M56's own AC3. `load_colors` keeps its signature untouched; add **`load_colors_full() -> HashMap<u32, LdrawColor>`** used only by `spex-mesh`. The `LDConfig` parser must also split at `MATERIAL` **first** — `ALPHA`/`LUMINANCE`/`VALUE` appear on both sides of that token, so `find_after` alone mis-parses every speckle and glitter colour. |
+| **B4** | M53 AC4: "servable as static files with no server change". | **False.** `crates/spex-cli/src/main.rs:684` bails unless `tileset.json` or `sequence.json` exists. M53 must add `mesh.json` (and later `show-resolved.json`) to that guard. |
+| **B5** | M59 gates stud/tube removal "on the reference path, never on a heuristic". | **`resolve_into` discards the reference chain**, so there is no path to gate on. The fix belongs in **M51**, not M59: `PartGeometry` gains `sources: Vec<String>`, and every triangle/edge a `source: u16` index into it. |
+| **B9** | M51 AC3 compares triangles "identical up to per-triangle vertex rotation"; AC1 quotes 8×8×11.2 mm. | Reversing winding is **not** in the rotation group, so the assertion fails on exactly the triangles M51 fixes — compare **unordered vertex-position sets**. And `resolve_part` returns **LDU, Y-down** (20×20×28 LDU); `LDU_TO_MM` is applied only in `to_point_cloud`. Pick mm/Y-up **at the bundle boundary** and say it once. |
+| **B10** | M59 AC1 measures against "a 40-site Atlas scene (from M74)". | A week-6 milestone gated on a week-17 deliverable. M59 verifies against a **synthetic 200 k-instance scene**; the real-Atlas measurement moves to an AC on M81. |
+| **B11** | `mesh.json` carries an `instances[]` JSON array. | At 250 k instances that is **37 MB of text → ~120 MB parsed heap → 0.8–1.5 s of main-thread parse.** Encode binary: `(i16 x, y, z; u8 orientation; u8 material; u16 part)` = **10 B/instance = 2.5 MB**. Grid legality (M72) is what makes this exact rather than lossy, and it is also what makes M95's single-file edition possible at all. |
+| **B12/13/14** | `baseColor: [0.106, 0.165, 0.204]`; ACES tone mapping on the renderer in M54; bloom in M58. | `[0.106,…]` is sRGB ÷ 255, which three.js r152+ reads as **linear** — every material ships ~2.2× too dark. **Store linear and declare the colour space in the schema.** Tone mapping on the renderer happens *before* bloom, making the bloom threshold meaningless: use **`NoToneMapping`**, HalfFloat targets, bloom in linear HDR, **ACES last in `OutputPass`**. And a wide soft green gradient over `#000` on an 8-bit backbuffer **bands** — add ±0.5/255 triangular dither plus ~1.5 % fixed grain. That is the cheapest thing in this document that separates "cheap WebGL" from "print". |
+
+**Two performance decisions that change what this phase builds** (full budgets
+in [`budgets.md`](budgets.md)):
+
+- **Geometric edges are for hero shots only.** WebGL2 has no
+  instancing-of-instances; fat-line quads at 250 k instances is ~150 M
+  vertices/frame, and at Atlas distance every outline merges into a black
+  mass anyway. Real type-2/5 edges above ~40 px projected height (≤ 3 k
+  bricks); everything else gets a **screen-space depth+normal-discontinuity
+  outline pass**, whose cost is independent of instance count. M57's
+  "≤ 25 % of frame time on the 50 k scene" is unreachable any other way.
+- **`setPixelRatio(Math.min(devicePixelRatio, 1.5))`.** One line; on a 3× DPR
+  tablet it is otherwise 9× the fragments. `main.ts:300` currently uses the
+  raw ratio.
+
+**Rejected:** M58's `--disable-gpu` as a Low-tier proxy. That is SwiftShader,
+~100× slower; tuning Low against it would make Low far uglier than it needs
+to be. CI asserts **counters**, never fps; fps is asserted only on the named
+real hardware in M92.
+
+**Better material numbers** than M56's table below (technical-art review —
+these are calibrated artistic choices, not measurements, and must be recorded
+as such): opaque ABS roughness **0.34** with clearcoat 0.15 /
+clearcoatRoughness 0.25 (ABS has a distinct skin layer); black specifically
+**0.22**, because black reads only by its specular; transparent roughness
+**0.10**, transmission 0.85, **ior 1.53**; rubber **0.92**; pearlescent is
+**not a metal** — metalness 0.0, roughness 0.42, `iridescence 0.4`,
+`iridescenceIOR 1.8`; matte-metallic metalness **1.0** / roughness 0.62 (0.8
+is the classic in-between that reads as neither); metal 1.0 / **0.35**;
+chrome roughness **0.06** (0.03 gives one hard env dot and reads as plastic).
+Weld crease **30°** (LDView's value, safe for both 16- and 48-segment
+primitives). Edge width **1.25 px** at DPR 1, **1.6 px** at DPR ≥ 2, faded out
+below 40 px. Background: a vertical gradient `0x05070a → 0x0d1219` rather than
+flat `0x0b0e12`, so the black monolith has something to silhouette against.
+
+**Missing from rev 1 entirely, and required for this look:** baked per-vertex
+ambient occlusion computed in `spex-mesh` (SSAO at default radius misses the
+stud annulus and instead darkens silhouettes — baked AO is what makes studs
+read), stud-interior/tube-cavity darkening, contact shadows (a single 2048²
+directional map over an Atlas gives metre-scale texels), transparent-group
+back-to-front sorting with `depthWrite: false` and `side: DoubleSide` (a
+transparent brick reads *because* you see its own tubes, which backface
+culling deletes), and analytic coverage falloff across the edge quad — SMAA
+does not anti-alias a 1.4 px quad.
+
+---
+
+### M51 — BFC-correct geometry and real edge extraction
+
+**Why.** Two real defects block catalogue-quality rendering.
+(a) `geometry.rs::triangle_normal`'s own doc comment admits it ignores
+`BFC INVERTNEXT`, so some faces on composite parts carry inward normals —
+tolerable for baked point shading, visibly wrong under real lighting.
+(b) LDraw type 2 (edge) and type 5 (conditional edge) lines are currently
+skipped outright. They are not decoration: the black outline they produce
+*is* the visual signature of a rendered brick, and conditional edges are how
+a cylinder's silhouette stays crisp without wireframing its whole tessellation.
+
+**Files.** `crates/spex-ldraw/src/bfc.rs` (new),
+`crates/spex-ldraw/src/edges.rs` (new), `geometry.rs` (extended),
+`lib.rs` (re-exports).
+
+**Signatures.**
+
+```rust
+// bfc.rs
+/// Winding accumulated down a reference chain. LDraw's real BFC spec:
+/// a file declares `0 BFC CERTIFY CCW` (the near-universal case) or `CW`;
+/// `0 BFC INVERTNEXT` flips the *next* type-1 reference only; and a
+/// reference whose own 3x3 matrix has a negative determinant is itself a
+/// mirroring transform, which flips winding again. All three compose.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Winding { Ccw, Cw }
+
+impl Winding {
+    pub fn flipped(self) -> Winding;
+    /// `true` when the composed state means a face's stored vertex order
+    /// must be reversed before its normal is taken.
+    pub fn is_reversed(self) -> bool;
+}
+
+/// Per-file BFC state machine, fed one `0 BFC ...` meta line at a time.
+#[derive(Clone, Debug, Default)]
+pub struct BfcState {
+    pub certified: bool,
+    pub winding: Winding,
+    pub invert_next: bool,
+}
+
+impl BfcState {
+    pub fn apply_meta(&mut self, tokens: &[&str]);
+    /// Consumes a pending INVERTNEXT and folds in the determinant sign of
+    /// the reference's own matrix.
+    pub fn winding_for_reference(&mut self, matrix: &[f64; 9]) -> Winding;
+}
+
+pub fn determinant3(m: &[f64; 9]) -> f64;
+
+// edges.rs
+/// A real LDraw line primitive. `Hard` is a type-2 edge (always drawn);
+/// `Conditional` is a type-5 optional line, drawn only when its two
+/// control points project to the SAME side of the edge in screen space
+/// (i.e. the two adjacent facets face the same way, so the edge is a
+/// silhouette) — the real mechanism that keeps a curved surface's
+/// silhouette crisp without drawing its whole tessellation. Rev 1 stated
+/// this backwards; see §0.1 B1.
+#[derive(Clone, Debug, PartialEq)]
+pub enum EdgeKind {
+    Hard,
+    Conditional { control: [[f64; 3]; 2] },
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Edge {
+    pub vertices: [[f64; 3]; 2],
+    pub color_code: u32,
+    pub kind: EdgeKind,
+}
+
+// geometry.rs — the new full-resolution entry point. `resolve_part` stays
+// exactly as it is (triangles only, no BFC correction) so that every
+// existing caller — brick.rs, the point pipeline, every existing demo —
+// produces byte-identical output to today. This is additive.
+#[derive(Clone, Debug, Default)]
+pub struct PartGeometry {
+    pub triangles: Vec<Triangle>,
+    pub edges: Vec<Edge>,
+    /// Real part title from the file's first `0 <description>` line.
+    pub description: Option<String>,
+    /// Real `!LICENSE` / `0 Author:` provenance carried through, so a
+    /// bundle can state where its geometry came from (see M84).
+    pub license: Option<String>,
+    pub author: Option<String>,
+}
+
+pub fn resolve_part_full(
+    cache: &LdrawCache,
+    part_file: &str,
+    color_code: u32,
+) -> Result<PartGeometry>;
+```
+
+**Behavioural requirements.**
+
+- `resolve_part_full` composes BFC state exactly as LDraw's own spec
+  describes: certification is per-file; `INVERTNEXT` applies to exactly one
+  following type-1 line; a negative-determinant reference matrix flips
+  winding for its whole subtree. When the composed winding is reversed, the
+  emitted `Triangle`'s vertices are stored in reversed order, so that
+  `triangle_normal` — unchanged — yields the true outward normal.
+- Type 5 control points are transformed by the same composed matrix as the
+  edge's own endpoints.
+- An uncertified file (no `BFC CERTIFY`) is treated as CCW but flagged;
+  `PartGeometry` gains no field for this, but a `tracing`/`eprintln!` warning
+  once per distinct uncertified file is required so it is visible.
+
+**Acceptance criteria.**
+
+1. `resolve_part_full(cache, "3005.dat", 4)` returns > 0 edges, and the
+   bounding box of `triangles` equals today's `resolve_part` bounding box
+   exactly (8mm × 8mm × 11.2mm converted through `LDU_TO_MM`).
+2. Every triangle of `3005.dat` has an outward normal: for each triangle,
+   `dot(normal, centroid - part_centroid) > 0` holds for at least 95% of
+   faces, and no face on the six flat outer walls fails. (The stud's inner
+   tube legitimately faces inward; hence 95%, not 100% — record the real
+   measured figure in the milestone's `TODOs.md` entry.)
+3. `resolve_part` output is unchanged: a test resolves `3005.dat` both ways
+   and asserts the triangle *set* is identical up to per-triangle vertex
+   rotation.
+4. Unit tests with synthetic fixtures cover: `INVERTNEXT` applying to
+   exactly one reference; a mirroring matrix (`det < 0`) flipping winding; a
+   type-2 line parsed with its colour; a type-5 line parsed with both
+   control points transformed.
+
+**Verification ladder.** Rungs 1, 2, 3 (`spex brick-part 1x1-brick` must
+still produce a byte-identical tileset — diff it), 7.
+
+---
+
+### M52 — the mesh bundle format (`spex-mesh`)
+
+**Why.** The viewer needs geometry it can upload once. JSON with a million
+floats is not that. A small manifest plus tightly packed little-endian
+binary buffers is — the same shape as `tileset.json` + `octree/*.bin`, which
+this repo already knows how to write, serve, and parse.
+
+**Files.** `crates/spex-mesh/` (new crate), `spec/mesh.schema.json` (new).
+
+**Directory layout produced.**
+
+```
+<bundle-dir>/
+  mesh.json                 the manifest
+  buffers/
+    p<partIndex>.pos.bin    f32 LE, 3 per vertex, LDraw LDU, Y already flipped to spex's Y-up mm
+    p<partIndex>.nrm.bin    f32 LE, 3 per vertex, unit length
+    p<partIndex>.idx.bin    u32 LE triangle indices
+    p<partIndex>.edge.bin   f32 LE, 6 per hard edge (two endpoints)
+    p<partIndex>.cond.bin   f32 LE, 12 per conditional edge (2 endpoints + 2 control points)
+```
+
+**Manifest shape (`mesh.json`).**
+
+```jsonc
+{
+  "version": 1,
+  "generator": "spex-mesh 0.1.0",
+  "unit": "mm",
+  "upAxis": "+Y",
+  "bounds": { "min": [0,0,0], "max": [0,0,0] },
+  "attribution": {
+    "geometrySource": "LDraw Parts Library (ldraw.org), CCAL 2.0",
+    "colorTable": "LDConfig.ldr",
+    "note": "see docs/FUGEN-ENGINE.md §11"
+  },
+  "parts": [
+    {
+      "index": 0,
+      "partFile": "3005.dat",
+      "description": "Brick  1 x  1",
+      "vertexCount": 336,
+      "triangleCount": 112,
+      "hardEdgeCount": 96,
+      "conditionalEdgeCount": 48,
+      "bounds": { "min": [0,0,0], "max": [0,0,0] },
+      "buffers": {
+        "position": "buffers/p0.pos.bin",
+        "normal":   "buffers/p0.nrm.bin",
+        "index":    "buffers/p0.idx.bin",
+        "hardEdge": "buffers/p0.edge.bin",
+        "condEdge": "buffers/p0.cond.bin"
+      },
+      "submeshes": [
+        { "colorCode": 16, "indexOffset": 0, "indexCount": 336 }
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "colorCode": 0,
+      "name": "Black",
+      "baseColor": [0.106, 0.165, 0.204],
+      "edgeColor": [0.349, 0.349, 0.349],
+      "alpha": 1.0,
+      "finish": "solid",
+      "metalness": 0.0,
+      "roughness": 0.28,
+      "luminance": 0.0
+    }
+  ],
+  "instances": [
+    { "part": 0, "material": 0, "translation": [0,0,0], "matrix": [1,0,0,0,1,0,0,0,1], "buildStep": 0, "id": "monolith/brick-00" }
+  ]
+}
+```
+
+**Signatures.**
+
+```rust
+// bundle.rs
+pub struct MeshBundleBuilder { /* … */ }
+
+impl MeshBundleBuilder {
+    pub fn new() -> Self;
+    /// Adds a distinct real part's geometry exactly once. Returns its
+    /// part index — the caller reuses it for every instance of that part,
+    /// the same resolve-once discipline brick.rs already applies.
+    pub fn add_part(&mut self, part_file: &str, geometry: &PartGeometry) -> usize;
+    pub fn add_material(&mut self, colors: &ColorTable, color_code: u32) -> usize;
+    pub fn add_instance(&mut self, part: usize, material: usize, placement: &Placement, id: String);
+    pub fn write(self, out_dir: &Path) -> Result<MeshBundleStats>;
+}
+
+pub struct MeshBundleStats {
+    pub part_count: usize,
+    pub instance_count: usize,
+    pub total_vertices: usize,
+    pub total_triangles: usize,
+    pub bytes_written: u64,
+}
+
+// weld.rs
+/// Welds coincident vertices and averages normals across faces whose
+/// dihedral angle is below `crease_degrees`. A real brick's flat walls
+/// must stay flat-shaded at their corners (90° >> crease), while a stud's
+/// cylinder must smooth (its facet angle is ~22.5° for LDraw's 16-segment
+/// primitives) — so the default is 33.0, comfortably between the two.
+pub fn weld_and_smooth(triangles: &[Triangle], crease_degrees: f64) -> WeldedMesh;
+
+pub struct WeldedMesh {
+    pub positions: Vec<[f32; 3]>,
+    pub normals: Vec<[f32; 3]>,
+    pub indices: Vec<u32>,
+    pub color_codes: Vec<u32>, // per triangle
+}
+```
+
+**Acceptance criteria.**
+
+1. `spex-mesh` writes a bundle for `3005.dat` whose `mesh.json` validates
+   against `spec/mesh.schema.json`.
+2. Sum of buffer file sizes matches the counts in the manifest exactly
+   (`vertexCount * 12` for positions, etc.) — asserted in a test.
+3. Welding reduces `3005.dat`'s vertex count by ≥ 40% versus the naive
+   3-vertices-per-triangle expansion, with no visible seam (verified in M54,
+   not here).
+4. A stud's cylinder is smooth-shaded and the brick's box corners are not:
+   test that the maximum angle between any two normals sharing a welded
+   vertex is < 33° after welding.
+5. `MeshBundleStats` printed by the CLI in M53 reports real numbers.
+
+**Verification ladder.** 1, 2, 3, 7.
+
+---
+
+### M53 — `spex mesh-part` and `spex mesh-model`
+
+**Why.** A CLI entry point per new pipeline stage is this repo's pattern
+(`brick-part`, `brick-model`), and it makes the bundle inspectable long
+before the viewer can draw it.
+
+**Files.** `crates/spex-cli/src/mesh.rs` (new), `main.rs` (clap wiring).
+
+**CLI.**
+
+```
+spex mesh-part <alias-or-part.dat> [--color <n>] [--crease <deg>] -o <bundle-dir> [--cache-dir <dir>]
+spex mesh-model <name-or-path.ldr>  [--crease <deg>] -o <bundle-dir> [--cache-dir <dir>]
+```
+
+`mesh-model` resolves each distinct `(part, colour)` exactly once — the
+same discipline as `brick::render_scene_to_points` — and emits one
+`instances[]` entry per real placement, carrying the placement's own
+`buildStep`.
+
+**Acceptance criteria.**
+
+1. `spex mesh-model ldraw-scenes/monolith.ldr -o demos/monolith-mesh/bundle`
+   prints: 2 distinct parts, 9 instances, and a bounds whose Y extent is
+   73.6 mm ± 0.01 — the already-established real monolith height.
+2. `spex mesh-model car -o …` reports 26 distinct parts and 61 instances —
+   the real numbers M44 established for `car.ldr`.
+3. Running either command twice produces byte-identical output (determinism).
+4. The bundle directory is servable as static files with no server change
+   (`ServeDir` already handles it).
+
+**Verification ladder.** 1, 2, 3, 7.
+
+---
+
+### M54 — the viewer's mesh render mode
+
+**Why.** This is the milestone where the picture stops being soft.
+
+**Files.** `viewer/src/mesh/bundle.ts`, `viewer/src/mesh/render.ts`,
+`viewer/src/mesh/materials.ts`, `viewer/src/main.ts` (mode selection).
+
+**Mode selection.** Exactly the pattern `fetchSequence` already established:
+
+```ts
+// bundle.ts
+export interface MeshBundle { /* mirrors mesh.json, typed */ }
+
+/** Returns null when mesh.json is absent — i.e. every existing point-cloud
+ *  and graph tileset, which must keep working byte-for-byte as before. */
+export async function fetchMeshBundle(baseUrl: string): Promise<MeshBundle | null>;
+
+export async function fetchMeshBuffers(
+  baseUrl: string,
+  bundle: MeshBundle,
+): Promise<Map<number, PartBuffers>>;
+
+export interface PartBuffers {
+  position: Float32Array;
+  normal: Float32Array;
+  index: Uint32Array;
+  hardEdge: Float32Array;
+  condEdge: Float32Array;
+}
+```
+
+`main.ts` gains one branch at the top: if `fetchMeshBundle()` returns a
+bundle, run the mesh path; otherwise run the existing point path completely
+unchanged. No existing code path may be edited beyond adding that branch.
+
+**Rendering requirements.**
+
+- `THREE.WebGLRenderer` with `antialias: true`, `outputColorSpace =
+  THREE.SRGBColorSpace`, `toneMapping = THREE.ACESFilmicToneMapping`,
+  `toneMappingExposure` exposed on the controls panel.
+- Lighting rig: one directional key light (shadow-casting, 2048² map), one
+  hemisphere fill, one low rim light. Positions are relative to the scene's
+  bounds diagonal, not absolute, so any scene scale works.
+- Materials from `mesh.json`'s `materials[]`, via `materials.ts` (M56 refines
+  the finishes; M54 may ship `MeshStandardMaterial` with baseColor/roughness
+  only).
+- Backface culling **on** — which is only correct because M51 fixed winding.
+  A visible interior surface here means M51 is wrong; that is the point of
+  doing them in this order.
+
+**Acceptance criteria.**
+
+1. `spex serve demos/monolith-mesh/bundle` renders the monolith as solid
+   geometry with visibly crisp silhouettes and no z-fighting.
+2. A real headless-Chromium screenshot at 1600×1000 shows: no interior
+   faces, no black holes, shadow visible on the ground plane, ≥ 55 fps
+   reported by the HUD.
+3. Every existing demo (`spex gallery` over a full `walkthrough.sh`
+   regeneration) renders exactly as before — the mesh branch never triggers.
+4. Console has zero errors and zero WebGL warnings.
+
+**Verification ladder.** 1, 2, 3, 5 (**mandatory**, with screenshots
+attached to the milestone note), 6, 7.
+
+---
+
+### M55 — instanced rendering
+
+**Why.** The Atlas movement will place tens of thousands of bricks. One
+draw call per brick is not survivable; one per distinct `(part, material)`
+pair is trivial.
+
+**Files.** `viewer/src/mesh/instanced.ts`.
+
+**Signatures.**
+
+```ts
+export interface InstanceGroup {
+  part: number;
+  material: number;
+  mesh: THREE.InstancedMesh;
+  hardEdges: THREE.LineSegments;      // instanced via InstancedBufferGeometry
+  conditionalEdges: THREE.LineSegments;
+  /** instanceId -> the bundle's own stable instance id, for choreography */
+  ids: string[];
+}
+
+export function buildInstanceGroups(
+  bundle: MeshBundle,
+  buffers: Map<number, PartBuffers>,
+): InstanceGroup[];
+
+/** Per-frame write of one instance's transform. Callers batch these and
+ *  call `flush()` once, so the instanceMatrix buffer is uploaded at most
+ *  once per group per frame. */
+export class InstanceWriter {
+  constructor(groups: InstanceGroup[]);
+  setTransform(id: string, position: THREE.Vector3, quaternion: THREE.Quaternion, scale: number): void;
+  setVisible(id: string, visible: boolean): void;
+  /** Per-instance scalar consumed by the dissolve shader (M65), 0..1. */
+  setDissolve(id: string, amount: number): void;
+  flush(): void;
+}
+```
+
+**Acceptance criteria.**
+
+1. A synthetic 50 000-instance scene (generated by `spex-build` in M72, or
+   a temporary generator here) renders at ≥ 60 fps at 1080p on the
+   development machine, with draw calls ≤ 3 × distinct part count.
+2. `renderer.info.render.calls` is asserted in the headless check.
+3. Updating every instance's transform each frame costs < 4 ms for 50 000
+   instances (measure and record the real number).
+
+**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
+
+---
+
+### M56 — the real LDraw material system
+
+**Why.** `LDConfig.ldr` carries far more than RGB: `ALPHA`, `LUMINANCE`,
+and the finish keywords `CHROME`, `PEARLESCENT`, `RUBBER`, `MATTE_METALLIC`,
+`METAL`, and `MATERIAL SPECKLE|GLITTER`. The electrum coin of Act II, the
+chrome of Act IV's token grid, and the transparent phase of the dissolve all
+depend on these being real rather than approximated.
+
+**Files.** `crates/spex-ldraw/src/colors.rs` (extended),
+`crates/spex-mesh/src/material.rs`, `viewer/src/mesh/materials.ts`.
+
+**Signatures.**
+
+```rust
+// colors.rs — replaces the tuple ColorTable value. Keep a
+// `ColorTable = HashMap<u32, LdrawColor>` alias and a
+// `LdrawColor::rgb()` accessor so existing call sites change minimally.
+#[derive(Clone, Debug, PartialEq)]
+pub struct LdrawColor {
+    pub code: u32,
+    pub name: String,
+    pub value: [u8; 3],
+    pub edge: [u8; 3],
+    pub alpha: u8,            // real ALPHA, default 255
+    pub luminance: u8,        // real LUMINANCE, default 0
+    pub finish: Finish,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Finish {
+    Solid,
+    Chrome,
+    Pearlescent,
+    Rubber,
+    MatteMetallic,
+    Metal,
+    Speckle { value: [u8; 3], alpha: u8, luminance: u8, min_size: f64, max_size: f64 },
+    Glitter { value: [u8; 3], alpha: u8, luminance: u8, fraction: f64, vfraction: f64, size: f64 },
+}
+```
+
+**Mapping to PBR** (documented in `material.rs`, these are deliberate
+artistic choices calibrated against real reference renders, and must be
+recorded as such — not presented as physical measurements):
+
+| Finish | metalness | roughness | notes |
+|---|---|---|---|
+| Solid (opaque ABS) | 0.00 | 0.28 | the baseline brick look |
+| Solid (transparent) | 0.00 | 0.05 | `transmission` 0.9, `thickness` from part bounds |
+| Rubber | 0.00 | 0.85 | |
+| Pearlescent | 0.35 | 0.35 | + subtle iridescence via `sheenColor` |
+| MatteMetallic | 0.80 | 0.55 | |
+| Metal | 1.00 | 0.25 | |
+| Chrome | 1.00 | 0.03 | needs an environment map — see below |
+| Speckle / Glitter | 0.00 | 0.30 | procedural noise in a custom `onBeforeCompile` chunk |
+
+Chrome and any metal need reflections. **No external HDRI asset** (real-data
+rule plus offline-capability rule): generate the environment with
+`THREE.PMREMGenerator` from a procedurally rendered gradient scene defined
+in `materials.ts`, seeded from the show seed. Document that it is synthetic.
+
+**Acceptance criteria.**
+
+1. `load_colors` parses every real field from the current real
+   `LDConfig.ldr`; a test asserts ≥ 5 distinct `Finish` variants are found
+   in the real file, and that code 0 (Black), 4 (Red), 47 (Trans-Clear) and
+   383 (Chrome Silver, if present in the current file) resolve to the
+   expected finishes.
+2. A test bundle rendering one brick per finish variant is screenshotted;
+   transparent reads as transparent, chrome reflects, rubber is matte.
+3. Existing point-pipeline callers still compile and produce identical
+   output (they only ever read `.value`).
+
+**Verification ladder.** 1, 2, 3, 5 (**mandatory**), 7.
+
+---
+
+### M57 — crisp edges and conditional edges *(the "vektorgenau" milestone)*
+
+**Why.** This is the single most important visual milestone in the document.
+A brick without its edge outline reads as a soft plastic blob; with it, it
+reads as the catalogue image everybody has in their head.
+
+**Files.** `viewer/src/mesh/edges.ts`.
+
+**Requirements.**
+
+- **Hard edges** (type 2) drawn as screen-space-constant-width lines. Not
+  `LineBasicMaterial` (`linewidth` is ignored on every real platform):
+  implement instanced quad expansion in a vertex shader (the standard
+  "fat line" technique — `THREE.Line2`/`LineMaterial` from three's addons is
+  acceptable if it instances correctly; if it does not, write the shader).
+  Width in device pixels is a controls-panel parameter, default 1.4.
+- **Conditional edges** (type 5) drawn only when the two control points
+  project to the **same** side of the line (§0.1 B1 — rev 1 had this
+  inverted). This is a per-frame, per-edge test and must run on the GPU:
+  pass both control points as vertex attributes **to all four quad
+  corners** (so the collapse decision is identical per corner and cannot
+  produce flickering half-quads), do the test after the perspective divide
+  with a `w > 0` guard on all four points, and collapse the quad to zero
+  area when the signs **differ**.
+- **Depth bias.** Edges must not z-fight with the faces they bound. Use a
+  small view-space depth offset (`gl_Position.z -= bias * gl_Position.w`),
+  parameterised, default tuned against the monolith at both extreme camera
+  distances the screenplay uses.
+- Edge colour comes from the material's real `edge` value from
+  `LDConfig.ldr`, not a hardcoded black.
+
+**Acceptance criteria.**
+
+1. Screenshot of a single `3005.dat` at 2000×2000 shows a continuous,
+   uniform-width outline with no gaps at the stud's silhouette and no
+   wireframe lines across the stud's cylinder.
+2. Orbiting the camera 360° in the headless session, sampling 12 angles:
+   the conditional-edge count actually drawn changes between angles (proof
+   the test is running), and no frame shows tessellation lines on the
+   cylinder.
+3. At 0.5× and 50× the default camera distance, no z-fighting artefacts.
+4. Frame cost of the edge pass ≤ 25% of total frame time on the 50 000-
+   instance scene.
+
+**Verification ladder.** 1, 2, 5 (**mandatory — this milestone is defined by
+its screenshots**), 7.
+
+---
+
+### M58 — the post-processing and lighting pipeline
+
+**Why.** Act IV is neon; the Kick is a flash; the whole piece needs a
+consistent filmic look. Doing this once, properly, is cheaper than fighting
+it per-shot.
+
+**Files.** `viewer/src/mesh/render.ts` (extended).
+
+**Requirements.**
+
+- `EffectComposer` chain: render pass → SSAO (optional, quality-gated) →
+  UnrealBloom (threshold/strength/radius exposed and animatable from the
+  timeline) → SMAA → output pass. All from `three/addons`; no new npm
+  dependency.
+- A `QualityTier` enum (`Low` / `Medium` / `High`) chosen automatically from
+  a 2-second startup benchmark, overridable by `?quality=` and by a controls
+  dropdown. Low disables SSAO and halves shadow map resolution; the piece
+  must remain *watchable*, not merely runnable, at Low.
+- Bloom, exposure, vignette and a global colour-grade LUT strength are
+  exposed as timeline-animatable parameters (M62 consumes them).
+
+**Acceptance criteria.**
+
+1. On the development machine at 1080p: High ≥ 60 fps, Low ≥ 60 fps on a
+   deliberately throttled headless session (Chromium `--disable-gpu` is an
+   acceptable proxy; record what was actually used).
+2. Bloom threshold animated from 1.0 → 0.2 over 1 s produces a visible,
+   smooth ramp in a 30-frame headless capture.
+3. No `NaN`/black-frame regressions when the scene is empty (an important
+   edge case: Act I's first six seconds are almost empty).
+
+**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
+
+---
+
+### M59 — mesh LOD and culling
+
+**Why.** The 60-minute Atlas cut will hold dozens of sites in memory. A
+site 400 m "away" does not need its studs.
+
+**Files.** `crates/spex-mesh/src/lib.rs` (LOD generation),
+`viewer/src/mesh/instanced.ts` (LOD selection).
+
+**Requirements.**
+
+- The bundle writer emits up to three LODs per part:
+  - **LOD0** — full geometry.
+  - **LOD1** — studs and tubes removed (identify them by the real primitive
+    names in the reference chain: `stud*.dat`, `4-4cyli.dat` inside a stud
+    subpart — record the real detection rule in code comments, and gate it
+    on the *reference path*, never on a heuristic about geometry).
+  - **LOD2** — the part's oriented bounding box, 12 triangles, plus its 12
+    hard edges.
+- Selection by projected screen-space size of the instance's bounds, with
+  hysteresis to avoid popping.
+- Frustum culling per instance group via a per-group BVH of instance bounds
+  (a simple uniform grid is sufficient and cheaper to get right).
+
+**Acceptance criteria.**
+
+1. A 40-site Atlas scene (from M74) with ≥ 200 000 instances renders at
+   ≥ 45 fps at 1080p on High.
+2. LOD transitions are invisible in a 60-frame dolly-back capture (compare
+   consecutive frames; no single-frame luminance jump > 3%).
+3. LOD1 reduces triangle count for `3001.dat` (Brick 2×4) by ≥ 55%; record
+   the real measured figure.
+
+**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
+
+---
