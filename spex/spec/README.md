@@ -23,10 +23,26 @@ isn't just aspirational prose, it's enforced against real output.
 | `nodes.json` | [`nodes.schema.json`](nodes.schema.json) | `graph-layout` only | viewer (hover labels) |
 | `meta.json` | [`meta.schema.json`](meta.schema.json) | `graph-layout` only | viewer (header/legend) |
 | `sequence.json` | [`sequence.schema.json`](sequence.schema.json) | `spex frame-sequence` (`crates/spex-cli/src/frame_sequence.rs`) | viewer (`fetchSequence`, real frame-advance playback) |
+| `mesh.json` | [`mesh.schema.json`](mesh.schema.json) | `spex-mesh` (`crates/spex-mesh/src/bundle.rs`) | the viewer's mesh render mode (M54) |
 
 `octree/<node-id>.bin` (the point data itself) is a small binary format, not
 JSON — see the "Tileset format" section of `CLAUDE.md`: `u32` LE point
 count, then per point `3x f32` LE position + `3x u8` RGB (15 bytes/point).
+
+A mesh bundle's payload is binary for the same reason, and more so. Alongside
+`mesh.json` sit `buffers/p<N>.{pos,nrm,idx,edge,cond}.bin` (packed f32/u32
+arrays, sizes derivable from the manifest's own counts) and `instances.bin`
+(**10 bytes per instance**: `i16 x, y, z` in LDraw units, `u8` orientation
+index, `u8` material index, `u16` part index). At Atlas scale a JSON
+`instances[]` array would be ~37 MB of text and about a second of main-thread
+parse before the first frame; this is 2.5 MB and needs no parsing at all.
+
+Two properties of `mesh.json` are load-bearing enough that the manifest
+states them rather than leaving readers to assume: positions are in
+**millimetres, +Y up** (LDraw is LDU and Y-down, and because negating Y is a
+*mirror*, the writer also reverses triangle winding — without which backface
+culling is inverted for the entire library), and colours are **linear**, not
+sRGB, because three.js r152+ reads them as linear.
 
 ## Versioning
 

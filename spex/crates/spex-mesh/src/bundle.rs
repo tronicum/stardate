@@ -1,0 +1,755 @@
+//! The `spex-brick-mesh` bundle: a small JSON manifest plus tightly packed
+//! little-endian binary buffers — the same shape as `tileset.json` +
+//! `octree/*.bin`, which this project already knows how to write, serve and
+//! parse.
+//!
+//! ```text
+//! <bundle-dir>/
+//!   mesh.json                 the manifest
+//!   instances.bin             10 bytes per instance
+//!   buffers/
+//!     p<N>.pos.bin            f32 LE, 3 per vertex (mm, Y-up)
+//!     p<N>.nrm.bin            f32 LE, 3 per vertex, unit length
+//!     p<N>.idx.bin            u32 LE, 3 per triangle
+//!     p<N>.edge.bin           f32 LE, 6 per hard edge
+//!     p<N>.cond.bin           f32 LE, 12 per conditional edge (2 endpoints + 2 controls)
+//! ```
+//!
+//! Two decisions here are load-bearing and were both corrected out of the
+//! first draft of the spec, so they are spelled out rather than assumed.
+//!
+//! **Instances are binary, not JSON.** At Atlas scale an `instances[]` array
+//! is roughly 37 MB of text, ~120 MB of parsed heap, and about a second of
+//! main-thread parse time before the first frame. Ten bytes each is 2.5 MB.
+//!
+//! **Colour is stored linear.** three.js r152+ reads vertex colours and
+//! material colours as linear, so handing it sRGB values straight from
+//! `LDConfig.ldr` renders every material roughly 2.2x too bright. The
+//! conversion happens here, once, and the manifest says so.
+
+use anyhow::{bail, Context, Result};
+use serde::Serialize;
+use spex_ldraw::edges::EdgeKind;
+use spex_ldraw::{ColorTable, FullTriangle, PartGeometry};
+use std::collections::HashMap;
+use std::path::Path;
+
+use crate::weld::{weld_and_smooth, WeldedMesh, DEFAULT_CREASE_DEGREES};
+
+pub const FORMAT_VERSION: u32 = 1;
+/// Instance translations are quantised to whole LDraw units, which is exact
+/// for grid-legal geometry and 0.4 mm at worst for anything else. i16 gives
+/// +/- 32767 LDU, i.e. +/- 13.1 m of local extent per bundle.
+pub const TRANSLATION_UNIT_MM: f64 = spex_ldraw::LDU_TO_MM;
+
+// --------------------------------------------------------------- frame ----
+
+/// **The one place LDraw's coordinate frame becomes spex's** — LDU to
+/// millimetres, and Y-down to Y-up.
+///
+/// Negating Y is a *mirror*. It flips handedness, so on its own it would
+/// leave every triangle wound backwards relative to its own outward normal,
+/// and a renderer that culls by winding — which is all of them — draws the
+/// inside of the far wall instead of the outside of the near one. The object
+/// renders as if it were transparent, and nothing about that symptom points
+/// at a coordinate conversion. `to_output_triangles` therefore swaps two
+/// vertices of every triangle, and `to_output_matrix` conjugates a rotation
+/// by the same flip. Found the expensive way by
+/// `scripts/mesh-vs-points-spike/`; see `spex_ldraw::bfc`'s module doc.
+pub fn to_output_position(p: [f64; 3]) -> [f64; 3] {
+    [
+        p[0] * spex_ldraw::LDU_TO_MM,
+        -p[1] * spex_ldraw::LDU_TO_MM,
+        p[2] * spex_ldraw::LDU_TO_MM,
+    ]
+}
+
+/// `F * M * F` with `F = diag(1, -1, 1)`: the same rotation, expressed in the
+/// flipped frame. An axis-aligned matrix stays axis-aligned.
+pub fn to_output_matrix(m: &[f64; 9]) -> [f64; 9] {
+    let f = [1.0, -1.0, 1.0];
+    let mut out = [0.0; 9];
+    for r in 0..3 {
+        for c in 0..3 {
+            out[r * 3 + c] = f[r] * m[r * 3 + c] * f[c];
+        }
+    }
+    out
+}
+
+/// Converts a resolved part's triangles into the output frame, **reversing
+/// winding** to compensate for the mirror. See `to_output_position`.
+pub fn to_output_triangles(geo: &PartGeometry) -> Vec<FullTriangle> {
+    geo.triangles
+        .iter()
+        .map(|t| FullTriangle {
+            vertices: [
+                to_output_position(t.vertices[0]),
+                to_output_position(t.vertices[2]),
+                to_output_position(t.vertices[1]),
+            ],
+            color_code: t.color_code,
+            source: t.source,
+        })
+        .collect()
+}
+
+/// sRGB 0..255 to linear 0..1, per the real piecewise sRGB transfer function.
+pub fn srgb_to_linear(c: u8) -> f32 {
+    let x = c as f32 / 255.0;
+    if x <= 0.04045 {
+        x / 12.92
+    } else {
+        ((x + 0.055) / 1.055).powf(2.4)
+    }
+}
+
+// ------------------------------------------------------------ manifest ----
+
+#[derive(Serialize)]
+pub struct Bounds {
+    pub min: [f64; 3],
+    pub max: [f64; 3],
+}
+
+#[derive(Serialize)]
+pub struct SubmeshRange {
+    /// `None` = LDraw colour 16, "inherit": take the instance's own material.
+    /// A number is a fixed accent colour baked into the part itself.
+    pub material: Option<usize>,
+    #[serde(rename = "indexOffset")]
+    pub index_offset: usize,
+    #[serde(rename = "indexCount")]
+    pub index_count: usize,
+}
+
+#[derive(Serialize)]
+pub struct PartEntry {
+    pub index: usize,
+    #[serde(rename = "partFile")]
+    pub part_file: String,
+    pub description: Option<String>,
+    #[serde(rename = "vertexCount")]
+    pub vertex_count: usize,
+    #[serde(rename = "triangleCount")]
+    pub triangle_count: usize,
+    #[serde(rename = "hardEdgeCount")]
+    pub hard_edge_count: usize,
+    #[serde(rename = "conditionalEdgeCount")]
+    pub conditional_edge_count: usize,
+    pub bounds: Bounds,
+    pub buffers: HashMap<String, String>,
+    pub submeshes: Vec<SubmeshRange>,
+    /// Real LDraw files this part's geometry came from — what M59's LOD pass
+    /// gates stud/tube removal on.
+    pub sources: Vec<String>,
+    pub license: Option<String>,
+    pub author: Option<String>,
+}
+
+#[derive(Serialize)]
+pub struct MaterialEntry {
+    #[serde(rename = "colorCode")]
+    pub color_code: u32,
+    pub name: String,
+    /// **Linear**, not sRGB. See this module's header.
+    #[serde(rename = "baseColor")]
+    pub base_color: [f32; 3],
+    #[serde(rename = "edgeColor")]
+    pub edge_color: [f32; 3],
+}
+
+#[derive(Serialize)]
+pub struct InstanceEncoding {
+    pub stride: usize,
+    pub layout: Vec<&'static str>,
+    #[serde(rename = "translationUnitMm")]
+    pub translation_unit_mm: f64,
+    #[serde(rename = "maxTranslationErrorMm")]
+    pub max_translation_error_mm: f64,
+    pub count: usize,
+    pub file: &'static str,
+}
+
+#[derive(Serialize)]
+pub struct Attribution {
+    #[serde(rename = "geometrySource")]
+    pub geometry_source: &'static str,
+    #[serde(rename = "colorTable")]
+    pub color_table: &'static str,
+    pub note: &'static str,
+}
+
+#[derive(Serialize)]
+pub struct Manifest {
+    pub version: u32,
+    pub generator: String,
+    pub unit: &'static str,
+    #[serde(rename = "upAxis")]
+    pub up_axis: &'static str,
+    #[serde(rename = "colorSpace")]
+    pub color_space: &'static str,
+    #[serde(rename = "creaseDegrees")]
+    pub crease_degrees: f64,
+    pub bounds: Bounds,
+    pub parts: Vec<PartEntry>,
+    pub materials: Vec<MaterialEntry>,
+    /// Distinct 3x3 orientations, row-major, already in the output frame.
+    /// An instance references one by index, which is what makes a 10-byte
+    /// instance record possible.
+    pub orientations: Vec<[f64; 9]>,
+    #[serde(rename = "instanceEncoding")]
+    pub instance_encoding: InstanceEncoding,
+    /// Stable per-instance ids, in the same order as `instances.bin`. Used to
+    /// resolve a show's target globs once, at load time.
+    #[serde(rename = "instanceIds")]
+    pub instance_ids: Vec<String>,
+    pub attribution: Attribution,
+}
+
+// ------------------------------------------------------------- builder ----
+
+struct PendingPart {
+    part_file: String,
+    geometry: PartGeometry,
+    welded: WeldedMesh,
+}
+
+struct PendingInstance {
+    part: usize,
+    material: usize,
+    translation_ldu: [i16; 3],
+    orientation: u8,
+    id: String,
+}
+
+#[derive(Debug, Default, PartialEq)]
+pub struct MeshBundleStats {
+    pub part_count: usize,
+    pub instance_count: usize,
+    pub material_count: usize,
+    pub orientation_count: usize,
+    pub total_vertices: usize,
+    pub total_triangles: usize,
+    pub total_hard_edges: usize,
+    pub total_conditional_edges: usize,
+    pub bytes_written: u64,
+    pub max_translation_error_mm: f64,
+}
+
+pub struct MeshBundleBuilder {
+    crease_degrees: f64,
+    parts: Vec<PendingPart>,
+    part_index: HashMap<String, usize>,
+    materials: Vec<MaterialEntry>,
+    material_index: HashMap<u32, usize>,
+    orientations: Vec<[f64; 9]>,
+    instances: Vec<PendingInstance>,
+    max_translation_error_mm: f64,
+}
+
+impl Default for MeshBundleBuilder {
+    fn default() -> Self {
+        Self::new(DEFAULT_CREASE_DEGREES)
+    }
+}
+
+impl MeshBundleBuilder {
+    pub fn new(crease_degrees: f64) -> Self {
+        MeshBundleBuilder {
+            crease_degrees,
+            parts: Vec::new(),
+            part_index: HashMap::new(),
+            materials: Vec::new(),
+            material_index: HashMap::new(),
+            orientations: Vec::new(),
+            instances: Vec::new(),
+            max_translation_error_mm: 0.0,
+        }
+    }
+
+    /// Adds a distinct real part's geometry exactly once, keyed on the part
+    /// file **alone** — deliberately not on (part, colour), because the
+    /// geometry carries no colour. Two colours of the same part share one
+    /// mesh, which is the whole basis of instancing.
+    pub fn add_part(&mut self, part_file: &str, geometry: &PartGeometry) -> usize {
+        if let Some(i) = self.part_index.get(part_file) {
+            return *i;
+        }
+        let welded = weld_and_smooth(&to_output_triangles(geometry), self.crease_degrees);
+        let i = self.parts.len();
+        self.parts.push(PendingPart {
+            part_file: part_file.to_string(),
+            geometry: geometry.clone(),
+            welded,
+        });
+        self.part_index.insert(part_file.to_string(), i);
+        i
+    }
+
+    pub fn add_material(&mut self, colors: &ColorTable, color_code: u32) -> usize {
+        if let Some(i) = self.material_index.get(&color_code) {
+            return *i;
+        }
+        let (name, rgb) = colors
+            .get(&color_code)
+            .cloned()
+            .unwrap_or_else(|| (format!("Unknown {color_code}"), [200, 200, 200]));
+        let lin = |c: [u8; 3]| [srgb_to_linear(c[0]), srgb_to_linear(c[1]), srgb_to_linear(c[2])];
+        let i = self.materials.len();
+        self.materials.push(MaterialEntry {
+            color_code,
+            name,
+            base_color: lin(rgb),
+            // Real edge colours arrive with the full colour table in M56;
+            // until then LDraw's own default edge grey, converted the same way.
+            edge_color: lin([0x59, 0x59, 0x59]),
+        });
+        self.material_index.insert(color_code, i);
+        i
+    }
+
+    fn orientation_index(&mut self, matrix: &[f64; 9]) -> Result<u8> {
+        let m = to_output_matrix(matrix);
+        for (i, o) in self.orientations.iter().enumerate() {
+            if o.iter().zip(m.iter()).all(|(a, b)| (a - b).abs() < 1e-9) {
+                return Ok(i as u8);
+            }
+        }
+        if self.orientations.len() >= 256 {
+            bail!(
+                "more than 256 distinct orientations in one bundle — the 10-byte instance \
+                 record indexes them with a u8. Split the scene, or add the float-matrix \
+                 fallback stream (deliberately not built yet: no real scene has needed it)."
+            );
+        }
+        self.orientations.push(m);
+        Ok((self.orientations.len() - 1) as u8)
+    }
+
+    /// Adds one placement. `translation`/`matrix` are in LDraw's own frame,
+    /// exactly as `spex_ldraw::Placement` carries them; the conversion to the
+    /// output frame happens here.
+    pub fn add_instance(
+        &mut self,
+        part: usize,
+        material: usize,
+        translation: [f64; 3],
+        matrix: &[f64; 9],
+        id: impl Into<String>,
+    ) -> Result<()> {
+        let orientation = self.orientation_index(matrix)?;
+        let p = to_output_position(translation);
+        let mut q = [0i16; 3];
+        for k in 0..3 {
+            let in_units = p[k] / TRANSLATION_UNIT_MM;
+            if !(-32768.0..=32767.0).contains(&in_units) {
+                bail!(
+                    "instance {:?} sits {:.1} mm from the bundle origin, outside the \
+                     +/-13.1 m an i16 LDU translation can address",
+                    id.into(),
+                    p[k]
+                );
+            }
+            let r = in_units.round();
+            let err = ((in_units - r).abs()) * TRANSLATION_UNIT_MM;
+            if err > self.max_translation_error_mm {
+                self.max_translation_error_mm = err;
+            }
+            q[k] = r as i16;
+        }
+        self.instances.push(PendingInstance {
+            part,
+            material,
+            translation_ldu: q,
+            orientation,
+            id: id.into(),
+        });
+        Ok(())
+    }
+
+    pub fn write(self, out_dir: &Path) -> Result<MeshBundleStats> {
+        std::fs::create_dir_all(out_dir.join("buffers"))
+            .with_context(|| format!("creating {}", out_dir.display()))?;
+        let mut stats = MeshBundleStats {
+            part_count: self.parts.len(),
+            instance_count: self.instances.len(),
+            material_count: self.materials.len(),
+            orientation_count: self.orientations.len(),
+            max_translation_error_mm: self.max_translation_error_mm,
+            ..Default::default()
+        };
+        let mut bytes = 0u64;
+        let mut parts = Vec::new();
+        let mut global = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
+
+        for (i, p) in self.parts.iter().enumerate() {
+            let w = &p.welded;
+            let mut pos = Vec::with_capacity(w.positions.len() * 12);
+            let mut nrm = Vec::with_capacity(w.normals.len() * 12);
+            let (mut mn, mut mx) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
+            for (v, n) in w.positions.iter().zip(w.normals.iter()) {
+                for k in 0..3 {
+                    pos.extend_from_slice(&v[k].to_le_bytes());
+                    nrm.extend_from_slice(&n[k].to_le_bytes());
+                    mn[k] = mn[k].min(v[k] as f64);
+                    mx[k] = mx[k].max(v[k] as f64);
+                    global.0[k] = global.0[k].min(v[k] as f64);
+                    global.1[k] = global.1[k].max(v[k] as f64);
+                }
+            }
+            // Triangles are grouped by colour so a submesh is one contiguous
+            // index range — a renderer draws each range with one material and
+            // never re-binds mid-buffer.
+            let mut by_color: Vec<(Option<u32>, Vec<u32>)> = Vec::new();
+            for (t, color) in w.triangle_colors.iter().enumerate() {
+                let slot = match by_color.iter().position(|(c, _)| c == color) {
+                    Some(s) => s,
+                    None => {
+                        by_color.push((*color, Vec::new()));
+                        by_color.len() - 1
+                    }
+                };
+                by_color[slot].1.extend_from_slice(&w.indices[t * 3..t * 3 + 3]);
+            }
+            let mut idx = Vec::new();
+            let mut submeshes = Vec::new();
+            let mut offset = 0usize;
+            for (color, ids) in &by_color {
+                for id in ids {
+                    idx.extend_from_slice(&id.to_le_bytes());
+                }
+                submeshes.push(SubmeshRange {
+                    material: color.map(|c| self.material_index.get(&c).copied().unwrap_or(0)),
+                    index_offset: offset,
+                    index_count: ids.len(),
+                });
+                offset += ids.len();
+            }
+
+            let mut edge = Vec::new();
+            let mut cond = Vec::new();
+            let (mut hard_n, mut cond_n) = (0usize, 0usize);
+            for e in &p.geometry.edges {
+                let a = to_output_position(e.vertices[0]);
+                let b = to_output_position(e.vertices[1]);
+                match &e.kind {
+                    EdgeKind::Hard => {
+                        for v in [a, b] {
+                            for k in 0..3 {
+                                edge.extend_from_slice(&(v[k] as f32).to_le_bytes());
+                            }
+                        }
+                        hard_n += 1;
+                    }
+                    EdgeKind::Conditional { control } => {
+                        let c0 = to_output_position(control[0]);
+                        let c1 = to_output_position(control[1]);
+                        for v in [a, b, c0, c1] {
+                            for k in 0..3 {
+                                cond.extend_from_slice(&(v[k] as f32).to_le_bytes());
+                            }
+                        }
+                        cond_n += 1;
+                    }
+                }
+            }
+
+            let mut buffers = HashMap::new();
+            for (name, key, data) in [
+                ("pos", "position", &pos),
+                ("nrm", "normal", &nrm),
+                ("idx", "index", &idx),
+                ("edge", "hardEdge", &edge),
+                ("cond", "condEdge", &cond),
+            ] {
+                let rel = format!("buffers/p{i}.{name}.bin");
+                std::fs::write(out_dir.join(&rel), data)
+                    .with_context(|| format!("writing {rel}"))?;
+                bytes += data.len() as u64;
+                buffers.insert(key.to_string(), rel);
+            }
+
+            stats.total_vertices += w.vertex_count();
+            stats.total_triangles += w.triangle_count();
+            stats.total_hard_edges += hard_n;
+            stats.total_conditional_edges += cond_n;
+
+            parts.push(PartEntry {
+                index: i,
+                part_file: p.part_file.clone(),
+                description: p.geometry.description.clone(),
+                vertex_count: w.vertex_count(),
+                triangle_count: w.triangle_count(),
+                hard_edge_count: hard_n,
+                conditional_edge_count: cond_n,
+                bounds: Bounds { min: mn, max: mx },
+                buffers,
+                submeshes,
+                sources: p.geometry.sources.clone(),
+                license: p.geometry.license.clone(),
+                author: p.geometry.author.clone(),
+            });
+        }
+
+        let mut inst = Vec::with_capacity(self.instances.len() * 10);
+        let mut ids = Vec::with_capacity(self.instances.len());
+        for it in &self.instances {
+            for k in 0..3 {
+                inst.extend_from_slice(&it.translation_ldu[k].to_le_bytes());
+            }
+            inst.push(it.orientation);
+            inst.push(u8::try_from(it.material).unwrap_or(0));
+            inst.extend_from_slice(&u16::try_from(it.part).unwrap_or(0).to_le_bytes());
+            ids.push(it.id.clone());
+        }
+        std::fs::write(out_dir.join("instances.bin"), &inst)?;
+        bytes += inst.len() as u64;
+
+        if self.parts.is_empty() {
+            global = ([0.0; 3], [0.0; 3]);
+        }
+        let manifest = Manifest {
+            version: FORMAT_VERSION,
+            generator: format!("spex-mesh {}", env!("CARGO_PKG_VERSION")),
+            unit: "mm",
+            up_axis: "+Y",
+            color_space: "linear",
+            crease_degrees: self.crease_degrees,
+            bounds: Bounds { min: global.0, max: global.1 },
+            parts,
+            materials: self.materials,
+            orientations: self.orientations,
+            instance_encoding: InstanceEncoding {
+                stride: 10,
+                layout: vec!["i16 x", "i16 y", "i16 z", "u8 orientation", "u8 material", "u16 part"],
+                translation_unit_mm: TRANSLATION_UNIT_MM,
+                max_translation_error_mm: self.max_translation_error_mm,
+                count: self.instances.len(),
+                file: "instances.bin",
+            },
+            instance_ids: ids,
+            attribution: Attribution {
+                geometry_source: "LDraw Parts Library (ldraw.org), CCAL 2.0",
+                color_table: "LDConfig.ldr",
+                note: "see docs/fugen/licensing.md",
+            },
+        };
+        let json = serde_json::to_vec_pretty(&manifest)?;
+        std::fs::write(out_dir.join("mesh.json"), &json)?;
+        bytes += json.len() as u64;
+        stats.bytes_written = bytes;
+        Ok(stats)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use spex_ldraw::edges::Edge;
+    use spex_ldraw::LdrawCache;
+
+    fn synthetic_cache(files: &[(&str, &str)]) -> (tempfile::TempDir, LdrawCache) {
+        let dir = tempfile::tempdir().unwrap();
+        for (path, body) in files {
+            let full = dir.path().join(path);
+            std::fs::create_dir_all(full.parent().unwrap()).unwrap();
+            std::fs::write(full, body).unwrap();
+        }
+        let cache = LdrawCache::new(dir.path());
+        (dir, cache)
+    }
+
+    fn colors() -> ColorTable {
+        let mut c = ColorTable::new();
+        c.insert(0, ("Black".into(), [0x1B, 0x2A, 0x34]));
+        c.insert(4, ("Red".into(), [0xC9, 0x1A, 0x09]));
+        c
+    }
+
+    #[test]
+    fn positions_convert_ldu_to_mm_and_flip_y() {
+        assert_eq!(to_output_position([10.0, 20.0, 30.0]), [4.0, -8.0, 12.0]);
+    }
+
+    #[test]
+    fn the_mirror_is_compensated_so_outward_stays_outward() {
+        // A face whose LDraw normal points along +Y (which is *down* in
+        // LDraw) must come out pointing along -Y in a Y-up frame. If the
+        // winding swap were missing, it would come out along +Y — the face
+        // would be inside-out, and backface culling would show the interior.
+        let geo = PartGeometry {
+            triangles: vec![FullTriangle {
+                vertices: [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0]],
+                color_code: None,
+                source: 0,
+            }],
+            ..Default::default()
+        };
+        let n_in = spex_ldraw::full_triangle_normal(&geo.triangles[0]);
+        assert!(n_in[1] > 0.9, "fixture sanity: LDraw normal is +Y, got {n_in:?}");
+        let out = to_output_triangles(&geo);
+        let n_out = spex_ldraw::full_triangle_normal(&out[0]);
+        assert!(n_out[1] < -0.9, "must flip to -Y, got {n_out:?}");
+    }
+
+    #[test]
+    fn a_matrix_conjugated_by_the_flip_stays_a_rotation() {
+        let m = spex_ldraw::rotation_y(0.7);
+        let out = to_output_matrix(&m);
+        assert!(
+            (spex_ldraw::determinant3(&out) - 1.0).abs() < 1e-12,
+            "conjugation preserves determinant +1, got {}",
+            spex_ldraw::determinant3(&out)
+        );
+        assert!((to_output_matrix(&spex_ldraw::IDENTITY)[4] - 1.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn srgb_converts_to_linear_and_darkens_the_midtones() {
+        assert!(srgb_to_linear(0) < 1e-9);
+        assert!((srgb_to_linear(255) - 1.0).abs() < 1e-6);
+        assert!(srgb_to_linear(128) < 0.25, "the whole point: 0.5 sRGB is ~0.22 linear");
+    }
+
+    #[test]
+    fn a_part_is_stored_once_regardless_of_how_many_colours_use_it() {
+        let (_d, cache) = synthetic_cache(&[(
+            "parts/t.dat",
+            "0 T\n0 BFC CERTIFY CCW\n3 16 0 0 0 1 0 0 0 1 0\n",
+        )]);
+        let geo = spex_ldraw::resolve_part_full(&cache, "t.dat").unwrap();
+        let mut b = MeshBundleBuilder::default();
+        let a = b.add_part("t.dat", &geo);
+        let c = b.add_part("t.dat", &geo);
+        assert_eq!(a, c, "geometry carries no colour, so one mesh serves every colour");
+        assert_eq!(b.parts.len(), 1);
+    }
+
+    #[test]
+    fn identical_orientations_are_deduplicated_into_the_table() {
+        let (_d, cache) = synthetic_cache(&[(
+            "parts/t.dat",
+            "0 T\n0 BFC CERTIFY CCW\n3 16 0 0 0 1 0 0 0 1 0\n",
+        )]);
+        let geo = spex_ldraw::resolve_part_full(&cache, "t.dat").unwrap();
+        let mut b = MeshBundleBuilder::default();
+        let p = b.add_part("t.dat", &geo);
+        let m = b.add_material(&colors(), 0);
+        for i in 0..5 {
+            b.add_instance(p, m, [0.0, -24.0 * i as f64, 0.0], &spex_ldraw::IDENTITY, format!("i{i}"))
+                .unwrap();
+        }
+        assert_eq!(b.orientations.len(), 1, "one shared orientation for five instances");
+    }
+
+    #[test]
+    fn instance_translations_quantise_exactly_on_the_ldraw_grid() {
+        let (_d, cache) = synthetic_cache(&[(
+            "parts/t.dat",
+            "0 T\n0 BFC CERTIFY CCW\n3 16 0 0 0 1 0 0 0 1 0\n",
+        )]);
+        let geo = spex_ldraw::resolve_part_full(&cache, "t.dat").unwrap();
+        let mut b = MeshBundleBuilder::default();
+        let p = b.add_part("t.dat", &geo);
+        let m = b.add_material(&colors(), 0);
+        // The real monolith's own stacking: whole LDU, so exact.
+        b.add_instance(p, m, [0.0, -184.0, 0.0], &spex_ldraw::IDENTITY, "exact").unwrap();
+        assert_eq!(b.max_translation_error_mm, 0.0);
+        assert_eq!(b.instances[0].translation_ldu, [0, 184, 0], "and Y is flipped");
+        // Something off-grid records its real error rather than hiding it.
+        b.add_instance(p, m, [0.5, 0.0, 0.0], &spex_ldraw::IDENTITY, "off-grid").unwrap();
+        assert!((b.max_translation_error_mm - 0.2).abs() < 1e-9, "0.5 LDU rounds to 0.2 mm");
+    }
+
+    #[test]
+    fn buffer_sizes_match_the_counts_the_manifest_claims() {
+        let (_d, cache) = synthetic_cache(&[(
+            "parts/t.dat",
+            "0 T\n0 BFC CERTIFY CCW\n\
+             4 16 0 0 0 1 0 0 1 1 0 0 1 0\n\
+             2 24 0 0 0 1 0 0\n\
+             5 24 0 0 0 1 0 0 0 1 0 0 -1 0\n",
+        )]);
+        let geo = spex_ldraw::resolve_part_full(&cache, "t.dat").unwrap();
+        let mut b = MeshBundleBuilder::default();
+        let p = b.add_part("t.dat", &geo);
+        let m = b.add_material(&colors(), 4);
+        b.add_instance(p, m, [0.0; 3], &spex_ldraw::IDENTITY, "only").unwrap();
+
+        let out = tempfile::tempdir().unwrap();
+        let stats = b.write(out.path()).unwrap();
+        assert_eq!(stats.part_count, 1);
+        assert_eq!(stats.instance_count, 1);
+        assert_eq!(stats.total_triangles, 2, "a quad is two triangles");
+        assert_eq!(stats.total_hard_edges, 1);
+        assert_eq!(stats.total_conditional_edges, 1);
+
+        let json: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(out.path().join("mesh.json")).unwrap()).unwrap();
+        let part = &json["parts"][0];
+        let size = |k: &str| std::fs::metadata(out.path().join(part["buffers"][k].as_str().unwrap()))
+            .unwrap()
+            .len() as usize;
+        let vc = part["vertexCount"].as_u64().unwrap() as usize;
+        let tc = part["triangleCount"].as_u64().unwrap() as usize;
+        assert_eq!(size("position"), vc * 12, "3 f32 per vertex");
+        assert_eq!(size("normal"), vc * 12);
+        assert_eq!(size("index"), tc * 12, "3 u32 per triangle");
+        assert_eq!(size("hardEdge"), 1 * 24, "6 f32 per hard edge");
+        assert_eq!(size("condEdge"), 1 * 48, "12 f32 per conditional edge");
+        assert_eq!(
+            std::fs::metadata(out.path().join("instances.bin")).unwrap().len(),
+            10,
+            "ten bytes per instance — the whole reason instances are not JSON"
+        );
+        assert_eq!(json["colorSpace"], "linear");
+        assert_eq!(json["unit"], "mm");
+        assert_eq!(json["upAxis"], "+Y");
+    }
+
+    #[test]
+    fn welding_a_quad_beats_the_naive_three_vertices_per_triangle() {
+        let (_d, cache) = synthetic_cache(&[(
+            "parts/q.dat",
+            "0 Q\n0 BFC CERTIFY CCW\n4 16 0 0 0 1 0 0 1 1 0 0 1 0\n",
+        )]);
+        let geo = spex_ldraw::resolve_part_full(&cache, "q.dat").unwrap();
+        let mut b = MeshBundleBuilder::default();
+        b.add_part("q.dat", &geo);
+        assert_eq!(b.parts[0].welded.vertex_count(), 4, "not 6");
+    }
+
+    #[test]
+    fn an_inherited_colour_submesh_defers_to_the_instance() {
+        let (_d, cache) = synthetic_cache(&[(
+            "parts/m.dat",
+            "0 M\n0 BFC CERTIFY CCW\n3 16 0 0 0 1 0 0 0 1 0\n3 0 0 0 0 1 0 0 0 1 0\n",
+        )]);
+        let geo = spex_ldraw::resolve_part_full(&cache, "m.dat").unwrap();
+        let mut b = MeshBundleBuilder::default();
+        b.add_material(&colors(), 0);
+        b.add_part("m.dat", &geo);
+        let out = tempfile::tempdir().unwrap();
+        b.write(out.path()).unwrap();
+        let json: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(out.path().join("mesh.json")).unwrap()).unwrap();
+        let sub = &json["parts"][0]["submeshes"];
+        assert_eq!(sub.as_array().unwrap().len(), 2);
+        assert!(sub[0]["material"].is_null(), "code 16 defers to the instance");
+        assert!(sub[1]["material"].is_number(), "a fixed accent colour does not");
+    }
+
+    #[test]
+    fn edge_endpoints_land_in_the_output_frame() {
+        let (_d, cache) = synthetic_cache(&[(
+            "parts/e.dat",
+            "0 E\n0 BFC CERTIFY CCW\n2 24 0 20 0 0 40 0\n",
+        )]);
+        let geo = spex_ldraw::resolve_part_full(&cache, "e.dat").unwrap();
+        assert_eq!(geo.edges.len(), 1);
+        let a = to_output_position(geo.edges[0].vertices[0]);
+        assert_eq!(a, [0.0, -8.0, 0.0], "20 LDU down becomes 8 mm down");
+        let _ = Edge { ..geo.edges[0].clone() };
+    }
+}

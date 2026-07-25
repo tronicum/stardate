@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/mesh.schema.json",
+  "title": "spex-brick-mesh bundle manifest (mesh.json)",
+  "description": "Written by `spex-mesh` (crates/spex-mesh/src/bundle.rs): describes real LDraw geometry packed for one-time upload to WebGL — a manifest plus tightly packed little-endian binary buffers, the same shape as tileset.json + octree/*.bin. Read by the viewer's mesh render mode (M54). Absent for every point-cloud and graph tileset, which is exactly how the viewer decides which of its two render paths to take.\n\nTwo properties of this format are load-bearing and are stated in the manifest rather than assumed by readers. Positions are in MILLIMETRES with +Y up, converted once from LDraw's own LDU/Y-down frame — and because negating Y is a mirror, the writer also reverses every triangle's winding, without which backface culling is inverted for the entire library. Colours are LINEAR, not sRGB, because three.js r152+ reads them as linear and would otherwise render every material about 2.2x too bright.",
+  "type": "object",
+  "required": ["version", "generator", "unit", "upAxis", "colorSpace", "creaseDegrees", "bounds", "parts", "materials", "orientations", "instanceEncoding", "instanceIds", "attribution"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "generator": { "type": "string", "description": "e.g. \"spex-mesh 0.1.0\"." },
+    "unit": { "type": "string", "const": "mm", "description": "Positions and bounds are millimetres. LDraw's own unit is the LDU (0.4 mm); the conversion happens once, in spex_mesh::bundle::to_output_position." },
+    "upAxis": { "type": "string", "const": "+Y", "description": "LDraw is Y-down. The conversion negates Y, which is a mirror — see the writer's own doc comment for why triangle winding is reversed with it." },
+    "colorSpace": { "type": "string", "const": "linear", "description": "Every colour in this file is linear, converted from LDConfig.ldr's sRGB values through the real piecewise transfer function. Renderers must NOT convert again." },
+    "creaseDegrees": { "type": "number", "exclusiveMinimum": 0, "description": "Dihedral angle below which normals were averaged during welding. 30 by default: LDraw's 16-segment primitives meet at 22.5 degrees so they smooth, and a brick's corners are at 90 so they stay sharp." },
+    "bounds": { "$ref": "#/$defs/bounds" },
+    "parts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["index", "partFile", "vertexCount", "triangleCount", "hardEdgeCount", "conditionalEdgeCount", "bounds", "buffers", "submeshes", "sources"],
+        "additionalProperties": false,
+        "properties": {
+          "index": { "type": "integer", "minimum": 0 },
+          "partFile": { "type": "string", "description": "The real LDraw part filename, e.g. \"3005.dat\". Parts are keyed on this ALONE and never on (part, colour) — the geometry carries no colour, which is what lets two colours of the same part share one mesh and makes instancing possible." },
+          "description": { "type": ["string", "null"], "description": "The part's own title, from its first `0 <description>` line." },
+          "vertexCount": { "type": "integer", "minimum": 0, "description": "position and normal buffers are each vertexCount * 12 bytes." },
+          "triangleCount": { "type": "integer", "minimum": 0, "description": "the index buffer is triangleCount * 12 bytes." },
+          "hardEdgeCount": { "type": "integer", "minimum": 0, "description": "real LDraw type-2 lines; the hardEdge buffer is hardEdgeCount * 24 bytes." },
+          "conditionalEdgeCount": { "type": "integer", "minimum": 0, "description": "real LDraw type-5 lines; the condEdge buffer is conditionalEdgeCount * 48 bytes — two endpoints followed by two control points. A conditional edge is drawn when both control points project to the SAME side of the edge." },
+          "bounds": { "$ref": "#/$defs/bounds" },
+          "buffers": {
+            "type": "object",
+            "required": ["position", "normal", "index", "hardEdge", "condEdge"],
+            "additionalProperties": false,
+            "properties": {
+              "position": { "$ref": "#/$defs/bufferPath" },
+              "normal": { "$ref": "#/$defs/bufferPath" },
+              "index": { "$ref": "#/$defs/bufferPath" },
+              "hardEdge": { "$ref": "#/$defs/bufferPath" },
+              "condEdge": { "$ref": "#/$defs/bufferPath" }
+            }
+          },
+          "submeshes": {
+            "type": "array",
+            "description": "Contiguous index ranges, one per distinct colour, so a renderer binds a material once per range and never mid-buffer.",
+            "items": {
+              "type": "object",
+              "required": ["material", "indexOffset", "indexCount"],
+              "additionalProperties": false,
+              "properties": {
+                "material": { "type": ["integer", "null"], "minimum": 0, "description": "Index into materials[], or NULL meaning LDraw colour 16 (\"inherit\") — take the instance's own material. A number is a fixed accent colour molded into the part itself." },
+                "indexOffset": { "type": "integer", "minimum": 0 },
+                "indexCount": { "type": "integer", "minimum": 0 }
+              }
+            }
+          },
+          "sources": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Every real LDraw file that contributed geometry, in first-seen order — e.g. [\"parts/3005.dat\", \"parts/s/3005s01.dat\", \"p/stud.dat\"]. This is what a LOD pass gates stud and tube removal on: by real reference path, never by guessing from geometry."
+          },
+          "license": { "type": ["string", "null"], "description": "The part's own `0 !LICENSE` line, carried through so a bundle states its terms rather than the build asserting them." },
+          "author": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "materials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["colorCode", "name", "baseColor", "edgeColor"],
+        "additionalProperties": false,
+        "properties": {
+          "colorCode": { "type": "integer", "minimum": 0, "description": "The real LDraw colour code from LDConfig.ldr." },
+          "name": { "type": "string" },
+          "baseColor": { "$ref": "#/$defs/linearRgb" },
+          "edgeColor": { "$ref": "#/$defs/linearRgb" }
+        }
+      }
+    },
+    "orientations": {
+      "type": "array",
+      "maxItems": 256,
+      "description": "Distinct 3x3 row-major orientations, already conjugated into the output frame. An instance references one by u8 index — which is what makes a 10-byte instance record possible at all. A scene needing more than 256 fails the write rather than silently degrading.",
+      "items": { "type": "array", "minItems": 9, "maxItems": 9, "items": { "type": "number" } }
+    },
+    "instanceEncoding": {
+      "type": "object",
+      "description": "Instances are BINARY, not a JSON array. At Atlas scale an instances[] array is roughly 37 MB of text, ~120 MB of parsed heap and about a second of main-thread parse before the first frame; ten bytes each is 2.5 MB.",
+      "required": ["stride", "layout", "translationUnitMm", "maxTranslationErrorMm", "count", "file"],
+      "additionalProperties": false,
+      "properties": {
+        "stride": { "type": "integer", "const": 10 },
+        "layout": { "type": "array", "items": { "type": "string" } },
+        "translationUnitMm": { "type": "number", "exclusiveMinimum": 0, "description": "0.4 — translations are stored as i16 counts of one LDraw unit, which is exact for grid-legal geometry and gives +/- 13.1 m of addressable local extent." },
+        "maxTranslationErrorMm": { "type": "number", "minimum": 0, "description": "The largest rounding error any instance actually incurred, measured at write time. Zero for grid-legal scenes. Recorded rather than assumed, so an off-grid model is visible instead of quietly approximated." },
+        "count": { "type": "integer", "minimum": 0 },
+        "file": { "type": "string", "const": "instances.bin" }
+      }
+    },
+    "instanceIds": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Stable ids in the same order as instances.bin, so a show's target globs resolve to instance indices once at load time rather than being re-globbed per frame."
+    },
+    "attribution": {
+      "type": "object",
+      "required": ["geometrySource", "colorTable", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "geometrySource": { "type": "string" },
+        "colorTable": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "bounds": {
+      "type": "object",
+      "required": ["min", "max"],
+      "additionalProperties": false,
+      "properties": {
+        "min": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } },
+        "max": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } }
+      }
+    },
+    "bufferPath": {
+      "type": "string",
+      "pattern": "^buffers/p[0-9]+\\.(pos|nrm|idx|edge|cond)\\.bin$",
+      "description": "Relative to this manifest's own directory, so a bundle can be served from a domain root or any subpath."
+    },
+    "linearRgb": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "number", "minimum": 0, "maximum": 1 },
+      "description": "LINEAR, not sRGB."
+    }
+  }
+}
