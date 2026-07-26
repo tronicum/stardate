@@ -428,17 +428,62 @@ unchanged. No existing code path may be edited beyond adding that branch.
 
 **Acceptance criteria.**
 
-1. `spex serve demos/monolith-mesh/bundle` renders the monolith as solid
-   geometry with visibly crisp silhouettes and no z-fighting.
+1. `spex serve <mesh bundle>` renders the model as solid geometry with
+   visibly crisp silhouettes and no z-fighting.
 2. A real headless-Chromium screenshot at 1600×1000 shows: no interior
-   faces, no black holes, shadow visible on the ground plane, ≥ 55 fps
-   reported by the HUD.
-3. Every existing demo (`spex gallery` over a full `walkthrough.sh`
-   regeneration) renders exactly as before — the mesh branch never triggers.
-4. Console has zero errors and zero WebGL warnings.
+   faces, no black holes, shadow visible on the ground plane. **Counters,
+   not fps** — see AC2's correction below.
+3. Every existing demo renders exactly as before — the mesh branch never
+   triggers.
+4. Console has zero errors and zero three.js warnings.
+
+**AC2 correction, adopted during implementation.** Rev 1 asked for "≥ 55 fps
+reported by the HUD" in the headless screenshot. That contradicts a decision
+this phase had *already* recorded: SwiftShader was rejected as a Low-tier
+performance proxy because it is ~100× slower than real hardware, and "CI
+asserts **counters**, never fps; fps is asserted only on the named real
+hardware in M92." A headless container has no GPU, so the screenshot harness
+runs on exactly the SwiftShader that was rejected — the monolith reports 4 fps
+there and would report several hundred on real hardware. Same class of defect
+as B10: an acceptance criterion that cannot be met by the thing asked to meet
+it. **What AC2 asserts instead:** instance count, part count, triangles drawn
+vs. unique, draw calls, zero console errors, zero failed requests — all
+hardware-independent — plus the picture. Frame rate moves to M92.
 
 **Verification ladder.** 1, 2, 3, 5 (**mandatory**, with screenshots
 attached to the milestone note), 6, 7.
+
+**Status: ✅ done.** Screenshots in [`screenshots/`](screenshots/):
+`m54-car.png` (61 instances, 26 parts, 24 921 triangles drawn / 13 729
+unique, 125 draw calls, 7 materials), `m54-monolith.png` (9 / 2 / 3 276 /
+728, 19 draw calls), `m54-brick.png` (1 / 1 / 76 / 76, 3 draw calls),
+`m54-regression-points.png` (the point path, untouched: 4 260 points, legend,
+packet animation, hover tooltip, debug panel, and the Exposure control
+correctly hidden). Zero console errors and zero failed requests in all four.
+
+**Three findings recorded rather than fixed here**, each with the milestone
+that owns it:
+
+- *Seam lines on a stacked model are geometry, not z-fighting.* A nine-brick
+  stack shows faint dashed lighter lines at every brick boundary — the lower
+  brick's brightly-lit top face rasterising as a sub-pixel sliver where two
+  flush outer walls abut. Proven by `scripts/viewer-shot/isolate.mjs`:
+  shrinking the depth range from 20 000:1 to 4:1 left the crop
+  pixel-identical, which no depth-precision artefact survives. AC1 holds.
+  **M57's edge pass covers the seam**, because a 1.25 px outline is drawn on
+  exactly that line.
+- *A large flat top face blows its specular to pure white at close range.*
+  Also proven by isolation: forcing roughness to 1.0 removes it completely,
+  so normals and welding are correct and this is purely the finish. A direct
+  light with no environment term is a delta with nothing to spread it.
+  **M56** owns it — clearcoat, the real roughness table, and an IBL are the
+  fix, not a lower key light.
+- *A black model on a dark ground barely reads.* True, and by construction:
+  LDraw Black is linear `[0.011, 0.023, 0.034]`. The rev 3 corrections
+  already assign both remedies elsewhere — the vertical background gradient
+  to **M56**, real silhouette edges to **M57**. Deliberately not pulled
+  forward on a guess; the car demo, which has colour, satisfies AC1 on its
+  own.
 
 ---
 

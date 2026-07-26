@@ -53,7 +53,7 @@ other.
 ## E2 — Cinematic single-object rendering, *vektorgenau* · **M54, M56, M57, M58**
 
 **Value:** a single brick renders with real materials, crisp catalogue-quality edges and filmic post — the first "this looks real" moment.
-**DoD:** mesh mode renders the monolith at ≥ 55 fps with no interior faces (M54); ≥ 5 real LDConfig finishes resolve correctly including chrome and transparent (M56); a continuous uniform-width outline with no z-fighting, edge cost ≤ 25 % of frame time (M57); the post chain holds 60 fps on High and Low with no black-frame regressions (M58).
+**DoD:** mesh mode renders the monolith solid, with no interior faces, and reports its own counters — instances, parts, triangles drawn vs unique, draw calls — from a real headless screenshot (M54; the original "≥ 55 fps" was corrected: the headless harness is SwiftShader, which this phase had already rejected as a performance proxy, so fps is asserted on real hardware in M92 instead); ≥ 5 real LDConfig finishes resolve correctly including chrome and transparent (M56); a continuous uniform-width outline with no z-fighting, edge cost ≤ 25 % of frame time (M57); the post chain holds 60 fps on High and Low with no black-frame regressions (M58).
 **Deps:** E1.
 **Gates:** weeks 5, 9, 12 — M57 edge screenshots at 0.5× and 50×, 30 min each.
 **Risk:** **high** — the visual signature of the whole piece, and "conditional edges eat a week" is a named risk.

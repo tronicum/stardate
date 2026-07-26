@@ -61,6 +61,9 @@
       <label>Animate packet <input id="animatePacket" type="checkbox" checked /></label>
       <label>Line edges <input id="showEdges" type="checkbox" checked /></label>
       <label>Auto-rotate <input id="autoRotate" type="checkbox" /></label>
+      <!-- Mesh render mode only (a `spex mesh-model` bundle); hidden for every
+           point-cloud and graph tileset, and shown by mesh/render.ts. -->
+      <label id="mesh-exposure-row" style="display: none">Exposure <input id="exposure" type="range" min="0.4" max="2.5" step="0.05" value="1.0" /></label>
     </div>
     <div id="status">loading tileset…</div>
     <div id="debug-panel"></div>

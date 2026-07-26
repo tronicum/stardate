@@ -3,6 +3,8 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { fetchTileset, fetchNodePoints, fetchNodeLabels, fetchGraphMeta, fetchSequence, mergeBounds, type Bounds, type NodeLabel } from './tileset';
 import { NodeIndex, selectNodes } from './lod';
 import { buildFullSweepPath } from './packetAnimation';
+import { fetchMeshBundle } from './mesh/bundle';
+import { runMeshViewer } from './mesh/render';
 
 /** In gallery mode (`spex gallery`, or a static export served by e.g. GitHub
  * Pages) each demo lives under `.../d/<name>/`, with its tileset at
@@ -99,6 +101,20 @@ function boundsDiagonal(b: Bounds): number {
 }
 
 async function main() {
+  // The one mode switch. A mesh bundle (`spex mesh-part` / `spex mesh-model`)
+  // is real triangle geometry rather than points, and shares none of the
+  // machinery below — no octree, no LOD budget, no node labels. It gets its
+  // own viewer.
+  //
+  // `fetchMeshBundle` returns null whenever `mesh.json` is absent, which is
+  // every point-cloud and graph tileset that has ever been built, so nothing
+  // below this branch changes behaviour for any of them.
+  const meshBundle = await fetchMeshBundle(TILESET_BASE);
+  if (meshBundle) {
+    await runMeshViewer(TILESET_BASE, meshBundle);
+    return;
+  }
+
   // Optional: a real multi-frame point-cloud animation (`spex
   // frame-sequence`, see `spex brick-assembly`) instead of one
   // static tileset — absent for every other demo. When present, `activeBase`
