@@ -62,3 +62,24 @@ tightened depth range, roughness forced to 1, shadows off, instances pulled
 apart. Which image changes tells you what the artefact was. This is how M54
 established that the seam lines on a stacked model are geometry and not
 z-fighting: a 2000× tighter depth range left them pixel-identical.
+
+## Very large scenes
+
+At 50 000 instances the renderer submits 11 M triangles a frame, twice with
+the shadow pass. On a GPU that is unremarkable; on SwiftShader it exceeds any
+screenshot timeout. Two escape hatches:
+
+```
+node scripts/viewer-shot/probe.mjs http://127.0.0.1:8095/     # counters only, no pixels
+node scripts/viewer-shot/shot.mjs  ... --no-shadows           # halves the geometry submitted
+```
+
+`probe.mjs` reads the same `window.__spexMesh` hooks and never calls
+`page.screenshot`, which is what makes M55's 50 000-instance numbers
+obtainable here at all. `--no-shadows` is for scale scenes only — never for a
+milestone's hero shot.
+
+`--bench` adds M55's transform measurement to a normal shot: how long it takes
+to rewrite and upload every instance's transform, once through `setMatrix`
+(what an animation curve produces) and once through `setTransform`
+(position/quaternion/scale). Both medians are printed.

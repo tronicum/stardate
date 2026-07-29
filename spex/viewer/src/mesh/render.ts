@@ -6,11 +6,9 @@
  * scene's own bounds, a ground to catch a shadow, and tone mapping so the
  * highlights don't clip.
  *
- * One instance is one `THREE.Mesh` sharing a per-part `BufferGeometry`.
- * That is deliberately naive — M55 replaces it with `InstancedMesh` and one
- * draw call per part. Doing it in this order means M55 has something to be
- * measured against, and means this milestone can be wrong about exactly one
- * thing at a time.
+ * Placements are drawn instanced (M55, `instanced.ts`): one `InstancedMesh`
+ * per distinct (part, material) pair, so the draw-call count depends on how
+ * many *kinds* of brick a scene has and not on how many bricks.
  */
 
 import * as THREE from 'three';
@@ -24,6 +22,7 @@ import {
   type PartBuffers,
 } from './bundle';
 import { MaterialLibrary } from './materials';
+import { buildInstanceGroups, InstanceWriter, type InstanceGroup } from './instanced';
 
 /** `devicePixelRatio` unclamped is 9x the fragments on a 3x-DPR tablet, for a
  * difference nobody can see at arm's length. See `docs/fugen/budgets.md`. */
@@ -43,70 +42,12 @@ function boundsDiagonal(b: Bounds): number {
   );
 }
 
-/** One `BufferGeometry` per *part*, with one draw group per submesh so a
- * renderer binds a material once per contiguous index range and never
- * mid-buffer. The buffers arrive already interleaved-free and in the output
- * frame; nothing here transforms them. */
-export function buildPartGeometries(
-  bundle: MeshBundle,
-  buffers: Map<number, PartBuffers>,
-): Map<number, THREE.BufferGeometry> {
-  const out = new Map<number, THREE.BufferGeometry>();
-  for (const part of bundle.parts) {
-    const b = buffers.get(part.index);
-    if (!b) throw new Error(`no buffers loaded for part ${part.partFile}`);
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(b.position, 3));
-    geometry.setAttribute('normal', new THREE.BufferAttribute(b.normal, 3));
-    geometry.setIndex(new THREE.BufferAttribute(b.index, 1));
-    part.submeshes.forEach((s, i) => geometry.addGroup(s.indexOffset, s.indexCount, i));
-    geometry.boundingBox = new THREE.Box3(
-      new THREE.Vector3(...part.bounds.min),
-      new THREE.Vector3(...part.bounds.max),
-    );
-    geometry.boundingSphere = geometry.boundingBox.getBoundingSphere(new THREE.Sphere());
-    geometry.name = part.partFile;
-    out.set(part.index, geometry);
-  }
-  return out;
-}
-
-/** Places every instance. Orientations are row-major 3x3, already conjugated
- * into the output frame by the writer, so they compose straight into a
- * `Matrix4` — no basis change, no axis swap, no second mirror. */
-export function buildInstanceGroup(
-  bundle: MeshBundle,
-  geometries: Map<number, THREE.BufferGeometry>,
-  materials: MaterialLibrary,
-  instances: MeshInstance[],
-): THREE.Group {
-  const group = new THREE.Group();
-  group.name = 'mesh-instances';
-  const m = new THREE.Matrix4();
-  for (const inst of instances) {
-    const geometry = geometries.get(inst.part);
-    const part = bundle.parts[inst.part];
-    if (!geometry || !part) throw new Error(`instance ${inst.id} references unknown part ${inst.part}`);
-    const o = bundle.orientations[inst.orientation];
-    if (!o) throw new Error(`instance ${inst.id} references unknown orientation ${inst.orientation}`);
-    const mesh = new THREE.Mesh(geometry, materials.resolve(part, inst.material));
-    // Matrix4.set takes arguments in row-major order, which is the order the
-    // manifest stores them in — they line up one for one.
-    m.set(
-      o[0], o[1], o[2], inst.translation[0],
-      o[3], o[4], o[5], inst.translation[1],
-      o[6], o[7], o[8], inst.translation[2],
-      0, 0, 0, 1,
-    );
-    mesh.matrixAutoUpdate = false;
-    mesh.matrix.copy(m);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.name = inst.id;
-    group.add(mesh);
-  }
-  return group;
-}
+// `buildPartGeometries` / `buildInstanceGroup` lived here in M54: one
+// `THREE.Mesh` per placement, sharing a per-part geometry. M55 replaced both
+// with `instanced.ts`, which groups placements by (part, material) into
+// `InstancedMesh`es. Nothing else in this file changed — which was the point
+// of building the naive version first: it isolated the swap to one call, and
+// left a measured before/after (the car: 125 draw calls, now 33).
 
 /** Key light, hemisphere fill, rim. Every position is a multiple of the
  * scene's bounds diagonal rather than an absolute distance, so the same rig
@@ -172,6 +113,9 @@ export function createGround(bounds: Bounds): THREE.Mesh {
 
 export interface MeshSceneStats {
   parts: number;
+  /** Distinct (part, material) pairs — one `InstancedMesh` each, and the
+   * number the draw-call count actually tracks. */
+  groups: number;
   instances: number;
   /** Triangles actually submitted per frame — every instance's part, counted
    * once per placement. */
@@ -214,9 +158,12 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   scene.background = new THREE.Color(0x0b0e12);
 
   const materials = new MaterialLibrary(bundle);
-  const geometries = buildPartGeometries(bundle, buffers);
-  const group = buildInstanceGroup(bundle, geometries, materials, instances);
-  scene.add(group);
+  const groups: InstanceGroup[] = buildInstanceGroups(bundle, buffers, materials, instances);
+  const instanceRoot = new THREE.Group();
+  instanceRoot.name = 'mesh-instances';
+  for (const g of groups) instanceRoot.add(g.mesh);
+  scene.add(instanceRoot);
+  const writer = new InstanceWriter(groups);
   scene.add(createLightingRig(bundle.bounds));
   scene.add(createGround(bundle.bounds));
 
@@ -273,6 +220,7 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
 
   const stats: MeshSceneStats = {
     parts: bundle.parts.length,
+    groups: groups.length,
     instances: instances.length,
     drawnTriangles: instances.reduce((sum, i) => sum + (bundle.parts[i.part]?.triangleCount ?? 0), 0),
     uniqueTriangles: bundle.parts.reduce((sum, p) => sum + p.triangleCount, 0),
@@ -287,7 +235,7 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
 
   function updateHud() {
     hudEl.innerHTML = `
-      <div>${stats.instances.toLocaleString()} instances &middot; ${stats.parts} parts</div>
+      <div>${stats.instances.toLocaleString()} instances &middot; ${stats.parts} parts &middot; ${stats.groups} groups</div>
       <div>${stats.drawnTriangles.toLocaleString()} triangles drawn &middot; ${stats.uniqueTriangles.toLocaleString()} unique</div>
       <div>${renderer.info.render.calls} draw calls</div>
       <div>${stats.materials} materials &middot; crease ${bundle.creaseDegrees}&deg;</div>
@@ -323,6 +271,57 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
     // question with this and an unanswerable one without it.
     renderer,
     scene,
+    groups,
+    writer,
+    /** M55 AC3: what it really costs to rewrite every instance's transform
+     * and upload it — the per-frame price of choreography, measured rather
+     * than asserted, because the show's budget is built on this number.
+     *
+     * Two paths, because they differ by more than they look like they should:
+     *   compose — position/quaternion/scale, the general case
+     *   matrix  — a `Matrix4` the caller already has, which is what an
+     *             animation curve actually produces
+     * Returns the median of `runs` full passes over every instance, in ms. */
+    benchTransforms: (runs = 9) => {
+      const p = new THREE.Vector3();
+      const q = new THREE.Quaternion();
+      const scratchScale = new THREE.Vector3();
+      const m = new THREE.Matrix4();
+      const median = (xs: number[]) => xs.sort((a, b) => a - b)[Math.floor(xs.length / 2)];
+
+      const compose: number[] = [];
+      const matrix: number[] = [];
+      for (let r = 0; r < runs; r++) {
+        let t0 = performance.now();
+        for (const g of groups) {
+          for (let i = 0; i < g.ids.length; i++) {
+            g.mesh.getMatrixAt(i, m);
+            m.decompose(p, q, scratchScale);
+            p.y += 0.0001; // a real change, so nothing can be optimised away
+            writer.setTransform(g.ids[i], p, q, 1);
+          }
+        }
+        writer.flush();
+        compose.push(performance.now() - t0);
+
+        t0 = performance.now();
+        for (const g of groups) {
+          for (let i = 0; i < g.ids.length; i++) {
+            g.mesh.getMatrixAt(i, m);
+            m.elements[13] += 0.0001;
+            writer.setMatrix(g.ids[i], m);
+          }
+        }
+        writer.flush();
+        matrix.push(performance.now() - t0);
+      }
+      return {
+        composeMs: median(compose),
+        matrixMs: median(matrix),
+        instances: writer.size,
+        runs,
+      };
+    },
     camera,
     controls,
   };

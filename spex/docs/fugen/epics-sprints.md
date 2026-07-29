@@ -62,7 +62,7 @@ other.
 ## E3 — Crowd-scale rendering · **M55, M59**
 
 **Value:** tens of thousands of bricks render within the device budget — what makes the Atlas possible at all.
-**DoD:** the 50 k-instance scene at ≥ 60 fps with draw calls ≤ 3× part count (M55); three LODs with stud/tube removal gated on the reference path, and the 200 k-instance synthetic scene at ≥ 45 fps (M59).
+**DoD:** the 50 k-instance scene renders with a draw-call count **independent of instance count** — measured: 29 calls at 50 000 instances vs 67 at 61, and the transform-pass cost recorded (M55; "≥ 60 fps, ≤ 3× part count" was corrected — one part in seven colours is seven instanced meshes, so the bound counted the wrong thing, and fps belongs to M92 for the reason at M54's AC2); three LODs with stud/tube removal gated on the reference path, and the 200 k-instance synthetic scene at ≥ 45 fps (M59).
 **Deps:** E1, E2.
 **Risk:** medium — LOD tuning.
 **Cuttable:** partially. It matters mainly for Atlas tiers B and C and the 60:00 cut; tier A alone needs little of it.

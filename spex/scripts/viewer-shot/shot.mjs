@@ -17,7 +17,7 @@ import { writeFileSync } from 'node:fs';
 
 const [, , url, out, ...rest] = process.argv;
 if (!url || !out) {
-  console.error('usage: shot.mjs <url> <out.png> [--width N] [--height N] [--settle MS] [--expect-mesh]');
+  console.error('usage: shot.mjs <url> <out.png> [--width N] [--height N] [--settle MS] [--expect-mesh] [--bench] [--no-shadows]');
   process.exit(2);
 }
 const arg = (name, fallback) => {
@@ -59,14 +59,34 @@ page.on('response', (res) => {
 });
 
 await page.goto(url, { waitUntil: 'networkidle' });
+
+// Software rasteriser escape hatch. The shadow pass re-submits every triangle
+// in the scene, so on SwiftShader a 50 000-instance scene doubles from "slow"
+// to "the screenshot call times out". Counters and the transform benchmark are
+// unaffected — they are what this harness actually asserts (see README) — but
+// rung 5 still wants a picture, and this is how a picture is obtainable at
+// that scale without a GPU. Never pass it for a milestone's hero shot.
+if (rest.includes('--no-shadows')) {
+  await page.evaluate(() => {
+    if (window.__spexMesh) window.__spexMesh.renderer.shadowMap.enabled = false;
+  });
+}
 // Long enough for the fps counter to have a real window behind it, not one
 // frame of startup jitter.
 await page.waitForTimeout(settle);
 
-const mesh = await page.evaluate(() => {
+const bench = rest.includes('--bench');
+const mesh = await page.evaluate((doBench) => {
   const m = window.__spexMesh;
-  return m ? { stats: m.stats, fps: m.fps(), drawCalls: m.drawCalls() } : null;
-});
+  if (!m) return null;
+  return {
+    stats: m.stats,
+    fps: m.fps(),
+    drawCalls: m.drawCalls(),
+    // M55 AC3: the real cost of rewriting every instance's transform once.
+    transforms: doBench ? m.benchTransforms() : null,
+  };
+}, bench);
 const hud = await page.evaluate(() => document.getElementById('hud')?.innerText ?? '');
 
 await page.screenshot({ path: out });
@@ -80,6 +100,15 @@ if (mesh) {
   console.log(`  mesh mode: ${mesh.stats.instances} instances, ${mesh.stats.parts} parts, ` +
     `${mesh.stats.drawnTriangles} triangles drawn (${mesh.stats.uniqueTriangles} unique), ` +
     `${mesh.drawCalls} draw calls, ${mesh.fps.toFixed(1)} fps`);
+  if (mesh.stats.groups !== undefined) {
+    console.log(`  ${mesh.stats.groups} instance groups -> ${mesh.drawCalls} draw calls ` +
+      `(${(mesh.drawCalls / mesh.stats.parts).toFixed(2)} x distinct parts)`);
+  }
+  if (mesh.transforms) {
+    console.log(`  transform pass over ${mesh.transforms.instances} instances, median of ` +
+      `${mesh.transforms.runs}: compose ${mesh.transforms.composeMs.toFixed(2)} ms, ` +
+      `matrix ${mesh.transforms.matrixMs.toFixed(2)} ms`);
+  }
 } else {
   console.log('  point mode (no mesh bundle)');
 }

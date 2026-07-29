@@ -73,8 +73,15 @@ await page.evaluate(() => { window.__spexMesh.renderer.shadowMap.enabled = false
 await shot('flat');
 
 await page.evaluate(() => {
-  const g = window.__spexMesh.scene.getObjectByName('mesh-instances');
-  g.children.forEach((m, i) => { m.matrix.elements[13] += i * 3.0; m.matrixWorldNeedsUpdate = true; });
+  // Written straight into the instance matrices: element 13 of a column-major
+  // Matrix4 is the Y translation. Going through InstanceWriter would need a
+  // THREE.Matrix4 in page scope, and this is a diagnostic, not a feature.
+  let n = 0;
+  for (const g of window.__spexMesh.groups) {
+    const a = g.mesh.instanceMatrix.array;
+    for (let i = 0; i < g.ids.length; i++) { a[i * 16 + 13] += n * 3.0; n++; }
+    g.mesh.instanceMatrix.needsUpdate = true;
+  }
 });
 await shot('apart');
 
