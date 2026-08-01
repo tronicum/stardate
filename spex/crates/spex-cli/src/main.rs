@@ -1,3 +1,4 @@
+mod ankerstein;
 mod ascii;
 mod brew_deps;
 mod brick;
@@ -185,6 +186,27 @@ enum Command {
         /// Local cache directory for fetched real LDraw files.
         #[arg(long, default_value = ".ldraw-cache")]
         cache_dir: PathBuf,
+    },
+
+    /// Render one real Ankerstein (Richter's Anchor Stone Building Set,
+    /// Rudolstadt 1880) shape from the seed catalog straight into an
+    /// octree tileset — the stone-age-appropriate counterpart to
+    /// `brick-part`, see `docs/ANKERSTEIN-ENGINE.md` for the full spec.
+    AnkersteinPart {
+        /// A known shape id from the seed catalog (run with no argument to
+        /// list them).
+        shape: Option<String>,
+
+        /// One of the three real historical colors: brick-red,
+        /// cement-yellow, slate-blue-grey.
+        #[arg(long, default_value = "brick-red")]
+        color: String,
+
+        #[arg(long, default_value_t = 3000)]
+        points: usize,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
     },
 
     /// Serve a tileset directory and open the browser viewer.
@@ -482,6 +504,7 @@ fn main() -> Result<()> {
             out,
             cache_dir,
         } => cmd_brick_cinematic(hero, scene, hero_points, hero_frames, hero_revolutions, scene_points, scene_frames, fps, out, &cache_dir),
+        Command::AnkersteinPart { shape, color, points, out } => cmd_ankerstein_part(shape, color, points, out),
         Command::Serve {
             tileset_dir,
             port,
@@ -673,6 +696,27 @@ fn cmd_brick_cinematic(
 
     let config = spex_tiler::TilerConfig::default();
     frame_sequence::run_from_frames(combined, &out, fps, &config)?;
+    Ok(())
+}
+
+fn cmd_ankerstein_part(shape: Option<String>, color: String, points: usize, out: Option<PathBuf>) -> Result<()> {
+    let Some(shape_id) = shape else {
+        println!("known Ankerstein seed-catalog shape ids:");
+        for shape in spex_ankerstein::catalog::seed_shapes() {
+            println!("  {:<16} {:?} {:?}mm ({:?})", shape.id, shape.shape_type, shape.dimensions_mm, shape.caliber);
+        }
+        println!("\nusage: spex ankerstein-part <shape-id> [--color brick-red|cement-yellow|slate-blue-grey] -o <tileset-dir>");
+        return Ok(());
+    };
+    let out = out.context("--out <tileset-dir> is required when rendering a shape")?;
+    let shape = ankerstein::find_shape(&shape_id)?;
+
+    println!("generating real Ankerstein shape {shape_id:?} ({:?}, {:?}mm, cited: {:?})...", shape.shape_type, shape.dimensions_mm, shape.source_citation);
+    let cloud = ankerstein::render_shape_to_points(&shape, &color, points, 0xC0FFEE)?;
+    println!("sampled {} real points, building octree tileset...", cloud.len());
+
+    spex_tiler::build(cloud, &out, &spex_tiler::TilerConfig::default())?;
+    println!("wrote tileset to {}", out.display());
     Ok(())
 }
 
