@@ -1,0 +1,30 @@
+[
+  {
+    "id": "gk-cube-full",
+    "shape_type": "block",
+    "dimensions_mm": [25.0, 25.0, 25.0],
+    "caliber": "gk",
+    "source_citation": "Fred Hartjes, fredhartjes-home.nl/Anker.html — GK base cube unit"
+  },
+  {
+    "id": "gk-half-height",
+    "shape_type": "block",
+    "dimensions_mm": [25.0, 12.5, 25.0],
+    "caliber": "gk",
+    "source_citation": "Fred Hartjes, fredhartjes-home.nl/Anker.html — \"a typical Anker stone of 25 x 25 x 12.5 mm\""
+  },
+  {
+    "id": "kk-cube-full",
+    "shape_type": "block",
+    "dimensions_mm": [20.0, 20.0, 20.0],
+    "caliber": "kk",
+    "source_citation": "ankerstein.ch / Grokipedia summary of the CVA Book — KK base cube unit"
+  },
+  {
+    "id": "gk-brick-1x2x4",
+    "shape_type": "block",
+    "dimensions_mm": [25.0, 50.0, 100.0],
+    "caliber": "gk",
+    "source_citation": "Grokipedia summary of the CVA Book — 4th historical set's brick-shaped block, converted to the GK 25mm unit"
+  }
+]
