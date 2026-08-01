@@ -38,10 +38,10 @@ See `docs/ARCHITECTURE.md` for the full reasoning and a worked example.
    context/token budget well. Written from what concretely worked (and
    didn't) across many real sessions building this project with AI agents —
    not generic advice. Start with `docs/agents/working-mode.md`.
-6. **`.claude/agents/`** — two custom subagent definitions scoped to this
-   repo (`spex-verifier`, `spex-adapter-writer`) that already know the
-   playbooks in (5), so a coordinator can delegate without re-explaining
-   them every time.
+6. **`.claude/agents/`** — custom subagent definitions scoped to this repo
+   (`spex-verifier`, `spex-adapter-writer`, `spex-ankerstein-data-collector`)
+   that already know the playbooks in (5), so a coordinator can delegate
+   without re-explaining them every time.
 
 ## The short version of how we work here
 
