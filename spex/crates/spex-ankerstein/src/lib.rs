@@ -9,11 +9,13 @@ pub mod catalog;
 pub mod colors;
 pub mod geometry;
 pub mod scene;
+pub mod sets;
 
 pub use catalog::{load_catalog, AnkersteinShape, Caliber, ShapeType};
 pub use colors::{load_colors, AnkersteinColorTable};
 pub use geometry::generate_shape;
 pub use scene::{parse_scene, Placement, Scene};
+pub use sets::{load_sets, validate_against_catalog, AnkersteinSet, SetContent};
 
 /// Real GK (Großes Kaliber) base cube edge length: 25mm. The GK grid's
 /// unit — every GK shape's dimensions are a whole or fractional multiple

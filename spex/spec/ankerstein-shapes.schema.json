@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/ankerstein-shapes.schema.json",
+  "title": "Ankerstein stone catalog (ankerstein-shapes.json)",
+  "description": "The real Ankerstein 'part library' layer, hand-authored (not fetched — no open parts library exists for Ankerstein the way LDraw exists for Lego, see docs/ANKERSTEIN-ENGINE.md §1). One entry per distinct real stone shape/mold, independent of any set — a set's own composition lives in ankerstein-sets.schema.json instead. Every entry's sourceCitation is mandatory: the concrete mechanism keeping this catalog honest to the project's 'real data only' rule (see docs/agents/working-mode.md).",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "shapeType", "dimensionsMm", "caliber", "sourceCitation"],
+    "additionalProperties": false,
+    "properties": {
+      "id": {
+        "type": "string",
+        "description": "Stable identifier, e.g. 'gk-cube-full'. Convention: '<caliber>-<descriptive-name>'."
+      },
+      "shapeType": {
+        "type": "string",
+        "enum": ["block", "prism", "arch_voussoir"],
+        "description": "Real shape family, matching the historical set-supplement vocabulary (see docs/ANKERSTEIN-ENGINE.md §2/§3)."
+      },
+      "dimensionsMm": {
+        "type": "array",
+        "items": { "type": "number", "exclusiveMinimum": 0 },
+        "minItems": 3,
+        "maxItems": 3,
+        "description": "[width, height, depth] in millimeters, in the shape's own local frame."
+      },
+      "caliber": {
+        "type": "string",
+        "enum": ["gk", "kk"],
+        "description": "Großes Kaliber (25mm base cube) or Kleines Kaliber (20mm base cube) — separate, non-interchangeable grids, never mixed within one real historical set."
+      },
+      "sourceCitation": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Mandatory: where this shape's real dimensions were sourced from (a publication, a page, or a direct real-world measurement with who/when). Never a placeholder."
+      }
+    }
+  }
+}

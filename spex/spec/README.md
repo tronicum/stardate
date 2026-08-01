@@ -23,6 +23,8 @@ isn't just aspirational prose, it's enforced against real output.
 | `nodes.json` | [`nodes.schema.json`](nodes.schema.json) | `graph-layout` only | viewer (hover labels) |
 | `meta.json` | [`meta.schema.json`](meta.schema.json) | `graph-layout` only | viewer (header/legend) |
 | `sequence.json` | [`sequence.schema.json`](sequence.schema.json) | `spex frame-sequence` (`crates/spex-cli/src/frame_sequence.rs`) | viewer (`fetchSequence`, real frame-advance playback) |
+| `data/ankerstein-shapes.json` | [`ankerstein-shapes.schema.json`](ankerstein-shapes.schema.json) | hand-authored (see `docs/ANKERSTEIN-ENGINE.md`) | `spex-ankerstein::catalog` |
+| `data/ankerstein-sets.json` | [`ankerstein-sets.schema.json`](ankerstein-sets.schema.json) | hand-authored, intentionally empty right now (see `docs/ANKERSTEIN-ENGINE.md`) | `spex-ankerstein::sets` |
 
 `octree/<node-id>.bin` (the point data itself) is a small binary format, not
 JSON — see the "Tileset format" section of `CLAUDE.md`: `u32` LE point

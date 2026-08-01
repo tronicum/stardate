@@ -14,6 +14,20 @@ Concept note (see `ankerstein-concept.md` in the companion planning session): th
 
 This spec covers only the rendering pipeline (catalog → geometry → assembly → cinematic). Story/beat decisions live in the concept note, not here.
 
+## 0a. A second, explicit goal: an open interchange format worth sharing back
+
+Beyond rendering, the user's own framing is worth stating as a real goal,
+not just an incidental side effect: since AnkerPlan is closed/CVA-restricted
+and AnkerCAD's data license is unconfirmed (§1), a genuinely open,
+versioned, JSON-Schema'd stone + set format (`spec/ankerstein-shapes.schema.json`,
+`spec/ankerstein-sets.schema.json`) is something the wider Ankerstein fan
+community (CVA, AnkerWiki, fredhartjes-home.nl) could plausibly reuse
+directly, independent of `spex` itself — the "LDraw for Ankerstein" that
+doesn't currently exist. Keep both schemas self-contained and readable
+without needing the rest of this repo, the same discipline `spec/README.md`
+already holds every other schema here to, so that stays realistic rather
+than aspirational.
+
 ## 1. The one real asymmetry versus `spex-ldraw`, and the licensing decision it forces
 
 `spex-ldraw` works because LDraw is a mature, open, CC-BY-2.0-licensed, community-maintained parts library — `resolve_part()` just fetches and recursively resolves an existing `.dat` file. **No equivalent exists for Ankerstein**, and the two CAD tools that do exist are not simply usable:
@@ -44,6 +58,7 @@ Module-for-module mirror of `spex-ldraw`'s shape (see `crates/spex-ldraw/src/{li
 - **`catalog.rs`** (replaces `spex-ldraw`'s `cache.rs` — no network fetch needed; a hand-authored, versioned, in-repo data file instead). Defines `AnkersteinShape { id, shape_type, dimensions_mm: [f64;3], caliber: Caliber, source_citation: String }` and `load_catalog() -> Vec<AnkersteinShape>`, reading `spex/data/ankerstein-shapes.json` (or `include_str!`'d at compile time — decide based on whether the catalog needs runtime hot-editing; `spex-ldraw` has no equivalent decision to copy since its data is always fetched). **Every entry's `source_citation` field is mandatory, not optional** — this is the concrete mechanism that makes "real data, not fabricated" enforceable in code review, not just a doc convention.
 - **`colors.rs`** — static three-entry table (brick red / cement yellow / slate blue-grey), real RGB values to be picked from an actual photographed Ankerstein (a real hex sample, not an invented "brick red"-sounding value) — same rigor `spex-ldraw::colors` applies to `LDConfig.ldr`, just without a file to parse.
 - **`geometry.rs`** — parametric solid generation (box, wedge/prism, arch voussoir as a cylindrical wedge segment) instead of `spex-ldraw::geometry`'s LDraw-triangle resolution, since there's no mesh file to resolve. Emits the same `Triangle { vertices: [[f64;3];3], color_code }` shape `spex-ldraw` uses, so **`sampling.rs` can be reused with zero changes** by depending on `spex-ldraw`'s `sample_surface`/`shade_color`/`to_point_cloud` directly rather than reimplementing them — check whether those functions are already crate-public enough to import, or need a small visibility change in `spex-ldraw` (a one-line, additive change, not a rewrite).
+- **`sets.rs`** — the real "set/inventory" layer: which stones, and how many of each, make up a given historical or modern set ("Nr. 5A", "GK 2", "2A", ...) — distinct from `catalog.rs` (the set-independent stone/part library) and from `scene.rs` (one specific build). Mirrors LDraw/Rebrickable's own part-vs-set-vs-model split (see `BRICKs.md`'s "Set number" entry). Formal schema: `spec/ankerstein-sets.schema.json`. `data/ankerstein-sets.json` starts as an intentionally empty `[]` — scaffolded ahead of any real set data at the user's own request (real physical Nr. 5A / "2½" / a third set, purchased 2026-08-01, plus a large existing CVA/AnkerWiki fan-community literature), rather than seeded with a fabricated-looking placeholder entry. `validate_against_catalog()` checks every set's referenced shape ids actually exist in the shape catalog — the cross-file consistency check the two schemas deliberately don't enforce via JSON Schema `$ref` (this project's self-contained-schema convention).
 - **`scene.rs`** — placement format for an assembled structure: `{ shape_id, translation, rotation_y_degrees }` list, deliberately simpler than `spex-ldraw::scene`'s full 3×3-matrix LDraw parsing (Ankerstein assemblies only need translation + Y-axis rotation for the milestones below; add full-matrix support later only if a real design needs a non-Y rotation, e.g. a sloped roof stone laid at an angle — don't build it speculatively).
 
 `Cargo.toml`: depends on `spex-core` and `spex-ldraw` (for the reused sampling functions) plus `serde`/`serde_json` for the catalog file — no `ureq`/`zip` (no network fetch, unlike `spex-ldraw`).
