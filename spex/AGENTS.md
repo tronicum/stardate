@@ -27,12 +27,15 @@ See `docs/ARCHITECTURE.md` for the full reasoning and a worked example.
    and the reasoning behind non-obvious design choices (radial layout, the
    fan-out cap, why three views of one model, the tree-only `Graph`
    trade-off).
-4. **`TODOs.md`** — the single source of truth for project status. Numbered
-   milestones (each with what was actually *verified*, not just built),
+4. **`TODOs.md`** — the single source of truth for project status. A lean
+   Kanban index of numbered milestones (status + a one-line note each),
    what's actively being worked, and a pruned backlog of ideas actually
    worth doing next. **Check here before re-implementing something** — a
    surprising amount of "obvious next feature" ideas are already done, or
-   already deliberately deferred with a documented reason.
+   already deliberately deferred with a documented reason. Full milestone
+   rationale/verification narrative — what was actually *verified*, not
+   just built — now lives in `docs/MILESTONES-LOG.md`; look there before
+   assuming something wasn't verified.
 5. **`docs/agents/`** — this repo's specific operating playbooks: how
    verification actually happens here, how adapters are built, how to spend
    context/token budget well. Written from what concretely worked (and
