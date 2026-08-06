@@ -76,6 +76,13 @@ Building Sets (Richters Anker-Steinbaukasten), Rudolstadt, 1880.
   catalog shape's geometry is generated directly from its real millimeter
   dimensions (`spex_ankerstein::geometry::generate_shape`), then sampled
   into a point cloud by *reusing* `spex-ldraw`'s existing
-  `sample_surface`/`shade_color`/`to_point_cloud` functions unchanged — the
-  same "real geometry in, point cloud out" principle `BRICKs.md` describes
-  for the Klemmbaustein pipeline, just with a different geometry source.
+  `sample_surface`/`shade_color` functions unchanged (deliberately not
+  `to_point_cloud`, which bakes in an LDraw-specific unit conversion — see
+  `crates/spex-cli/src/ankerstein.rs`'s own doc comment) — the same "real
+  geometry in, point cloud out" principle `BRICKs.md` describes for the
+  Klemmbaustein pipeline, just with a different geometry source.
+- **Gallery wiring (M104)**: `spex gallery`/`spex demos` need no
+  Ankerstein-specific code — they're already directory-shape-agnostic (see
+  README.md's "Point-cloud pipeline: bricks and Ankerstein" section).
+  Rendered `ankerstein-part`/`ankerstein-model` output under `out/` shows up
+  in `spex gallery out` alongside brick output automatically.
