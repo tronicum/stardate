@@ -30,7 +30,13 @@
 use anyhow::{bail, Context, Result};
 use serde::Serialize;
 use spex_ldraw::edges::EdgeKind;
-use spex_ldraw::{ColorTable, FullTriangle, PartGeometry};
+use spex_ldraw::{Finish, FullTriangle, LdrawColor, PartGeometry};
+
+use crate::material::PbrMaterial;
+
+/// The mesh path reads the *full* colour table — finish, alpha and luminance
+/// included — rather than the point pipeline's name+RGB tuple.
+pub type FullColorTable = HashMap<u32, LdrawColor>;
 use std::collections::HashMap;
 use std::path::Path;
 
@@ -171,8 +177,17 @@ pub struct MaterialEntry {
     /// **Linear**, not sRGB. See this module's header.
     #[serde(rename = "baseColor")]
     pub base_color: [f32; 3],
+    /// The colour's own real `EDGE` value from `LDConfig.ldr`, linear.
     #[serde(rename = "edgeColor")]
     pub edge_color: [f32; 3],
+    /// Real `LDConfig.ldr` finish keyword: `solid`, `chrome`, `pearlescent`,
+    /// `rubber`, `matte_metallic`, `metal`, `speckle`, `glitter`.
+    pub finish: &'static str,
+    /// Everything a renderer needs to make that finish look like itself.
+    /// The numbers are calibrated artistic choices, documented as such in
+    /// `material.rs` — the bundle states them so a second renderer resolves
+    /// the same brick to the same look without re-deriving the table.
+    pub pbr: PbrMaterial,
 }
 
 #[derive(Serialize)]
@@ -312,23 +327,38 @@ impl MeshBundleBuilder {
         i
     }
 
-    pub fn add_material(&mut self, colors: &ColorTable, color_code: u32) -> usize {
+    /// Resolves one real LDraw colour code into the bundle's material table.
+    ///
+    /// Takes the *full* colour table (`load_colors_full`), not the point
+    /// pipeline's name+RGB tuple: a brick's finish, alpha and luminance are
+    /// as much a part of what it looks like as its RGB, and dropping them was
+    /// what made every transparent and chrome part render as flat plastic.
+    pub fn add_material(&mut self, colors: &FullColorTable, color_code: u32) -> usize {
         if let Some(i) = self.material_index.get(&color_code) {
             return *i;
         }
-        let (name, rgb) = colors
-            .get(&color_code)
-            .cloned()
-            .unwrap_or_else(|| (format!("Unknown {color_code}"), [200, 200, 200]));
+        // An unknown code is a real possibility (third-party parts reference
+        // codes the official table has never had). A neutral grey solid is a
+        // visible, honest stand-in; failing the whole build is not.
+        let fallback = LdrawColor {
+            code: color_code,
+            name: format!("Unknown {color_code}"),
+            value: [200, 200, 200],
+            edge: [0x59, 0x59, 0x59],
+            alpha: 255,
+            luminance: 0,
+            finish: Finish::Solid,
+        };
+        let color = colors.get(&color_code).unwrap_or(&fallback);
         let lin = |c: [u8; 3]| [srgb_to_linear(c[0]), srgb_to_linear(c[1]), srgb_to_linear(c[2])];
         let i = self.materials.len();
         self.materials.push(MaterialEntry {
             color_code,
-            name,
-            base_color: lin(rgb),
-            // Real edge colours arrive with the full colour table in M56;
-            // until then LDraw's own default edge grey, converted the same way.
-            edge_color: lin([0x59, 0x59, 0x59]),
+            name: color.name.clone(),
+            base_color: lin(color.value),
+            edge_color: lin(color.edge),
+            finish: color.finish.key(),
+            pbr: crate::material::from_ldraw(color),
         });
         self.material_index.insert(color_code, i);
         i
@@ -607,11 +637,51 @@ mod tests {
         (dir, cache)
     }
 
-    fn colors() -> ColorTable {
-        let mut c = ColorTable::new();
-        c.insert(0, ("Black".into(), [0x1B, 0x2A, 0x34]));
-        c.insert(4, ("Red".into(), [0xC9, 0x1A, 0x09]));
+    fn color(code: u32, name: &str, value: [u8; 3], alpha: u8, finish: Finish) -> LdrawColor {
+        LdrawColor {
+            code,
+            name: name.into(),
+            value,
+            edge: [0x59, 0x59, 0x59],
+            alpha,
+            luminance: 0,
+            finish,
+        }
+    }
+
+    fn colors() -> FullColorTable {
+        // Real codes, real values, real finishes, out of LDConfig.ldr.
+        let mut c = FullColorTable::new();
+        c.insert(0, color(0, "Black", [0x1B, 0x2A, 0x34], 255, Finish::Solid));
+        c.insert(4, color(4, "Red", [0xC9, 0x1A, 0x09], 255, Finish::Solid));
+        c.insert(47, color(47, "Trans_Clear", [0xFC, 0xFC, 0xFC], 128, Finish::Solid));
+        c.insert(383, color(383, "Chrome_Silver", [0xCE, 0xCE, 0xCE], 255, Finish::Chrome));
         c
+    }
+
+    #[test]
+    fn a_materials_finish_and_pbr_travel_with_it_into_the_manifest() {
+        let mut b = MeshBundleBuilder::new(DEFAULT_CREASE_DEGREES);
+        let table = colors();
+        let chrome = b.add_material(&table, 383);
+        let trans = b.add_material(&table, 47);
+        let black = b.add_material(&table, 0);
+        assert_eq!(b.materials[chrome].finish, "chrome");
+        assert_eq!(b.materials[chrome].pbr.metalness, 1.0);
+        assert_eq!(b.materials[trans].finish, "solid");
+        assert!(b.materials[trans].pbr.transmission > 0.0, "Trans_Clear must transmit");
+        assert!((b.materials[trans].pbr.opacity - 128.0 / 255.0).abs() < 1e-6);
+        assert_eq!(b.materials[black].pbr.transmission, 0.0);
+        // The real EDGE value, not the hardcoded default the pre-M56 writer used.
+        assert!((b.materials[black].edge_color[0] - srgb_to_linear(0x59)).abs() < 1e-6);
+    }
+
+    #[test]
+    fn an_unknown_colour_code_is_a_visible_grey_solid_not_a_build_failure() {
+        let mut b = MeshBundleBuilder::new(DEFAULT_CREASE_DEGREES);
+        let i = b.add_material(&colors(), 9999);
+        assert_eq!(b.materials[i].name, "Unknown 9999");
+        assert_eq!(b.materials[i].finish, "solid");
     }
 
     #[test]

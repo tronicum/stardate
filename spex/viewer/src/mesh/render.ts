@@ -21,7 +21,7 @@ import {
   type MeshInstance,
   type PartBuffers,
 } from './bundle';
-import { MaterialLibrary } from './materials';
+import { buildSyntheticEnvironment, MaterialLibrary } from './materials';
 import { buildInstanceGroups, InstanceWriter, type InstanceGroup } from './instanced';
 
 /** `devicePixelRatio` unclamped is 9x the fragments on a 3x-DPR tablet, for a
@@ -49,16 +49,27 @@ function boundsDiagonal(b: Bounds): number {
 // of building the naive version first: it isolated the swap to one call, and
 // left a measured before/after (the car: 125 draw calls, now 33).
 
-/** Key light, hemisphere fill, rim. Every position is a multiple of the
- * scene's bounds diagonal rather than an absolute distance, so the same rig
- * lights a single 8 mm brick and a 40-site atlas without being retuned. */
+/** Key and rim. Every position is a multiple of the scene's bounds diagonal
+ * rather than an absolute distance, so the same rig lights a single 8 mm
+ * brick and a 40-site atlas without being retuned.
+ *
+ * **Rebalanced in M56.** The M54 rig was a key, a hemisphere fill and a rim,
+ * calibrated with no environment at all. M56 adds a real prefiltered
+ * environment, and that changes what the rig is for: the environment is now
+ * the fill, and a better one, because it has structure — a hemisphere light
+ * is two flat colours from above and below. Keeping both double-counted the
+ * ambient term and forced the environment to stay dim, which is precisely
+ * what left chrome reading as grey plastic: a metal has no diffuse term and
+ * lives entirely off the environment, while every dielectric was also being
+ * lit by the rig. So the hemisphere is gone and key and rim are lower; they
+ * shape, the environment fills. */
 export function createLightingRig(bounds: Bounds): THREE.Group {
   const rig = new THREE.Group();
   rig.name = 'lighting';
   const center = boundsCenter(bounds);
   const diag = boundsDiagonal(bounds);
 
-  const key = new THREE.DirectionalLight(0xffffff, 2.1);
+  const key = new THREE.DirectionalLight(0xffffff, 1.6);
   key.position.set(center.x + diag * 0.8, center.y + diag * 1.2, center.z + diag * 0.7);
   key.target.position.copy(center);
   key.castShadow = true;
@@ -81,11 +92,7 @@ export function createLightingRig(bounds: Bounds): THREE.Group {
   rig.add(key);
   rig.add(key.target);
 
-  // Sky/ground fill: keeps the shadowed side from going to pure black without
-  // flattening the form the way an ambient light would.
-  rig.add(new THREE.HemisphereLight(0x9db4d0, 0x2a2418, 0.55));
-
-  const rim = new THREE.DirectionalLight(0xbfd4ff, 0.9);
+  const rim = new THREE.DirectionalLight(0xbfd4ff, 0.5);
   rim.position.set(center.x - diag * 1.0, center.y + diag * 0.35, center.z - diag * 0.9);
   rim.target.position.copy(center);
   rig.add(rim);
@@ -125,6 +132,9 @@ export interface MeshSceneStats {
    * both numbers are on screen rather than one ambiguous "triangles". */
   uniqueTriangles: number;
   materials: number;
+  /** Distinct real LDConfig finishes in this bundle — M56's acceptance
+   * criterion, read off the data rather than asserted. */
+  finishes: string[];
 }
 
 /** The whole mesh-mode viewer: its own renderer, camera, controls and loop.
@@ -157,7 +167,15 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0b0e12);
 
+  // The renderer has to exist before the environment can be prefiltered, and
+  // the environment has to exist before chrome or metal is anything but grey
+  // — so the renderer is built first and the material library is told about
+  // it, rather than the library trying to make one.
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
   const materials = new MaterialLibrary(bundle);
+  const environment = buildSyntheticEnvironment(renderer);
+  materials.setEnvironment(environment);
+  scene.environment = environment;
   const groups: InstanceGroup[] = buildInstanceGroups(bundle, buffers, materials, instances);
   const instanceRoot = new THREE.Group();
   instanceRoot.name = 'mesh-instances';
@@ -179,7 +197,6 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   camera.position.set(center.x + diag * 1.1, center.y + diag * 0.7, center.z + diag * 1.35);
   camera.lookAt(center);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -225,6 +242,7 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
     drawnTriangles: instances.reduce((sum, i) => sum + (bundle.parts[i.part]?.triangleCount ?? 0), 0),
     uniqueTriangles: bundle.parts.reduce((sum, p) => sum + p.triangleCount, 0),
     materials: bundle.materials.length,
+    finishes: materials.finishes(),
   };
   statusEl.style.display = 'none';
 
@@ -238,7 +256,8 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
       <div>${stats.instances.toLocaleString()} instances &middot; ${stats.parts} parts &middot; ${stats.groups} groups</div>
       <div>${stats.drawnTriangles.toLocaleString()} triangles drawn &middot; ${stats.uniqueTriangles.toLocaleString()} unique</div>
       <div>${renderer.info.render.calls} draw calls</div>
-      <div>${stats.materials} materials &middot; crease ${bundle.creaseDegrees}&deg;</div>
+      <div>${stats.materials} materials &middot; ${stats.finishes.join(', ')}</div>
+      <div>crease ${bundle.creaseDegrees}&deg;</div>
       <div id="hud-fps">${fps.toFixed(0)} fps</div>
     `;
   }

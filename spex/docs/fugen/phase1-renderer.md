@@ -636,18 +636,28 @@ pub enum Finish {
 
 **Mapping to PBR** (documented in `material.rs`, these are deliberate
 artistic choices calibrated against real reference renders, and must be
-recorded as such — not presented as physical measurements):
+recorded as such — not presented as physical measurements). **The rev 3
+corrections override the first-draft table; what shipped is:**
 
-| Finish | metalness | roughness | notes |
+| Finish | metalness | roughness | other |
 |---|---|---|---|
-| Solid (opaque ABS) | 0.00 | 0.28 | the baseline brick look |
-| Solid (transparent) | 0.00 | 0.05 | `transmission` 0.9, `thickness` from part bounds |
-| Rubber | 0.00 | 0.85 | |
-| Pearlescent | 0.35 | 0.35 | + subtle iridescence via `sheenColor` |
-| MatteMetallic | 0.80 | 0.55 | |
-| Metal | 1.00 | 0.25 | |
-| Chrome | 1.00 | 0.03 | needs an environment map — see below |
-| Speckle / Glitter | 0.00 | 0.30 | procedural noise in a custom `onBeforeCompile` chunk |
+| Solid (opaque ABS) | 0.00 | **0.34** | clearcoat 0.15 / ccRoughness 0.25 — ABS has a real skin layer |
+| Solid, code 0 (Black) | 0.00 | **0.22** | black reads only by its specular |
+| Solid (transparent) | 0.00 | **0.10** | transmission 0.85, **ior 1.53** (the one real measurement here — polycarbonate's) |
+| Rubber | 0.00 | **0.92** | no clearcoat |
+| Pearlescent | **0.00** | 0.42 | iridescence 0.4, iridescenceIOR 1.8 — **not a metal** |
+| MatteMetallic | 1.00 | 0.62 | 0.8 metalness reads as neither metal nor plastic |
+| Metal | 1.00 | **0.35** | |
+| Chrome | 1.00 | **0.06** | 0.03 gives one hard dot and reads as plastic |
+| Speckle / Glitter | 0.00 | 0.30 | particle params carried in the manifest; the procedural chunk is not built yet |
+| any `LUMINANCE` > 0 | | | emissive = base colour, intensity = LUMINANCE / 255 |
+
+**Transparency composes with the finish rather than replacing it** — most
+real glitter colours are transparent too. And it is **proportional**, not a
+switch: `Trans_Clear` is `ALPHA 128` and really is glass, but
+`Glow_In_Dark_Opaque` is `ALPHA 245` — it says *opaque* in its own name.
+Treating both the same gave the glow bricks transmission 0.85 and roughness
+0.10, i.e. a lump of resin. Glassiness is normalised at LDraw's own 128.
 
 Chrome and any metal need reflections. **No external HDRI asset** (real-data
 rule plus offline-capability rule): generate the environment with
@@ -667,6 +677,65 @@ in `materials.ts`, seeded from the show seed. Document that it is synthetic.
    output (they only ever read `.value`).
 
 **Verification ladder.** 1, 2, 3, 5 (**mandatory**), 7.
+
+**Status: ✅ done.** `ldraw-scenes/finishes.ldr` is the test bundle AC2 asks
+for: nine real LDraw colour codes, one per finish keyword the official file
+actually uses, plus the two modifiers that are not finishes (`ALPHA`,
+`LUMINANCE`). Screenshots: `screenshots/m56-finishes.png`,
+`m56-car.png` — the car's cab is now really glass, with the seats and
+steering wheel visible through it.
+
+AC1 passes against the real `LDConfig.ldr`: **6 distinct finishes** present
+(chrome 7 colours, pearlescent 24, rubber 59, metal 11, speckle 4, glitter
+15), codes 0/4 solid, 47 `ALPHA 128`, 383 chrome. `MATTE_METALLIC` is in
+LDraw's grammar and **no colour in the current official file uses it** — the
+test asserts that absence, so it stays a recorded fact instead of a suspected
+parser bug. AC3 passes by construction: `load_colors` keeps its exact
+signature and the point pipeline's two destructuring call sites are untouched
+(B3).
+
+**Judged by measurement, not by eye.** `scripts/viewer-shot/swatch.mjs`
+projects every instance to screen space and reads the rendered pixel back, so
+"does chrome read as metal" is a number. Final values on the finish row:
+
+| | rendered sRGB | |
+|---|---|---|
+| Red (solid) | `231, 62, 63` | real red, not clipped |
+| Trans_Clear | `180,182,188` | transparent |
+| Chrome_Silver | `200,202,207` | mirror |
+| Metallic_Silver | `117,121,128` | metal, darker base and rougher |
+| Pearl_Light_Gold | `231,213,171` | |
+| Rubber_Black | ` 44, 60, 76` | matte |
+| Speckle_Black_Silver | ` 39, 40, 44` | |
+| Glitter_Trans_Clear | `166,169,175` | transparent |
+| Glow_In_Dark | `229,236,217` | emissive |
+
+**The environment took four measured attempts, and each failure was a real
+thing to know.** (1) Chrome rendered grey — the environment's floor was
+near-black and a mirrored 1×1 brick spends most of its reflection looking
+down; a real product studio has a white sweep under the subject for exactly
+this reason. (2) Raising the whole environment to fix that blew out every
+dielectric: real LDraw Red clipped its own channel and rendered orange. A
+dielectric responds to *irradiance* (broad and dim wins), a metal to
+*radiance* in one direction (narrow and bright wins) — one brightness cannot
+serve both. (3) Small bright light cards were supposed to solve that, and
+switching the direct lights off proved they had not: red rendered
+`255,120,88` **from the environment alone**, against `40,0,0` from the entire
+direct rig. A 1.3×1.8 card at 4.7 units subtends ~0.85 % of the sphere, so at
+intensity 260 it contributes ~2.2 of irradiance each — the cards *were* the
+lighting, and nobody had said so. (4) At 40/20/14 they light the highlights
+and the rig lights the scene.
+
+**The M54 rig was rebalanced, not tweaked.** Its hemisphere fill is gone: the
+environment is the fill now, and a better one, because it has structure. Two
+fills double-counted the ambient and forced the environment to stay dim,
+which is what kept chrome grey.
+
+**Deferred, with the reason:** the procedural speckle/glitter particle chunk.
+The parameters are parsed, resolved and carried through the manifest in full
+(`pbr.speckle`), so it is a shader change and not a format change — it lands
+with M65's dissolve shader, which is where custom `onBeforeCompile` chunks
+already live.
 
 ---
 

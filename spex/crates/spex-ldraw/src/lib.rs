@@ -13,7 +13,7 @@ pub mod scene;
 pub use bfc::{determinant3, BfcState, Winding};
 pub use cache::LdrawCache;
 pub use edges::{Edge, EdgeKind};
-pub use colors::{load_colors, ColorTable};
+pub use colors::{load_colors, load_colors_full, ColorTable, Finish, LdrawColor};
 pub use geometry::{
     full_triangle_normal, place, resolve_part, resolve_part_full, rotation_y, triangle_area,
     triangle_normal, FullTriangle, PartGeometry, Triangle, IDENTITY, ZERO,

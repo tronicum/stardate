@@ -83,3 +83,22 @@ milestone's hero shot.
 to rewrite and upload every instance's transform, once through `setMatrix`
 (what an animation curve produces) and once through `setTransform`
 (position/quaternion/scale). Both medians are printed.
+
+## Measuring what a material looks like
+
+```
+node scripts/viewer-shot/swatch.mjs http://127.0.0.1:8096/
+```
+
+Projects every instance's centre to screen space, samples the rendered frame
+there, and prints the sRGB triple plus its luma. "Does chrome read as metal?"
+is a question about relative luminance, and a screenshot only answers it if
+someone looks carefully at the right pixel.
+
+This is how M56's environment was built. Four attempts, each wrong in a way
+only measurement showed: chrome at `95,99,108` (grey plastic) against a
+near-black studio floor; real LDraw Red clipping to `255,146,108` (orange)
+once the environment was raised to fix it; and — the one nobody would have
+guessed — red rendering `255,120,88` **with every direct light switched off**,
+against `40,0,0` from the entire rig, which is how the three small "highlight"
+cards turned out to be the scene's actual lighting.

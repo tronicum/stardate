@@ -26,6 +26,8 @@ __pycache__/
 # (if ever wanted) would be a separate, explicit git-lfs step instead,
 # see BRICKs.md.
 /.ldraw-cache/
+# ...and the same cache if a test is run from inside a crate directory.
+.ldraw-cache/
 
 # Screenshot harness (scripts/viewer-shot) — playwright, installed on demand
 /scripts/viewer-shot/node_modules

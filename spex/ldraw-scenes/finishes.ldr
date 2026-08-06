@@ -1,0 +1,44 @@
+0 Finish Test Row - one real brick per real LDConfig finish
+0 Name: finishes.ldr
+0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
+0 // M56's acceptance criterion in one file: nine real LDraw colour codes,
+0 // chosen so that every finish keyword the official LDConfig.ldr actually
+0 // uses appears exactly once, plus the two modifiers that are not finishes
+0 // at all (ALPHA and LUMINANCE).
+0 //
+0 //   4   Red                    solid, opaque       the baseline brick
+0 //   47  Trans_Clear            solid, ALPHA 128    transmission + ior
+0 //   383 Chrome_Silver          CHROME              needs the environment
+0 //   80  Metallic_Silver        METAL
+0 //   142 Pearl_Light_Gold       PEARLESCENT         iridescence, NOT metal
+0 //   256 Rubber_Black           RUBBER              nearly fully diffuse
+0 //   132 Speckle_Black_Silver   MATERIAL SPECKLE    particle params carried
+0 //   117 Glitter_Trans_Clear    MATERIAL GLITTER    glitter AND transparent
+0 //   21  Glow_In_Dark_Opaque    LUMINANCE 15        emission
+0 //
+0 // MATTE_METALLIC is in LDraw's grammar but no colour in the current
+0 // official file uses it, so it cannot appear here. See Finish's doc comment
+0 // in crates/spex-ldraw/src/colors.rs.
+0 //
+0 // Two courses tall (2x24 LDU) so each finish has a lit top, a lit side and
+0 // a shaded side to be judged by; 40 LDU apart so a 20 LDU brick has a real
+0 // gap either side. LDraw is Y-down, so the upper course is at y = -24.
+0 BFC CERTIFY CCW
+1 4 -160 0 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 4 -160 -24 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 47 -120 0 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 47 -120 -24 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 383 -80 0 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 383 -80 -24 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 80 -40 0 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 80 -40 -24 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 142 0 0 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 142 0 -24 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 256 40 0 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 256 40 -24 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 132 80 0 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 132 80 -24 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 117 120 0 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 117 120 -24 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 21 160 0 0 1 0 0 0 1 0 0 0 1 3005.dat
+1 21 160 -24 0 1 0 0 0 1 0 0 0 1 3005.dat

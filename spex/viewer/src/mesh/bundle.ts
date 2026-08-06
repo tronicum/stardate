@@ -48,14 +48,57 @@ export interface MeshPart {
   author: string | null;
 }
 
+/** The particle layer of a real `MATERIAL SPECKLE` / `MATERIAL GLITTER`
+ * colour. Carried through in full; M56 renders only the base material, and
+ * the procedural chunk that consumes these lands with the dissolve shader
+ * work — a renderer that has it needs these exact numbers, not a guess. */
+export interface SpeckleParams {
+  /** LINEAR rgb. */
+  color: [number, number, number];
+  fraction: number;
+  minSize?: number;
+  maxSize?: number;
+  vFraction?: number;
+  size?: number;
+}
+
+/** PBR parameters resolved by `spex_mesh::material::from_ldraw`.
+ *
+ * Every number is a calibrated artistic choice rather than a measurement —
+ * the reasoning for each lives beside the constant in `material.rs`. The one
+ * exception is `ior` 1.53 on transparent parts, which is polycarbonate's real
+ * refractive index. */
+export interface PbrParams {
+  metalness: number;
+  roughness: number;
+  /** From the real `ALPHA`. Below 1 means genuinely transparent in LDConfig. */
+  opacity: number;
+  clearcoat: number;
+  clearcoatRoughness: number;
+  transmission: number;
+  ior: number;
+  iridescence: number;
+  iridescenceIOR: number;
+  /** Real `LUMINANCE` / 255 — non-zero only for glow-in-the-dark colours. */
+  emissiveIntensity: number;
+  speckle?: SpeckleParams;
+}
+
+export type Finish =
+  | 'solid' | 'chrome' | 'pearlescent' | 'rubber'
+  | 'matte_metallic' | 'metal' | 'speckle' | 'glitter';
+
 export interface MeshMaterial {
   colorCode: number;
   name: string;
   /** LINEAR rgb, 0..1. Do not convert. */
   baseColor: [number, number, number];
-  /** LINEAR rgb, 0..1 — LDraw's own edge colour for this material, used by
-   * M57's line pass. */
+  /** LINEAR rgb, 0..1 — the colour's own real `EDGE` value, used by M57's
+   * line pass. */
   edgeColor: [number, number, number];
+  /** The real `LDConfig.ldr` finish keyword. */
+  finish: Finish;
+  pbr: PbrParams;
 }
 
 export interface InstanceEncoding {

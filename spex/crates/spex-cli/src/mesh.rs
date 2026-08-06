@@ -6,7 +6,7 @@
 //! are a second, additive output path: same resolution, same scenes, a
 //! different thing on the other end.
 use anyhow::{Context, Result};
-use spex_ldraw::{load_colors, parse_scene, resolve_part_full, LdrawCache, Scene};
+use spex_ldraw::{load_colors_full, parse_scene, resolve_part_full, LdrawCache, Scene};
 use spex_mesh::{MeshBundleBuilder, MeshBundleStats, DEFAULT_CREASE_DEGREES};
 use std::collections::HashSet;
 use std::path::Path;
@@ -22,7 +22,7 @@ pub fn build_part_bundle(
     out_dir: &Path,
 ) -> Result<MeshBundleStats> {
     let geometry = resolve_part_full(cache, part_file)?;
-    let colors = load_colors(cache)?;
+    let colors = load_colors_full(cache)?;
     let mut builder = MeshBundleBuilder::new(crease_degrees);
     let part = builder.add_part(part_file, &geometry);
     let material = builder.add_material(&colors, color_code);
@@ -50,7 +50,7 @@ pub fn build_scene_bundle(
     crease_degrees: f64,
     out_dir: &Path,
 ) -> Result<MeshBundleStats> {
-    let colors = load_colors(cache)?;
+    let colors = load_colors_full(cache)?;
     let mut builder = MeshBundleBuilder::new(crease_degrees);
     for (i, placement) in scene.placements.iter().enumerate() {
         let part = match builder.part_index(&placement.part_file) {
