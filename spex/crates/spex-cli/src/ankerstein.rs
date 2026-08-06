@@ -142,10 +142,11 @@ mod tests {
 
     #[test]
     fn render_scene_to_points_places_multiple_shapes_at_real_offsets() {
-        // Two adjacent GK cubes (25mm apart, center-to-center) should
-        // produce a real combined bounding box 37.5mm wide on that axis
-        // (12.5mm half-width beyond each center), not overlapping or
-        // collapsed into one shape's worth of points.
+        // Two adjacent GK cubes (25mm apart, center-to-center, each cube
+        // itself 25mm wide) should produce a real combined bounding box
+        // 50mm wide on that axis (25mm center-to-center span plus a
+        // 12.5mm half-width beyond each outer center), not overlapping
+        // or collapsed into one shape's worth of points.
         let scene = Scene {
             title: Some("test fixture, not a real historical assembly".to_string()),
             placements: vec![
@@ -157,7 +158,7 @@ mod tests {
         assert_eq!(points.len(), 4000);
         let bounds = spex_core::Aabb::from_points(points.iter().map(|p| p.position));
         let width = bounds.max[0] - bounds.min[0];
-        assert!((width - 37.5).abs() < 1.0, "expected a ~37.5mm combined width (two adjacent 25mm cubes 25mm apart), got {width}");
+        assert!((width - 50.0).abs() < 1.0, "expected a ~50mm combined width (two 25mm cubes, centers 25mm apart), got {width}");
     }
 
     #[test]
