@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 /// One real placement: which catalog shape, where, and how it's rotated
 /// about the vertical (Y) axis.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Placement {
     pub shape_id: String,
     pub translation_mm: [f64; 3],
@@ -19,6 +20,7 @@ pub struct Placement {
 }
 
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Scene {
     #[serde(default)]
     pub title: Option<String>,
@@ -44,8 +46,8 @@ mod tests {
             r#"{
                 "title": "A small test wall",
                 "placements": [
-                    {"shape_id": "gk-cube-full", "translation_mm": [0.0, 0.0, 0.0]},
-                    {"shape_id": "gk-cube-full", "translation_mm": [25.0, 0.0, 0.0], "rotation_y_degrees": 90.0}
+                    {"shapeId": "gk-cube-full", "translationMm": [0.0, 0.0, 0.0]},
+                    {"shapeId": "gk-cube-full", "translationMm": [25.0, 0.0, 0.0], "rotationYDegrees": 90.0}
                 ]
             }"#,
         )

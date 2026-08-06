@@ -44,6 +44,7 @@ pub enum ShapeType {
 /// generated shape composes with `spex-ldraw`'s reused sampling/shading
 /// functions without an extra conversion step.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AnkersteinShape {
     pub id: String,
     pub shape_type: ShapeType,
@@ -90,6 +91,16 @@ pub fn seed_shapes() -> Vec<AnkersteinShape> {
             dimensions_mm: [25.0, 50.0, 100.0],
             caliber: Caliber::Gk,
             source_citation: "Grokipedia summary of the CVA Book — 4th historical set's \"1 by 2 by 4 inch\" brick-shaped block, converted to the GK 25mm unit".to_string(),
+        },
+        AnkersteinShape {
+            id: "gk-prism-45".to_string(),
+            shape_type: ShapeType::Prism,
+            // Bounding box, not solid volume - the prism itself fills
+            // only half of this 50x50x50mm cube (see geometry.rs's
+            // generate_prism doc comment). 50mm = two GK base units.
+            dimensions_mm: [50.0, 50.0, 50.0],
+            caliber: Caliber::Gk,
+            source_citation: "George Hardy, Richter's Anker Stone Building Sets (Club van Ankervrienden EN edition) — \"the fifth set added prism (sloped or triangular) shaped blocks, two of which would form the basic two inch cube\"; one of six real historical roof-slope angles, this is the only one so far reduced to a cited number (a 45\u{b0} isosceles cross-section)".to_string(),
         },
     ]
 }

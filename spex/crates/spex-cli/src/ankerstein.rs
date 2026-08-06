@@ -8,8 +8,10 @@
 //! from the start (see `spex_ankerstein::geometry`), unlike LDraw's native
 //! Y-down LDU frame. See `docs/ANKERSTEIN-ENGINE.md` for the full spec.
 use anyhow::{Context, Result};
-use spex_ankerstein::{generate_shape, AnkersteinShape};
-use spex_ldraw::{sample_surface, ColorTable};
+use spex_ankerstein::{generate_shape, AnkersteinShape, Scene};
+use spex_ldraw::geometry::Triangle;
+use spex_ldraw::{place, rotation_y, sample_surface, ColorTable};
+use std::collections::HashMap;
 
 /// A fixed, small color-code table this module invents itself — Ankerstein
 /// has no `LDConfig.ldr` equivalent to parse, unlike `spex-ldraw`. Maps
@@ -65,6 +67,35 @@ pub fn render_shape_to_points(shape: &AnkersteinShape, color_name: &str, point_c
     Ok(samples.iter().map(|s| spex_core::Point { position: s.position, color: s.color }).collect())
 }
 
+/// Renders a real assembled scene (see `spex_ankerstein::Scene`/`Placement`)
+/// into a real point cloud — the "spex ankerstein-model" counterpart to
+/// `render_shape_to_points`'s single-shape case. Resolves each *distinct*
+/// real catalog shape id exactly once (mirrors `brick::render_scene_to_points`'s
+/// resolve-once pattern for LDraw parts), reusing `spex-ldraw`'s own
+/// `rotation_y`/`place` for the per-placement transform — both are pure
+/// matrix math with no LDraw-specific unit assumptions baked in, unlike
+/// `to_point_cloud` (see this module's own doc comment), so they're safe
+/// to reuse unchanged here.
+pub fn render_scene_to_points(scene: &Scene, color_name: &str, point_count: usize, seed: u64) -> Result<Vec<spex_core::Point>> {
+    let color_code = color_code_for(color_name)?;
+    let colors = color_table();
+    let mut resolved: HashMap<String, Vec<Triangle>> = HashMap::new();
+    let mut all_triangles = Vec::new();
+    for placement in &scene.placements {
+        if !resolved.contains_key(&placement.shape_id) {
+            let shape = find_shape(&placement.shape_id)?;
+            let triangles = generate_shape(&shape, color_code)?;
+            resolved.insert(placement.shape_id.clone(), triangles);
+        }
+        let triangles = &resolved[&placement.shape_id];
+        let matrix = rotation_y(placement.rotation_y_degrees.to_radians());
+        let placed = place(triangles, placement.translation_mm, matrix, color_code, None);
+        all_triangles.extend(placed);
+    }
+    let samples = sample_surface(&all_triangles, &colors, point_count, seed);
+    Ok(samples.iter().map(|s| spex_core::Point { position: s.position, color: s.color }).collect())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -107,6 +138,35 @@ mod tests {
     #[test]
     fn rejects_an_unknown_shape_id() {
         assert!(find_shape("does-not-exist").is_err());
+    }
+
+    #[test]
+    fn render_scene_to_points_places_multiple_shapes_at_real_offsets() {
+        // Two adjacent GK cubes (25mm apart, center-to-center) should
+        // produce a real combined bounding box 37.5mm wide on that axis
+        // (12.5mm half-width beyond each center), not overlapping or
+        // collapsed into one shape's worth of points.
+        let scene = Scene {
+            title: Some("test fixture, not a real historical assembly".to_string()),
+            placements: vec![
+                spex_ankerstein::Placement { shape_id: "gk-cube-full".to_string(), translation_mm: [-12.5, 0.0, 0.0], rotation_y_degrees: 0.0 },
+                spex_ankerstein::Placement { shape_id: "gk-cube-full".to_string(), translation_mm: [12.5, 0.0, 0.0], rotation_y_degrees: 0.0 },
+            ],
+        };
+        let points = render_scene_to_points(&scene, "brick-red", 4000, 99).unwrap();
+        assert_eq!(points.len(), 4000);
+        let bounds = spex_core::Aabb::from_points(points.iter().map(|p| p.position));
+        let width = bounds.max[0] - bounds.min[0];
+        assert!((width - 37.5).abs() < 1.0, "expected a ~37.5mm combined width (two adjacent 25mm cubes 25mm apart), got {width}");
+    }
+
+    #[test]
+    fn render_scene_to_points_rejects_a_placement_with_an_unknown_shape_id() {
+        let scene = Scene {
+            title: None,
+            placements: vec![spex_ankerstein::Placement { shape_id: "does-not-exist".to_string(), translation_mm: [0.0, 0.0, 0.0], rotation_y_degrees: 0.0 }],
+        };
+        assert!(render_scene_to_points(&scene, "brick-red", 100, 1).is_err());
     }
 
     #[test]

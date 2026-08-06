@@ -19,6 +19,7 @@ use serde::{Deserialize, Serialize};
 
 /// One (shape, quantity) pair within a set's real contents.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SetContent {
     pub shape_id: String,
     pub quantity: u32,
@@ -26,6 +27,7 @@ pub struct SetContent {
 
 /// One real historical or modern Ankerstein set/inventory record.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AnkersteinSet {
     pub set_id: String,
     pub display_name: String,

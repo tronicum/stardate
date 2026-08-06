@@ -1,0 +1,8 @@
+{
+  "title": "Two GK cubes with a real-proportioned 45-degree prism roof spanning both — an illustrative test assembly (this scene file is an original design for M100, not a transcribed historical Bauanleitung)",
+  "placements": [
+    { "shapeId": "gk-cube-full", "translationMm": [-12.5, 0.0, 0.0] },
+    { "shapeId": "gk-cube-full", "translationMm": [12.5, 0.0, 0.0] },
+    { "shapeId": "gk-prism-45", "translationMm": [0.0, 37.5, 0.0] }
+  ]
+}

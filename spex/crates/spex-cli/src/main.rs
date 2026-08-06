@@ -209,6 +209,28 @@ enum Command {
         out: Option<PathBuf>,
     },
 
+    /// Render a real assembled Ankerstein scene (a local JSON file — see
+    /// `ankerstein-scenes/two-cubes-and-a-roof.json` for an example)
+    /// straight into an octree tileset. Resolves each distinct real
+    /// catalog shape id exactly once no matter how many times the scene
+    /// places it — the Ankerstein counterpart to `brick-model`.
+    AnkersteinModel {
+        /// Path to a local scene JSON file (see
+        /// `spex_ankerstein::Scene`/`Placement` for the format).
+        scene: Option<PathBuf>,
+
+        /// One of the three real historical colors: brick-red,
+        /// cement-yellow, slate-blue-grey.
+        #[arg(long, default_value = "brick-red")]
+        color: String,
+
+        #[arg(long, default_value_t = 6_000)]
+        points: usize,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+    },
+
     /// Serve a tileset directory and open the browser viewer.
     Serve {
         tileset_dir: PathBuf,
@@ -505,6 +527,7 @@ fn main() -> Result<()> {
             cache_dir,
         } => cmd_brick_cinematic(hero, scene, hero_points, hero_frames, hero_revolutions, scene_points, scene_frames, fps, out, &cache_dir),
         Command::AnkersteinPart { shape, color, points, out } => cmd_ankerstein_part(shape, color, points, out),
+        Command::AnkersteinModel { scene, color, points, out } => cmd_ankerstein_model(scene, color, points, out),
         Command::Serve {
             tileset_dir,
             port,
@@ -713,6 +736,26 @@ fn cmd_ankerstein_part(shape: Option<String>, color: String, points: usize, out:
 
     println!("generating real Ankerstein shape {shape_id:?} ({:?}, {:?}mm, cited: {:?})...", shape.shape_type, shape.dimensions_mm, shape.source_citation);
     let cloud = ankerstein::render_shape_to_points(&shape, &color, points, 0xC0FFEE)?;
+    println!("sampled {} real points, building octree tileset...", cloud.len());
+
+    spex_tiler::build(cloud, &out, &spex_tiler::TilerConfig::default())?;
+    println!("wrote tileset to {}", out.display());
+    Ok(())
+}
+
+fn cmd_ankerstein_model(scene: Option<PathBuf>, color: String, points: usize, out: Option<PathBuf>) -> Result<()> {
+    let Some(scene_path) = scene else {
+        println!("usage: spex ankerstein-model <scene.json> [--color brick-red|cement-yellow|slate-blue-grey] -o <tileset-dir>");
+        println!("example: spex ankerstein-model ankerstein-scenes/two-cubes-and-a-roof.json -o out/two-cubes-and-a-roof");
+        return Ok(());
+    };
+    let out = out.context("--out <tileset-dir> is required when rendering a scene")?;
+
+    println!("parsing real Ankerstein scene {scene_path:?}...");
+    let scene = spex_ankerstein::parse_scene(&scene_path)?;
+    println!("parsed {} placement(s) (scene title: {:?})", scene.placements.len(), scene.title);
+
+    let cloud = ankerstein::render_scene_to_points(&scene, &color, points, 0xC0FFEE)?;
     println!("sampled {} real points, building octree tileset...", cloud.len());
 
     spex_tiler::build(cloud, &out, &spex_tiler::TilerConfig::default())?;
