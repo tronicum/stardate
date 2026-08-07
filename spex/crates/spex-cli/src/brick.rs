@@ -107,16 +107,15 @@ pub fn render_part_to_points(
 // --- brick-assembly: animate any real scene's placements from a stylized
 // scattered start into their real final positions ---
 
-const FLOAT_HEIGHT_LDU: f64 = 420.0; // how far "up" (real LDraw -Y) each part starts before settling
-const SCATTER_RADIUS_LDU: f64 = 260.0; // deterministic sideways scatter so parts visibly converge from different directions
+// The two constants and the scatter generator now live in
+// `spex_show::choreography`, so the baked demo below and the runtime
+// choreography in `viewer/src/show/choreography.ts` cannot drift apart. See
+// that module's header for why `StdRng` had to go: it is ChaCha12, `rand`
+// makes no promise that its stream is stable across versions, and a piece
+// whose choreography changes on `cargo update` is not reproducible.
+use spex_show::choreography::start_offset_ldu;
 
-fn ease_in_out_cubic(t: f64) -> f64 {
-    if t < 0.5 {
-        4.0 * t.powi(3)
-    } else {
-        1.0 - (-2.0 * t + 2.0).powi(3) / 2.0
-    }
-}
+use spex_show::choreography::cubic_in_out as ease_in_out_cubic;
 
 /// A real, deliberately *stylized* starting layout — not a physics
 /// simulation. Each placement starts `FLOAT_HEIGHT_LDU` further "up" than
@@ -130,11 +129,8 @@ fn start_translations(final_translations: &[[f64; 3]]) -> Vec<[f64; 3]> {
         .iter()
         .enumerate()
         .map(|(i, &[fx, fy, fz])| {
-            let seed = 0x9E3779B97F4A7C15u64.wrapping_mul(i as u64 + 1);
-            let mut rng = StdRng::seed_from_u64(seed);
-            let angle: f64 = rng.gen::<f64>() * std::f64::consts::TAU;
-            let radius = SCATTER_RADIUS_LDU * (0.4 + 0.6 * rng.gen::<f64>());
-            [fx + radius * angle.cos(), fy - FLOAT_HEIGHT_LDU, fz + radius * angle.sin()]
+            let [dx, dy, dz] = start_offset_ldu(i, 0);
+            [fx + dx, fy + dy, fz + dz]
         })
         .collect()
 }

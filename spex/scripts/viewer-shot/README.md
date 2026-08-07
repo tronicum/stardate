@@ -214,3 +214,32 @@ an object's footprint while the object shrinks: blurred for the pictures,
 unblurred for the collapse measurement, and once more under the spec's
 `[d/1e4, d*1e4]` depth range for comparison. Measuring a collapse through a
 blur is measuring the blur.
+
+## The runtime assembly
+
+```
+spex mesh-model car -o /tmp/car
+spex serve /tmp/car --port 8100 --no-open &
+node scripts/viewer-shot/assembly.mjs http://127.0.0.1:8100/ /tmp/m64
+```
+
+Checks M64's four things: that the TypeScript splitmix64 reproduces the Rust
+one bit for bit against `docs/fugen/fixtures/assembly-scatter.json`, that the
+runtime assembly lands where the baked `brick-assembly` demo does, what the
+per-frame transform pass costs, and whether `0 STEP` order actually looks
+different from index order.
+
+**The fixture is the point of the first check.** Both implementations are
+compared to a committed file that neither generates at test time, because two
+implementations compared only against each other can drift together.
+
+**`m.lod()?.update()` after `writer.flush()` is load-bearing**, and the first
+version of this harness did not do it. Since M59, `InstanceWriter` writes only
+into `group.matrices` and the LOD selector is what copies that into the meshes
+the GPU reads. Without the update every number this harness prints still
+passed and every screenshot was of a car that had never moved — which is how
+that latent bug in `flush()` was found.
+
+Use `car` and not the monolith for AC3: `ldraw-scenes/monolith.ldr` is
+hand-authored and has no `0 STEP` lines, so there is no real build order to
+stagger by.

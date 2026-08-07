@@ -11,10 +11,15 @@
 //! renderer, because the schema tests, the CLI and eventually the viewer all
 //! need to read one in contexts where none of those exist.
 
+pub mod choreography;
 pub mod compile;
 pub mod model;
 pub mod resolve;
 
+pub use choreography::{
+    placement_seed, splitmix64, staggered_progress, start_offset_ldu, FLOAT_HEIGHT_LDU,
+    SCATTER_RADIUS_LDU,
+};
 pub use compile::{bind_targets, glob_matches, SceneInstances};
 pub use resolve::{
     resolve, ResolveOptions, ResolvedCameraTrack, ResolvedCue, ResolvedKey, ResolvedScene,

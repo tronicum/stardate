@@ -267,8 +267,30 @@ export class InstanceWriter {
    * read by the LOD selector, which has to re-pack them. */
   readonly touched = new Set<InstanceGroup>();
 
+  /** Set by `LodSelector` when it attaches. It re-packs `group.matrices` into
+   * whichever level's mesh each instance currently belongs to, which includes
+   * level 0 — so the writer must NOT also upload, or the two would fight over
+   * the same buffer in different orders.
+   *
+   * When nothing attaches, the writer uploads level 0 itself. M64 found out
+   * why that matters the hard way: before this, `flush()` marked groups dirty
+   * and uploaded nothing, so on a bundle with no LOD levels every transform
+   * the choreography wrote landed in the authoritative array and never
+   * reached the GPU. The scene rendered a perfectly correct still frame, with
+   * no error anywhere. Every bundle the CLI writes today does carry levels,
+   * which is the only reason it had not bitten — and "it works because of a
+   * property of the writer at the other end of the pipeline" is not a thing
+   * to leave standing. */
+  lodManaged = false;
+
   flush(): void {
-    for (const group of this.dirtyMatrix) this.touched.add(group);
+    for (const group of this.dirtyMatrix) {
+      this.touched.add(group);
+      if (!this.lodManaged) {
+        (group.mesh.instanceMatrix.array as Float32Array).set(group.matrices);
+        group.mesh.instanceMatrix.needsUpdate = true;
+      }
+    }
     for (const group of this.dirtyDissolve) group.dissolve.needsUpdate = true;
     this.dirtyMatrix.clear();
     this.dirtyDissolve.clear();

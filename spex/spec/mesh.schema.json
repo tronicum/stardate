@@ -492,6 +492,11 @@
         }
       }
     },
+    "instanceBuildSteps": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0 },
+      "description": "M64. The real `0 STEP` build stage of each instance, in the same order as instanceIds. Present only when the source scene actually has step markers AND they are not all identical — a column of zeroes is not information. A runtime assembly staggers by this where it exists and by array index where it does not, and the difference is visible: real build order looks like something being built, index order looks like a list being iterated. Additive and optional, so a reader that ignores it still gets a complete bundle; that is why it needed no version bump, unlike M56's required `finish`/`pbr`."
+    },
     "instanceIds": {
       "type": "array",
       "items": {

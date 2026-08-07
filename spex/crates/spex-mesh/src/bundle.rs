@@ -268,6 +268,17 @@ pub struct Manifest {
     /// resolve a show's target globs once, at load time.
     #[serde(rename = "instanceIds")]
     pub instance_ids: Vec<String>,
+    /// M64: the real `0 STEP` build stage each instance belongs to, in the
+    /// same order as `instanceIds`. Present only for scenes whose source
+    /// actually has step markers — which is the point: an assembly staggered
+    /// by *real* build order looks like something being built, and one
+    /// staggered by array index looks like a list being iterated.
+    ///
+    /// Optional and additive, so a reader that ignores it still gets a
+    /// complete bundle and no version bump is needed. (Contrast M56, which
+    /// added *required* fields and did need one.)
+    #[serde(default, rename = "instanceBuildSteps", skip_serializing_if = "Option::is_none")]
+    pub instance_build_steps: Option<Vec<u32>>,
     pub attribution: Attribution,
 }
 
@@ -445,6 +456,7 @@ pub struct MeshBundleBuilder {
     material_index: HashMap<u32, usize>,
     orientations: Vec<[f64; 9]>,
     instances: Vec<PendingInstance>,
+    build_steps: Option<Vec<u32>>,
     max_translation_error_mm: f64,
 }
 
@@ -464,6 +476,7 @@ impl MeshBundleBuilder {
             material_index: HashMap::new(),
             orientations: Vec::new(),
             instances: Vec::new(),
+            build_steps: None,
             max_translation_error_mm: 0.0,
         }
     }
@@ -554,6 +567,15 @@ impl MeshBundleBuilder {
     /// Adds one placement. `translation`/`matrix` are in LDraw's own frame,
     /// exactly as `spex_ldraw::Placement` carries them; the conversion to the
     /// output frame happens here.
+    /// The real `0 STEP` stage of each instance, in `add_instance` order.
+    /// Ignored — and omitted from the manifest — when every value is the
+    /// same, because a scene with no step markers has nothing to say here and
+    /// a column of zeroes is not information.
+    pub fn set_build_steps(&mut self, steps: Vec<u32>) {
+        let distinct = steps.iter().collect::<std::collections::BTreeSet<_>>().len();
+        self.build_steps = if distinct > 1 { Some(steps) } else { None };
+    }
+
     pub fn add_instance(
         &mut self,
         part: usize,
@@ -726,6 +748,7 @@ impl MeshBundleBuilder {
                 file: "instances.bin",
             },
             instance_ids: ids,
+            instance_build_steps: self.build_steps.clone(),
             attribution: Attribution {
                 geometry_source: "LDraw Parts Library (ldraw.org), CCAL 2.0",
                 color_table: "LDConfig.ldr",

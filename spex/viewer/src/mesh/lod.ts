@@ -106,6 +106,9 @@ export class LodSelector {
     private readonly groups: InstanceGroup[],
     private readonly writer: InstanceWriter,
   ) {
+    // From here the selector owns every level's upload, level 0 included —
+    // see `InstanceWriter.lodManaged`.
+    writer.lodManaged = true;
     for (const g of groups) {
       const part = bundle.parts[g.part];
       const counts: [number, number, number] = [part?.triangleCount ?? 0, 0, 0];

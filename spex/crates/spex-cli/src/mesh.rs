@@ -70,6 +70,9 @@ pub fn build_scene_bundle(
             format!("{}/{i}", placement.part_file.trim_end_matches(".dat")),
         )?;
     }
+    // M64: the real build order, so a runtime assembly can stagger by what
+    // the model says rather than by array index.
+    builder.set_build_steps(scene.placements.iter().map(|p| p.build_step).collect());
     builder.write(out_dir)
 }
 
