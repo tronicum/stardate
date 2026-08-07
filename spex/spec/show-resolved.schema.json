@@ -1,0 +1,341 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/show-resolved.schema.json",
+  "title": "Fugen Engine resolved show (show-resolved.json)",
+  "description": "What `spex show-build` writes and the runtime plays: one authored show.json (show.schema.json), resolved for one duration and one seed.\n\nTHE POINT OF THE FORMAT IS THAT NOTHING IS LEFT TO DECIDE AT PLAY TIME. Every relative quantity in the source has been made absolute here: normalised keyframe times are absolute seconds, bar counts are seconds, tiers have already selected which shots exist, stretch weights have already been water-filled against the target, repeat counts are integers, and every instance-id glob has been expanded to an index list against the bundle it addresses. A player that has to resolve anything per frame is a player that can drift, and four cuts that resolve independently are four edits rather than four readings of one document.\n\nThe four cuts are `targetSec` 240, 600 and 3600, plus endless — which resolves exactly like the 240 and sets `endless: true`, because a loop is the canonical cut played again with the seed advanced, not a different edit.\n\nSeconds here are exact, not approximate: the resolver asserts the timeline sums to `targetSec` within 1 ms and fails loudly with the shortfall rather than delivering a 9:47 \"ten-minute\" cut.",
+  "type": "object",
+  "required": [
+    "version",
+    "generator",
+    "id",
+    "title",
+    "archiveSignature",
+    "tempo",
+    "targetSec",
+    "durationSec",
+    "endless",
+    "seed",
+    "scenes",
+    "shots"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "type": "integer", "const": 1 },
+    "generator": { "type": "string", "description": "e.g. \"spex-show 0.1.0\"." },
+    "id": { "type": "string", "minLength": 1 },
+    "title": { "type": "string" },
+    "subtitle": { "type": "string" },
+    "archiveSignature": { "type": "string", "minLength": 1 },
+    "tempo": {
+      "type": "object",
+      "required": ["bpm", "beatsPerBar", "barSeconds", "beatSeconds"],
+      "additionalProperties": false,
+      "properties": {
+        "bpm": { "type": "number", "exclusiveMinimum": 0 },
+        "beatsPerBar": { "type": "integer", "minimum": 1 },
+        "barSeconds": { "type": "number", "exclusiveMinimum": 0, "description": "Derived, and written out so no consumer re-derives it slightly differently. 20/7 at the default tempo." },
+        "beatSeconds": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "description": "The tempo is IDENTICAL in every cut. A longer cut contains more material; it is not the same material played slower."
+    },
+    "targetSec": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "What was asked for: 240, 600, 3600, or the base duration for an endless resolution."
+    },
+    "durationSec": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "What was produced. Equals `targetSec` to within 1 ms by construction — it is written separately anyway so a consumer can check rather than trust."
+    },
+    "endless": {
+      "type": "boolean",
+      "description": "Loop at `durationSec`, advancing the seed once per cycle (M82). The last frame of the piece is byte-identical to its first, which is what makes the loop a loop and not a restart."
+    },
+    "seed": { "type": "integer", "minimum": 0, "description": "The edition seed actually used." },
+    "palette": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": { "type": "number" }
+      },
+      "description": "Linear rgb, carried through unchanged from the source."
+    },
+    "scenes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "prefix", "bundle"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "prefix": { "type": "string" },
+          "bundle": {
+            "type": "string",
+            "description": "Path relative to the show directory, e.g. \"bundles/monolith\" — a directory holding a mesh.json (mesh.schema.json) and its buffers. Whether the scene came from an .ldr, a build recipe, a flag or a heritage site is already decided and is no longer visible here."
+          },
+          "instanceCount": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "shots": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Flat and in play order. Movements survive as labels on each shot, not as nesting: everything downstream — seeking, the HUD, the timeline evaluator — wants a sorted list, and a tier filter can remove a movement's every shot.",
+      "items": { "$ref": "#/$defs/shot" }
+    },
+    "credits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lines": { "type": "array", "items": { "type": "string" } },
+        "required": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "$defs": {
+    "shot": {
+      "type": "object",
+      "required": ["id", "title", "movementId", "tier", "startSec", "endSec", "durationSec", "camera"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "movementId": { "type": "string" },
+        "movementTitle": { "type": "string" },
+        "romanNumeral": { "type": "string" },
+        "tier": { "enum": [1, 2, 3] },
+        "startSec": { "type": "number", "minimum": 0 },
+        "endSec": { "type": "number", "minimum": 0 },
+        "durationSec": { "type": "number", "exclusiveMinimum": 0 },
+        "startBar": { "type": "number", "minimum": 0, "description": "Kept for the director HUD and for the score: the fugue is written in bars and a shot boundary that does not land on one is a bug you want to be able to see." },
+        "durationBars": { "type": "number", "exclusiveMinimum": 0 },
+        "repeatCount": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Present only for shots authored `scaling: \"repeat\"`. Already an integer — the rounding residual was pushed back into the stretch pool during resolution, not left for the player."
+        },
+        "scenes": { "type": "array", "items": { "type": "string" } },
+        "camera": { "$ref": "#/$defs/cameraTrack" },
+        "tracks": { "type": "array", "items": { "$ref": "#/$defs/track" } },
+        "cues": { "type": "array", "items": { "$ref": "#/$defs/cue" } },
+        "note": { "type": "string" }
+      }
+    },
+    "easing": {
+      "enum": [
+        "linear",
+        "quadIn",
+        "quadOut",
+        "quadInOut",
+        "cubicIn",
+        "cubicOut",
+        "cubicInOut",
+        "expoIn",
+        "expoOut",
+        "step"
+      ]
+    },
+    "keyTime": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Absolute show time in seconds — NOT shot-local, and not normalised. Beat-snapped keyframes have already been moved here; nothing snaps at play time."
+    },
+    "numberKey": {
+      "type": "object",
+      "required": ["timeSec", "value", "easing"],
+      "additionalProperties": false,
+      "properties": {
+        "timeSec": { "$ref": "#/$defs/keyTime" },
+        "value": { "type": "number" },
+        "easing": { "$ref": "#/$defs/easing" }
+      }
+    },
+    "transformKey": {
+      "type": "object",
+      "required": ["timeSec", "value", "easing"],
+      "additionalProperties": false,
+      "properties": {
+        "timeSec": { "$ref": "#/$defs/keyTime" },
+        "easing": { "$ref": "#/$defs/easing" },
+        "value": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "position": { "$ref": "#/$defs/vec3" },
+            "quaternion": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": { "type": "number" },
+              "description": "Always a quaternion here: Euler degrees in the source are converted once during resolution, so the player never has to know the rotation order and two authorings of the same rotation cannot interpolate differently."
+            },
+            "scale": { "type": "number" }
+          }
+        }
+      }
+    },
+    "cameraKey": {
+      "type": "object",
+      "required": ["timeSec", "value", "easing"],
+      "additionalProperties": false,
+      "properties": {
+        "timeSec": { "$ref": "#/$defs/keyTime" },
+        "easing": { "$ref": "#/$defs/easing" },
+        "value": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "position": { "$ref": "#/$defs/vec3" },
+            "lookAt": { "$ref": "#/$defs/vec3" },
+            "fovDeg": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 180 }
+          }
+        }
+      }
+    },
+    "vec3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "number" }
+    },
+    "targetBinding": {
+      "type": "object",
+      "required": ["glob"],
+      "additionalProperties": false,
+      "properties": {
+        "glob": {
+          "type": "string",
+          "description": "The source glob, kept verbatim. It is not used to select anything any more — it is here so a HUD, a diff or a person can tell what the index list below was supposed to mean."
+        },
+        "scene": { "type": "string", "description": "The scene id the indices are relative to." },
+        "instances": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 0 },
+          "description": "Instance indices into that scene's bundle, expanded once. Absent when the show was resolved without building bundles (`--no-bundles`), in which case the player must expand the glob itself — the one case where it is allowed to."
+        }
+      }
+    },
+    "track": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "target", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "transform" },
+            "target": { "$ref": "#/$defs/targetBinding" },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/transformKey" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "target", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "dissolve" },
+            "target": { "$ref": "#/$defs/targetBinding" },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKey" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "target", "property", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "material" },
+            "target": { "$ref": "#/$defs/targetBinding" },
+            "property": { "enum": ["opacity", "roughness", "metalness", "emissiveIntensity", "transmission", "edgeOpacity"] },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKey" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "property", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "post" },
+            "property": { "enum": ["exposure", "bloomThreshold", "bloomStrength", "bloomRadius", "vignette", "gradeStrength", "grain"] },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKey" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "element", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "hud" },
+            "element": { "type": "string" },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKey" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "target", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "pointCloud" },
+            "target": { "$ref": "#/$defs/targetBinding" },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKey" } }
+          }
+        }
+      ]
+    },
+    "cameraTrack": {
+      "type": "object",
+      "required": ["mode"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "enum": ["keyed", "orbit", "dolly", "exponentialZoom"] },
+        "fovDeg": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 180 },
+        "keys": { "type": "array", "items": { "$ref": "#/$defs/cameraKey" } },
+        "orbit": {
+          "type": "object",
+          "required": ["center", "radius", "height", "startDeg", "endDeg"],
+          "additionalProperties": false,
+          "properties": {
+            "center": { "$ref": "#/$defs/vec3" },
+            "radius": { "type": "number" },
+            "height": { "type": "number" },
+            "startDeg": { "type": "number" },
+            "endDeg": { "type": "number" }
+          }
+        },
+        "dolly": {
+          "type": "object",
+          "required": ["from", "to", "lookAt"],
+          "additionalProperties": false,
+          "properties": {
+            "from": { "$ref": "#/$defs/vec3" },
+            "to": { "$ref": "#/$defs/vec3" },
+            "lookAt": { "$ref": "#/$defs/vec3" }
+          }
+        },
+        "exponentialZoom": {
+          "type": "object",
+          "required": ["from", "to", "lookAt"],
+          "additionalProperties": false,
+          "properties": {
+            "from": { "type": "number" },
+            "to": { "type": "number" },
+            "lookAt": { "$ref": "#/$defs/vec3" }
+          }
+        },
+        "motionBlur": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "cue": {
+      "type": "object",
+      "required": ["timeSec", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "timeSec": { "$ref": "#/$defs/keyTime" },
+        "kind": { "enum": ["audio", "hud", "seed", "marker"] },
+        "shotId": { "type": "string", "description": "Which shot it came from. The list is flat and absolute; without this a cue cannot be traced back to its direction." },
+        "payload": { "type": "object" }
+      }
+    }
+  }
+}

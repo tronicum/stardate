@@ -1,0 +1,12 @@
+[package]
+name = "spex-show"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+jsonschema = { version = "0.48", default-features = false }

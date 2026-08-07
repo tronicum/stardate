@@ -142,6 +142,64 @@ never re-globbed per frame.
    `spex show-build` output against `show-resolved.schema.json`.
 
 **Verification ladder.** 1, 2, 3. (6 runs at the end of the phase.)
+
+**Status: ✅ done.** `crates/spex-show/{Cargo.toml,src/lib.rs,src/model.rs}`,
+`spec/show.schema.json`, `spec/show-resolved.schema.json`,
+`shows/die-geschichtliche-matrix.show.json` (Act I, real), and
+`ldraw-scenes/brick-1x1.ldr` (A1-S02 and A1-S03 must sample and render *one*
+piece of geometry, or the crossfade cannot converge). 16 tests pass.
+
+**Four decisions this milestone made against the draft model above.**
+
+- **Time is authored in bars, not seconds.** The draft used `durationSec`.
+  The screenplay is written in bars at 84 bpm 4/4 and sets itself the rule
+  that every cut lands on a bar line — which is unenforceable in seconds,
+  since one bar is 20/7 s and `2.857142857` is a bar only if you type enough
+  sevens. `Shot` carries `durationBars`/`minBars`/`maxBars`, `Show` carries
+  `tempo` and `baseDurationBars`, and seconds are derived. The canonical cut
+  is 84 bars = 240.000 s *exactly*, and there is a test that says so.
+  M61's resolver spec still reads in seconds; it works in seconds internally
+  and converts at the boundary, which is correct — the *authoring* unit and
+  the *arithmetic* unit do not have to match.
+- **`MaterialProperty` gained `edgeOpacity`.** Authoring A1-S03 found the
+  gap: the crossfade lands the mesh and M57's outlines arrive **one frame
+  later**, and with no channel of its own that beat could only be written as
+  a comment. A closed property set is only useful if adding to it is the
+  normal way to make a shot authorable.
+- **`scale` is a single number, not a vector.** Non-uniform scale on a
+  Klemmbaustein is a lie about the module — the whole thesis is that the part
+  has one true size.
+- **No `audio: FugueSpec` field yet.** The draft has one; `FugueSpec` is
+  defined by M67–M70 and does not exist. Adding the field now would mean
+  inventing a shape with no producer and no consumer, and every guess would
+  be frozen into version 1. It lands with M67.
+
+**AC3 moved to M61.** It validates a real `spex show-build` output, and
+`show-build` is M61's binary — the criterion could not be met here by
+anything except a hand-written file pretending to be output. What *was* done
+instead: `crates/spex-show/tests/documents.rs` hand-writes a minimal
+`show-resolved.json` and validates it, because a schema that has never had a
+valid instance is a schema nobody has checked. That fixture is now the
+contract M61's resolver has to hit.
+
+**One real defect, found by rung 2 and not by any test.** The first draft of
+the Act I document addressed geometry as `monolith/*`. Running the real
+`spex mesh-model` on the real scenes and *reading* the ids showed why that is
+wrong: a bundle numbers its own instances `<part>/<n>` — `3010/0`, `3710/7` —
+so a scene-prefixed id is `monolith/3010/0`, with **two** separators. A `*`
+does not cross a separator, which is precisely what makes the spec's own
+`flag/dk/tile-*` example meaningful, so `monolith/*` matches nothing at all,
+silently, and the shot simply never animates. Corrected to `**` throughout,
+written into the schema's own description, and asserted by a test — this is
+the failure mode a glob has, and it produces no error anywhere.
+
+**Measured and recorded.** The Act I document is 17 bars — 0:48.571 — over
+six shots at 2/2/3/4/3/3, which is what `screenplay.md` §4 says, asserted
+per-shot rather than in total so a compensating pair of errors cannot pass.
+Three scenes, one of them (`stonehenge`) a `heritage` source with no
+generator until M73 — which is the point of the four source kinds: the
+document does not have to know which milestone produces its geometry.
+
 ---
 
 ### M61 — `spex-show`: the compiler and the duration resolver

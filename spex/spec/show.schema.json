@@ -1,0 +1,439 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/show.schema.json",
+  "title": "Fugen Engine show document (show.json)",
+  "description": "The authored screenplay of a generative piece, as data. Read by `spex-show` (crates/spex-show/src/model.rs); compiled by `spex show-build` into a `show-resolved.json` (see show-resolved.schema.json) plus the mesh bundles every scene needs.\n\nTwo properties of this format are load-bearing and are stated here rather than left to readers to infer.\n\nFIRST: TIME IS AUTHORED IN BARS, NOT SECONDS. The piece is written at a fixed tempo (84 bpm, 4/4 by default) and sets itself the rule that every cut lands on a bar line. In seconds that rule is unenforceable — one bar is 20/7 s, and 2.857142857 is a bar only if you type enough sevens. So a shot states `durationBars` and seconds are derived: `durationBars * beatsPerBar * 60 / bpm`. The canonical cut is 84 bars, which is 240.000 s exactly, and is exact only because 84 x 20/7 is.\n\nSECOND: A CUT IS A SELECTION, NOT A SPEED CHANGE. The 4:00, 10:00 and 60:00 versions are three resolutions of this one document, not three edits. `tier` decides which shots a given cut contains at all; `scaling` decides how the ones that survive respond to the time available. Nothing is ever played faster or slower — the tempo is the same in every cut, because the music is the same music.\n\nColours in `palette` are LINEAR rgb, the same convention as mesh.json, for the same reason: three.js reads raw components as linear and converting again would brighten everything about 2.2x.",
+  "type": "object",
+  "required": [
+    "version",
+    "id",
+    "title",
+    "archiveSignature",
+    "baseDurationBars",
+    "seed",
+    "scenes",
+    "movements"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Bumped when a change would make an older document read wrong rather than merely incomplete."
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable slug, e.g. \"die-geschichtliche-matrix\"."
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "subtitle": { "type": "string" },
+    "archiveSignature": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The Iunctura Archiv signature, e.g. \"IA-2026-002\". Carried into every resolved output and shown in the credits: a generative piece with no fixed frames still has one identity."
+    },
+    "tempo": {
+      "$ref": "#/$defs/tempo",
+      "description": "Defaults to 84 bpm in 4/4 when absent."
+    },
+    "baseDurationBars": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "The canonical cut, in bars. 84 at the default tempo — 240.000 s."
+    },
+    "seed": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Default edition seed. Every random choice in the piece descends from this one number, which is what makes an edition reproducible from its signature alone."
+    },
+    "palette": {
+      "type": "object",
+      "description": "Named LINEAR rgb triples, 0..1. Named rather than inline so \"Terminalgrün\" means one colour across the whole piece.",
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 3,
+        "maxItems": 3,
+        "items": { "type": "number", "minimum": 0 }
+      }
+    },
+    "scenes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/sceneRef" },
+      "description": "Every piece of geometry the show can address. A shot names scenes by id; it never names a file."
+    },
+    "movements": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/movement" }
+    },
+    "credits": { "$ref": "#/$defs/credits" }
+  },
+  "$defs": {
+    "tempo": {
+      "type": "object",
+      "required": ["bpm", "beatsPerBar"],
+      "additionalProperties": false,
+      "properties": {
+        "bpm": { "type": "number", "exclusiveMinimum": 0 },
+        "beatsPerBar": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "sceneRef": {
+      "type": "object",
+      "required": ["id", "source", "prefix"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "prefix": {
+          "type": "string",
+          "description": "Instance-id prefix, e.g. \"monolith\". A scene's bundle numbers its own instances `<part>/<n>` (`3010/0`, `3710/7`), so the addressable id is `<prefix>/<part>/<n>` — `monolith/3010/0`, with TWO separators. Track targets are globs over these, and a `*` does not cross a `/` (which is what makes `flag/dk/tile-*` mean anything), so \"every instance of this scene\" is `monolith/**` and `monolith/*` matches nothing at all, silently. The resolver expands each glob to an instance-index list exactly once at load — never per frame, because at Atlas scale that would be a string match per brick per track per frame."
+        },
+        "source": {
+          "oneOf": [
+            {
+              "type": "object",
+              "required": ["kind", "path"],
+              "additionalProperties": false,
+              "properties": {
+                "kind": { "const": "ldr" },
+                "path": {
+                  "type": "string",
+                  "description": "A real .ldr file in this repository, e.g. \"ldraw-scenes/monolith.ldr\"."
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": ["kind", "recipe"],
+              "additionalProperties": false,
+              "properties": {
+                "kind": { "const": "build" },
+                "recipe": { "type": "string", "description": "A `spex-build` descriptor (M72)." }
+              }
+            },
+            {
+              "type": "object",
+              "required": ["kind", "flag"],
+              "additionalProperties": false,
+              "properties": {
+                "kind": { "const": "flag" },
+                "flag": { "type": "string", "description": "A `spex-flag` specification id (M75)." }
+              }
+            },
+            {
+              "type": "object",
+              "required": ["kind", "siteId"],
+              "additionalProperties": false,
+              "properties": {
+                "kind": { "const": "heritage" },
+                "siteId": { "type": "string", "description": "A World Heritage site id (M73)." }
+              }
+            }
+          ],
+          "description": "Four kinds because four different milestones produce geometry, and the document should not have to care which one a scene came from."
+        }
+      }
+    },
+    "movement": {
+      "type": "object",
+      "required": ["id", "title", "romanNumeral", "shots"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string" },
+        "romanNumeral": { "type": "string" },
+        "shots": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/shot" }
+        }
+      }
+    },
+    "shot": {
+      "type": "object",
+      "required": ["id", "title", "weight", "scaling", "durationBars", "tier", "camera"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "description": "e.g. \"A1-S04\". Unique across the whole document: cues, the HUD and seeking all address shots by id." },
+        "title": { "type": "string" },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Proportional share of the movement's stretchable time. Meaningless for `scaling: \"fixed\"`."
+        },
+        "scaling": {
+          "enum": ["fixed", "stretch", "repeat"],
+          "description": "fixed — the duration never changes, in any cut. The Kick is two beats in the 4:00 and two beats in the 60:00, because a flash that lasts ten seconds is not a flash. stretch — scales with the cut, clamped to minBars/maxBars. repeat — the body loops N times; N scales, one pass does not."
+        },
+        "durationBars": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "The canonical-cut duration, in bars."
+        },
+        "minBars": { "type": "number", "exclusiveMinimum": 0 },
+        "maxBars": { "type": "number", "exclusiveMinimum": 0 },
+        "tier": {
+          "enum": [1, 2, 3],
+          "description": "1 = present in every cut. 2 = added by cuts of 10 minutes or more. 3 = added by cuts of an hour or more."
+        },
+        "repeat": {
+          "type": "object",
+          "required": ["unitBars", "minCount", "maxCount"],
+          "additionalProperties": false,
+          "properties": {
+            "unitBars": { "type": "number", "exclusiveMinimum": 0, "description": "One pass. The Atlas unit is 2 bars." },
+            "minCount": { "type": "integer", "minimum": 1 },
+            "maxCount": { "type": "integer", "minimum": 1 }
+          },
+          "description": "Required when `scaling` is \"repeat\", forbidden otherwise — a repeat shot that does not say what one pass is has no resolvable duration."
+        },
+        "scenes": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Scene ids active in this shot. Every id must be defined in the document's top-level `scenes`."
+        },
+        "camera": { "$ref": "#/$defs/cameraTrack" },
+        "tracks": { "type": "array", "items": { "$ref": "#/$defs/track" } },
+        "cues": { "type": "array", "items": { "$ref": "#/$defs/cue" } },
+        "note": {
+          "type": "string",
+          "description": "Free-form direction, carried into the resolved output so the piece documents itself — shown by the director HUD (?director=1)."
+        }
+      }
+    },
+    "easing": {
+      "enum": [
+        "linear",
+        "quadIn",
+        "quadOut",
+        "quadInOut",
+        "cubicIn",
+        "cubicOut",
+        "cubicInOut",
+        "expoIn",
+        "expoOut",
+        "step"
+      ],
+      "description": "`step` is instant, and is not a rounding of a very fast fade. A1-S03's edge lines arrive in ONE frame; a fade would make legibility gradual, and the whole shot is about it not being gradual."
+    },
+    "keyframeCommon": {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Normalised shot-local time, so a keyframe survives retiming into any cut. The resolver turns it into an absolute `timeSec`."
+        },
+        "easing": { "$ref": "#/$defs/easing" },
+        "snapToBeat": {
+          "type": "boolean",
+          "description": "Snap the resolved time to the nearest beat rather than keeping proportional time. This is how a landing brick lands ON the beat instead of near it."
+        }
+      }
+    },
+    "numberKeyframe": {
+      "allOf": [{ "$ref": "#/$defs/keyframeCommon" }],
+      "type": "object",
+      "required": ["t", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "t": true,
+        "easing": true,
+        "snapToBeat": true,
+        "value": { "type": "number" }
+      }
+    },
+    "transformKeyframe": {
+      "allOf": [{ "$ref": "#/$defs/keyframeCommon" }],
+      "type": "object",
+      "required": ["t", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "t": true,
+        "easing": true,
+        "snapToBeat": true,
+        "value": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "position": { "$ref": "#/$defs/vec3" },
+            "rotation": { "$ref": "#/$defs/vec3", "description": "Euler XYZ in degrees. Ignored when `quaternion` is present." },
+            "quaternion": { "type": "array", "minItems": 4, "maxItems": 4, "items": { "type": "number" } },
+            "scale": { "type": "number" }
+          }
+        }
+      }
+    },
+    "cameraKeyframe": {
+      "allOf": [{ "$ref": "#/$defs/keyframeCommon" }],
+      "type": "object",
+      "required": ["t", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "t": true,
+        "easing": true,
+        "snapToBeat": true,
+        "value": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "position": { "$ref": "#/$defs/vec3" },
+            "lookAt": { "$ref": "#/$defs/vec3" },
+            "fovDeg": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 180 }
+          }
+        }
+      }
+    },
+    "vec3": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "type": "number" },
+      "description": "Millimetres, +Y up — the same frame mesh.json uses."
+    },
+    "track": {
+      "description": "Keyframed animation of one thing. `target` is a glob over scene-prefixed instance ids, resolved once at load. `*` matches within one path segment and `**` crosses separators — so `monolith/**` is every brick of the monolith, `flag/dk/tile-*` is one segment of a flag's ids, and `monolith/*` is a common mistake that matches nothing (see `sceneRef.prefix`).",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["kind", "target", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "transform" },
+            "target": { "type": "string" },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/transformKeyframe" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "target", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "dissolve" },
+            "target": { "type": "string" },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKeyframe" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "target", "property", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "material" },
+            "target": { "type": "string" },
+            "property": {
+              "enum": ["opacity", "roughness", "metalness", "emissiveIntensity", "transmission", "edgeOpacity"],
+              "description": "A closed set on purpose: an open string would let a show reference a property no renderer has, and the failure would be silent."
+            },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKeyframe" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "property", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "post" },
+            "property": {
+              "enum": ["exposure", "bloomThreshold", "bloomStrength", "bloomRadius", "vignette", "gradeStrength", "grain"],
+              "description": "The parameters M58's post chain actually exposes. Same closed-set reasoning."
+            },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKeyframe" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "element", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "hud" },
+            "element": { "type": "string" },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKeyframe" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "target", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "pointCloud" },
+            "target": { "type": "string" },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKeyframe" } }
+          },
+          "description": "The mesh<->point crossfade: 0 is the mesh, 1 is the point swarm. A1-S03 is the centre of the whole piece and it is exactly this track."
+        }
+      ]
+    },
+    "cameraTrack": {
+      "type": "object",
+      "required": ["mode"],
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": ["keyed", "orbit", "dolly", "exponentialZoom"],
+          "description": "Each mode requires its own block and forbids the others' — a `mode` with no matching block is an error, not a silent default, because the fallback would be a static camera and a static camera looks deliberate."
+        },
+        "fovDeg": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 180 },
+        "keys": { "type": "array", "items": { "$ref": "#/$defs/cameraKeyframe" } },
+        "orbit": {
+          "type": "object",
+          "required": ["center", "radius", "height", "startDeg", "endDeg"],
+          "additionalProperties": false,
+          "properties": {
+            "center": { "$ref": "#/$defs/vec3" },
+            "radius": { "type": "number", "exclusiveMinimum": 0 },
+            "height": { "type": "number" },
+            "startDeg": { "type": "number" },
+            "endDeg": { "type": "number" }
+          }
+        },
+        "dolly": {
+          "type": "object",
+          "required": ["from", "to", "lookAt"],
+          "additionalProperties": false,
+          "properties": {
+            "from": { "$ref": "#/$defs/vec3" },
+            "to": { "$ref": "#/$defs/vec3" },
+            "lookAt": { "$ref": "#/$defs/vec3" }
+          }
+        },
+        "exponentialZoom": {
+          "type": "object",
+          "required": ["from", "to", "lookAt"],
+          "additionalProperties": false,
+          "properties": {
+            "from": { "type": "number", "exclusiveMinimum": 0 },
+            "to": { "type": "number", "exclusiveMinimum": 0 },
+            "lookAt": { "$ref": "#/$defs/vec3" }
+          },
+          "description": "The Kick: distance from `from` to `to` on a log scale, 10^4 over two beats."
+        },
+        "motionBlur": { "type": "number", "minimum": 0, "maximum": 1, "description": "Shutter-style motion blur strength." }
+      }
+    },
+    "cue": {
+      "type": "object",
+      "required": ["t", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "t": { "type": "number", "minimum": 0, "maximum": 1, "description": "Normalised shot-local time." },
+        "kind": { "enum": ["audio", "hud", "seed", "marker"] },
+        "payload": { "type": "object", "description": "Free-form, interpreted by whatever consumes that `kind`." }
+      }
+    },
+    "credits": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "lines": { "type": "array", "items": { "type": "string" } },
+        "required": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Attribution that must appear regardless of cut length — the LDraw library's CCAL terms among them. Not stretchable, not tier-gated: a licence condition is not editorial material."
+        }
+      }
+    }
+  }
+}

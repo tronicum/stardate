@@ -24,6 +24,8 @@ isn't just aspirational prose, it's enforced against real output.
 | `meta.json` | [`meta.schema.json`](meta.schema.json) | `graph-layout` only | viewer (header/legend) |
 | `sequence.json` | [`sequence.schema.json`](sequence.schema.json) | `spex frame-sequence` (`crates/spex-cli/src/frame_sequence.rs`) | viewer (`fetchSequence`, real frame-advance playback) |
 | `mesh.json` | [`mesh.schema.json`](mesh.schema.json) | `spex-mesh` (`crates/spex-mesh/src/bundle.rs`) | the viewer's mesh render mode (M54) |
+| `show.json` | [`show.schema.json`](show.schema.json) | hand-authored (`shows/*.show.json`) | `spex-show` (`crates/spex-show/src/model.rs`), `spex show-build` |
+| `show-resolved.json` | [`show-resolved.schema.json`](show-resolved.schema.json) | `spex show-build` (M61) | the runtime show engine (M62+) |
 
 `octree/<node-id>.bin` (the point data itself) is a small binary format, not
 JSON — see the "Tileset format" section of `CLAUDE.md`: `u32` LE point
@@ -65,6 +67,33 @@ ordinary tileset, sharing one coordinate offset via
 without the point cloud's position jumping — see that function's own doc
 comment). It's checked by `crates/spex-cli/tests/schema_validation.rs` the
 same way `tileset.json` etc. are, not just documented in prose.
+
+## The two show formats
+
+`show.json` is *authored*; `show-resolved.json` is *compiled*. They are
+deliberately not the same document with optional fields.
+
+The authored one states time in **bars**, keyframes in **normalised
+shot-local time** (0..1), targets as **globs** over instance ids, and shot
+durations as a weight plus a min/max range. None of that is playable: it
+describes a piece that can be resolved to 4:00, 10:00, 60:00 or endless.
+`spex show-build` picks one duration and one seed and resolves all of it —
+absolute seconds, expanded instance-index lists, integer repeat counts,
+tier-filtered shot list — so that nothing is left to decide per frame. A
+player that resolves anything at play time is a player that can drift, and
+four cuts resolved independently would be four edits rather than four
+readings of one document.
+
+Bars, not seconds, in the authored form: the piece is written at 84 bpm in
+4/4 and requires every cut to land on a bar line. One bar is 20/7 s, so in
+seconds that rule cannot be stated exactly — the canonical cut is 84 bars,
+which is 240.000 s only because 84 x 20/7 is.
+
+`shows/die-geschichtliche-matrix.show.json` is the real document (Act I so
+far; the remaining acts are authored in Phase 5). It and a deliberately
+minimal one are validated against the schema by
+`crates/spex-show/tests/documents.rs`, which also checks the document
+against `spex_show::model` — a format with two readers needs both to agree.
 
 ## Notes for anything reading these directly
 

@@ -2572,6 +2572,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "spex-show"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "jsonschema",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "spex-tiler"
 version = "0.1.0"
 dependencies = [

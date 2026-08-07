@@ -1,0 +1,334 @@
+{
+  "version": 1,
+  "id": "die-geschichtliche-matrix",
+  "title": "Die Geschichtliche Matrix",
+  "subtitle": "Akt I — Archäologie der Fuge",
+  "archiveSignature": "IA-2026-002",
+  "tempo": { "bpm": 84, "beatsPerBar": 4 },
+  "baseDurationBars": 17,
+  "seed": 263865,
+  "palette": {
+    "terrakotta": [0.462077, 0.162029, 0.076185],
+    "elektrum": [0.658375, 0.42869, 0.038204],
+    "terminalgruen": [0.0, 0.791298, 0.033105],
+    "schwarz": [0.01096, 0.023153, 0.03434],
+    "patentweiss": [0.887923, 0.863157, 0.791298],
+    "steingrau": [0.14996, 0.155926, 0.138432],
+    "kante": [0.099899, 0.099899, 0.099899],
+    "grundOben": [0.004025, 0.006049, 0.009721],
+    "grundUnten": [0.001518, 0.002125, 0.003035]
+  },
+  "scenes": [
+    {
+      "id": "brick",
+      "source": { "kind": "ldr", "path": "ldraw-scenes/brick-1x1.ldr" },
+      "prefix": "brick"
+    },
+    {
+      "id": "monolith",
+      "source": { "kind": "ldr", "path": "ldraw-scenes/monolith.ldr" },
+      "prefix": "monolith"
+    },
+    {
+      "id": "stonehenge",
+      "source": { "kind": "heritage", "siteId": "stonehenge" },
+      "prefix": "stonehenge"
+    }
+  ],
+  "movements": [
+    {
+      "id": "act-1",
+      "title": "Archäologie der Fuge",
+      "romanNumeral": "I",
+      "shots": [
+        {
+          "id": "A1-S01",
+          "title": "Der Punkt",
+          "weight": 0,
+          "scaling": "fixed",
+          "durationBars": 2,
+          "tier": 1,
+          "camera": {
+            "mode": "keyed",
+            "fovDeg": 28,
+            "keys": [
+              {
+                "t": 0,
+                "easing": "linear",
+                "value": { "position": [0, 4.8, 300], "lookAt": [0, 4.8, 0] }
+              }
+            ]
+          },
+          "tracks": [
+            {
+              "kind": "hud",
+              "element": "seed-point",
+              "keys": [
+                { "t": 0, "value": 0.55, "easing": "linear" },
+                { "t": 0.5, "value": 1, "easing": "quadInOut" },
+                { "t": 1, "value": 0.55, "easing": "quadInOut" }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0,
+              "kind": "audio",
+              "payload": { "event": "sine", "hz": 55, "fadeInSec": 4 }
+            }
+          ],
+          "note": "Black. One point, Terminalgrün, at frame centre, one device pixel; it pulses once, slowly. Fixed in every cut, because this frame must be byte-identical to the last frame of the piece — see DER KICK. There is no geometry in this shot at all: the point is a HUD element, which is why it can be one device pixel rather than one projected millimetre."
+        },
+        {
+          "id": "A1-S02",
+          "title": "Der Schwarm",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 2,
+          "minBars": 2,
+          "maxBars": 7,
+          "tier": 1,
+          "scenes": ["brick"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 28,
+            "dolly": { "from": [0, 4.8, 300], "to": [0, 6, 90], "lookAt": [0, 4.8, 0] }
+          },
+          "tracks": [
+            {
+              "kind": "pointCloud",
+              "target": "brick/**",
+              "keys": [{ "t": 0, "value": 1, "easing": "linear" }]
+            },
+            {
+              "kind": "hud",
+              "element": "seed-point",
+              "keys": [
+                { "t": 0, "value": 0.55, "easing": "linear" },
+                { "t": 0.12, "value": 0, "easing": "quadOut" }
+              ]
+            }
+          ],
+          "cues": [],
+          "note": "The point swells into a swarm — the existing point renderer, ~3000 points sampled from 3005.dat's real surface. It has no shape yet; it is a cloud. Camera pushes in. maxBars 7 and not more: rev 1 gave this 8 s and a formless swarm has no second beat."
+        },
+        {
+          "id": "A1-S03",
+          "title": "Die Überblendung",
+          "weight": 3,
+          "scaling": "stretch",
+          "durationBars": 3,
+          "minBars": 2,
+          "maxBars": 11,
+          "tier": 1,
+          "scenes": ["brick"],
+          "camera": {
+            "mode": "keyed",
+            "fovDeg": 28,
+            "keys": [
+              {
+                "t": 0,
+                "easing": "linear",
+                "value": { "position": [0, 6, 90], "lookAt": [0, 4.8, 0] }
+              }
+            ]
+          },
+          "tracks": [
+            {
+              "kind": "pointCloud",
+              "target": "brick/**",
+              "keys": [
+                { "t": 0, "value": 1, "easing": "cubicInOut" },
+                { "t": 0.33, "value": 0, "easing": "cubicInOut", "snapToBeat": true }
+              ]
+            },
+            {
+              "kind": "material",
+              "target": "brick/**",
+              "property": "edgeOpacity",
+              "keys": [
+                { "t": 0, "value": 0, "easing": "step" },
+                { "t": 0.33, "value": 1, "easing": "step", "snapToBeat": true }
+              ]
+            },
+            {
+              "kind": "transform",
+              "target": "brick/**",
+              "keys": [
+                { "t": 0.33, "easing": "linear", "value": { "rotation": [0, 0, 0] } },
+                { "t": 1, "easing": "linear", "value": { "rotation": [0, 360, 0] } }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.33, "kind": "marker", "payload": { "event": "legibility" } },
+            {
+              "t": 0.66,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 1, "range": "alto", "subject": "subject" }
+            }
+          ],
+          "note": "The crossfade, and the centre of the piece. The swarm collapses onto the real mesh of a single 1x1 brick, Black. The edge lines arrive in ONE frame — hence easing 'step' on edgeOpacity, not a fade: legibility is a threshold event, a statistical cloud becoming a thing that can be counted. Then hold silence for one bar; voice 1 enters with the subject AFTER the image has landed, alone. Then the brick makes one full revolution at constant angular velocity — 'linear' is the direction, not laziness."
+        },
+        {
+          "id": "A1-S04",
+          "title": "Die Montage",
+          "weight": 4,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 3,
+          "maxBars": 14,
+          "tier": 1,
+          "scenes": ["brick", "monolith"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 32,
+            "dolly": { "from": [70, 30, 150], "to": [30, 55, 210], "lookAt": [0, 36.8, 0] }
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "brick/**",
+              "keys": [{ "t": 0, "value": 0, "easing": "step" }]
+            },
+            {
+              "kind": "dissolve",
+              "target": "monolith/**",
+              "keys": [{ "t": 0, "value": 1, "easing": "step" }]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0,
+              "kind": "seed",
+              "payload": {
+                "generator": "assembly",
+                "floatHeightLdu": 420,
+                "scatterRadiusLdu": 260,
+                "stagger": "buildStep",
+                "easing": "cubicInOut"
+              }
+            },
+            {
+              "t": 0,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 2, "range": "sopran", "subject": "answer" }
+            },
+            {
+              "t": 0,
+              "kind": "marker",
+              "payload": { "event": "landingAccent", "perLanding": true }
+            }
+          ],
+          "note": "The assembly. Nine real parts (7x 3010.dat + 2x 3710.dat, Black) fly in from the scattered start and settle into ldraw-scenes/monolith.ldr, staggered by real build step. The scatter is NOT authored as keyframes: it descends from a per-placement splitmix seed, so the document declares the generator and its constants and the choreography (M63) produces the placements. Nine hand-written transform tracks would be nine numbers that could disagree with the model. Voice 2 enters with the tonal answer as the first part lands."
+        },
+        {
+          "id": "A1-S05",
+          "title": "Der Monolith steht",
+          "weight": 3,
+          "scaling": "stretch",
+          "durationBars": 3,
+          "minBars": 2,
+          "maxBars": 32,
+          "tier": 1,
+          "scenes": ["monolith"],
+          "camera": {
+            "mode": "orbit",
+            "fovDeg": 32,
+            "orbit": {
+              "center": [0, 36.8, 0],
+              "radius": 150,
+              "height": 18,
+              "startDeg": -90,
+              "endDeg": 90
+            },
+            "motionBlur": 0.15
+          },
+          "tracks": [
+            {
+              "kind": "hud",
+              "element": "monolith-metrics",
+              "keys": [
+                { "t": 0, "value": 0, "easing": "linear" },
+                { "t": 0.15, "value": 1, "easing": "quadOut" },
+                { "t": 0.9, "value": 1, "easing": "linear" },
+                { "t": 1, "value": 0, "easing": "quadIn" }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0,
+              "kind": "hud",
+              "payload": {
+                "element": "monolith-metrics",
+                "text": "1 : 4 : 9.20 — 73.6 mm — 9 real parts"
+              }
+            },
+            {
+              "t": 0.2,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 3, "range": "tenor", "subject": "subject" }
+            }
+          ],
+          "note": "The monolith stands. Camera orbits 180 degrees from low, the object filling ~80% of frame height. Hairline HUD, lower right. The key light rakes across the studs so the module count is countable — the HUD says nine, and the picture has to be able to say it too. maxBars 32: this is one of the shots the 60:00 cut lives in."
+        },
+        {
+          "id": "A1-S06",
+          "title": "Stonehenge erhebt sich",
+          "weight": 3,
+          "scaling": "stretch",
+          "durationBars": 3,
+          "minBars": 2,
+          "maxBars": 42,
+          "tier": 1,
+          "scenes": ["monolith", "stonehenge"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 36,
+            "dolly": { "from": [0, 40, 180], "to": [0, 130, 900], "lookAt": [0, 36.8, 0] },
+            "motionBlur": 0.2
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "stonehenge/**",
+              "keys": [
+                { "t": 0, "value": 0, "easing": "cubicOut" },
+                { "t": 0.55, "value": 1, "easing": "cubicOut" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "vignette",
+              "keys": [
+                { "t": 0, "value": 0.35, "easing": "quadInOut" },
+                { "t": 1, "value": 0.55, "easing": "quadInOut" }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.1,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "answer" }
+            },
+            { "t": 0.3, "kind": "hud", "payload": { "element": "caption", "text": "c. 2500 BCE" } }
+          ],
+          "note": "Stonehenge rises behind the monolith, Steingrau, materialising from the ground up at a scale that reveals the monolith was small all along. Camera dollies back. Voice 4 enters; the exposition is complete in four voices. The caption dates the sarsens, lintels, mortices and tenons — c. 2500 BCE — NOT the c. 3000 BCE ditch, which is a different monument on the same ground."
+        }
+      ]
+    }
+  ],
+  "credits": {
+    "lines": [
+      "Die Geschichtliche Matrix",
+      "Iunctura Archiv · IA-2026-002",
+      "Uraufführung 23. Juni 2027 — hundert Jahre GB 263865"
+    ],
+    "required": [
+      "Teilegeometrie aus der LDraw Parts Library, verwendet unter der CCAL 2.0 (creativecommons.org/licenses/by/2.0). LDraw ist eine Marke der LDraw Organization.",
+      "LEGO ist eine Marke der LEGO Gruppe, die dieses Werk weder gesponsert noch autorisiert hat."
+    ]
+  }
+}

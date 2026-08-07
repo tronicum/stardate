@@ -1,0 +1,14 @@
+0 Brick 1 x 1 - the single module the piece opens on
+0 Name: brick-1x1.ldr
+0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
+0 // A1-S02 samples this part's real surface for the point swarm and A1-S03
+0 // crossfades that swarm onto this exact mesh, so both halves of the
+0 // crossfade must come from ONE piece of geometry - a cloud sampled from
+0 // one model and a mesh built from another would not converge, and the
+0 // shot is entirely about them converging.
+0 // Colour 0 (Black) is bound here rather than left as 16 (inherit): this
+0 // is a scene, not a sub-part, and it has nothing to inherit from.
+0 // Sits on the origin plane. Brick 1x1 (3005.dat) is 24 LDU tall, so its
+0 // base is at y = 0 with the part translated to -24 in LDraw's Y-down
+0 // frame - the same convention monolith.ldr stacks in.
+1 0 0 -24 0 1 0 0 0 1 0 0 0 1 3005.dat
