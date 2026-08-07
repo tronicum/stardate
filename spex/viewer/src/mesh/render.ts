@@ -16,6 +16,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { Bounds } from '../tileset';
 import {
   fetchMeshBuffers,
+  fetchMeshLodBuffers,
   fetchMeshInstances,
   type MeshBundle,
   type MeshInstance,
@@ -24,6 +25,7 @@ import {
 import { buildSyntheticEnvironment, MaterialLibrary } from './materials';
 import { buildInstanceGroups, InstanceWriter, type InstanceGroup } from './instanced';
 import { buildEdgeGroups, visibleConditionalEdges, EdgeRenderer } from './edges';
+import { attachLodMeshes, LodSelector } from './lod';
 import { PostChain, tierFromFps, tierFromUrl, TIERS, type QualityTier } from './post';
 
 /** `devicePixelRatio` unclamped is 9x the fragments on a 3x-DPR tablet, for a
@@ -171,8 +173,9 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   exposureRow.style.display = 'flex';
 
   statusEl.textContent = 'loading mesh bundle…';
-  const [buffers, instances] = await Promise.all([
+  const [buffers, lodBuffers, instances] = await Promise.all([
     fetchMeshBuffers(baseUrl, bundle),
+    fetchMeshLodBuffers(baseUrl, bundle),
     fetchMeshInstances(baseUrl, bundle),
   ]);
 
@@ -194,6 +197,12 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   for (const g of groups) instanceRoot.add(g.mesh);
   scene.add(instanceRoot);
   const writer = new InstanceWriter(groups);
+
+  // M59: coarser levels, chosen per instance. `attachLodMeshes` returns false
+  // for a bundle written before M59, and then nothing below it ever runs.
+  const hasLods = attachLodMeshes(bundle, lodBuffers, materials, groups);
+  const lod = hasLods ? new LodSelector(bundle, groups, writer) : null;
+  lod?.addTo(instanceRoot);
 
   // M57: real LDraw type-2 and type-5 lines, as screen-space quads. This is
   // the difference between a soft plastic blob and the catalogue picture.
@@ -341,6 +350,7 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
       <div>${renderer.info.render.calls} draw calls</div>
       <div>${stats.materials} materials &middot; ${stats.finishes.join(', ')}</div>
       <div>${stats.edgeQuads.toLocaleString()} edge quads &middot; ${stats.conditionalEdges.toLocaleString()} conditional &middot; ${edges.visibleGroupCount}/${edges.groups.length} drawn</div>
+      <div>${lod ? `LOD ${lod.stats.perLevel.join(' / ')} &middot; ${lod.stats.triangles.toLocaleString()} tris drawn` : 'no LODs in bundle'}</div>
       <div>crease ${bundle.creaseDegrees}&deg;</div>
       <div>${tier} quality${benchmarkDone ? '' : ' (measuring…)'}</div>
       <div id="hud-fps">${fps.toFixed(0)} fps</div>
@@ -359,6 +369,7 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
       frames = 0;
       fpsAccumMs = 0;
     }
+    lod?.update(camera, window.innerHeight * pixelRatio);
     edges.update(camera, window.innerHeight * pixelRatio);
     renderer.info.reset();
     post.render((now - startedAt) / 1000);
@@ -393,6 +404,7 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
     writer,
     edges,
     post: () => post,
+    lod: () => lod,
     quality: () => tier,
     /** M57 AC2: *which* conditional edges the shader's predicate lets through
      * from where the camera is now, recomputed on the CPU. The set must

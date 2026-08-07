@@ -131,3 +131,22 @@ A flat luminance curve is the interesting failure: it means bloom is reading a
 signal that was already clipped to 0..1 before it got there, which is the
 whole reason the post chain renders into a HalfFloat target with tone mapping
 off.
+
+## LOD transitions
+
+```
+node scripts/viewer-shot/dolly.mjs http://127.0.0.1:8091/ /tmp/m59
+```
+
+Pulls the camera back over 60 frames and asks whether the level switches are
+visible. It renders **each frame twice** — once as selected, once with every
+instance pinned to LOD0, same camera — because comparing consecutive frames
+cannot separate a LOD pop from the shot simply changing. The first version did
+compare consecutive frames and reported a 6.49 % "jump" that was the ground
+receding.
+
+It also prints the LOD population per frame and fails if it never changes: a
+dolly where nothing switched would pass the luminance test trivially and prove
+nothing. That assertion is what caught the harness bug where
+`c.position.copy(t).add(c.position.clone()…)` parked the camera on the object
+every frame — JavaScript runs the `copy` before evaluating the argument.

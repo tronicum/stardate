@@ -187,6 +187,105 @@
               "string",
               "null"
             ]
+          },
+          "lods": {
+            "type": "array",
+            "description": "Coarser levels in ascending order (M59). LOD1 has studs and underside tubes removed, gated on the real LDraw reference chain (`p/stud*.dat`, `p/stug*.dat`) rather than on any guess about the geometry; LOD2 is the part's own box, 12 triangles and 12 hard edges, colour-neutral so it inherits the instance's colour. **Level 0 is the part entry's own buffers and counts and is NOT a member of this array** \u2014 which is why adding LODs was additive and needed no format version bump: a reader that ignores this field still gets full geometry.",
+            "items": {
+              "type": "object",
+              "required": [
+                "level",
+                "vertexCount",
+                "triangleCount",
+                "hardEdgeCount",
+                "conditionalEdgeCount",
+                "buffers",
+                "submeshes"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "level": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 2
+                },
+                "vertexCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "triangleCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "hardEdgeCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "conditionalEdgeCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "buffers": {
+                  "type": "object",
+                  "required": [
+                    "position",
+                    "normal",
+                    "index",
+                    "hardEdge",
+                    "condEdge"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "position": {
+                      "$ref": "#/$defs/bufferPath"
+                    },
+                    "normal": {
+                      "$ref": "#/$defs/bufferPath"
+                    },
+                    "index": {
+                      "$ref": "#/$defs/bufferPath"
+                    },
+                    "hardEdge": {
+                      "$ref": "#/$defs/bufferPath"
+                    },
+                    "condEdge": {
+                      "$ref": "#/$defs/bufferPath"
+                    }
+                  }
+                },
+                "submeshes": {
+                  "type": "array",
+                  "description": "Contiguous index ranges, one per distinct colour, so a renderer binds a material once per range and never mid-buffer.",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "material",
+                      "indexOffset",
+                      "indexCount"
+                    ],
+                    "additionalProperties": false,
+                    "properties": {
+                      "material": {
+                        "type": [
+                          "integer",
+                          "null"
+                        ],
+                        "minimum": 0,
+                        "description": "Index into materials[], or NULL meaning LDraw colour 16 (\"inherit\") \u2014 take the instance's own material. A number is a fixed accent colour molded into the part itself."
+                      },
+                      "indexOffset": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "indexCount": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -450,8 +549,8 @@
     },
     "bufferPath": {
       "type": "string",
-      "pattern": "^buffers/p[0-9]+\\.(pos|nrm|idx|edge|cond)\\.bin$",
-      "description": "Relative to this manifest's own directory, so a bundle can be served from a domain root or any subpath."
+      "pattern": "^buffers/p[0-9]+(\\.l[12])?\\.(pos|nrm|idx|edge|cond)\\.bin$",
+      "description": "Relative to this manifest's own directory, so a bundle can be served from a domain root or any subpath. The optional `.l1`/`.l2` infix marks a coarser LOD (M59)."
     },
     "linearRgb": {
       "type": "array",

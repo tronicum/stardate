@@ -27,7 +27,21 @@ import type { MaterialLibrary } from './materials';
 export interface InstanceGroup {
   part: number;
   material: number;
+  /** Level 0. Still the mesh everything else refers to. */
   mesh: THREE.InstancedMesh;
+  /** One `InstancedMesh` per available level, index = level. Length 1 for a
+   * bundle written before M59, in which case nothing below ever runs. */
+  lodMeshes: THREE.InstancedMesh[];
+  /** **The authoritative transforms**, 16 floats per instance, indexed by
+   * instance. The LOD meshes' own `instanceMatrix` buffers are re-packed
+   * copies whose row order changes every time an instance switches level —
+   * so anything that needs "the matrix of instance i" (M57's edge texture,
+   * M60's choreography) reads this, never a LOD mesh. */
+  matrices: Float32Array;
+  /** Per instance, the level it is currently drawn at. */
+  levels: Uint8Array;
+  /** Part bounding-sphere radius in world units, for the projected-size test. */
+  radius: number;
   /** Instance slot -> the bundle's own stable id, so a show's choreography
    * can resolve its target globs to slots once, at load time. */
   ids: string[];
@@ -130,7 +144,18 @@ export function buildInstanceGroups(
     // actually are rather than on one part's local box at the origin.
     mesh.computeBoundingSphere();
 
-    groups.push({ part: partIdx, material: materialIdx, mesh, ids, dissolve });
+    const matrices = new Float32Array(mesh.instanceMatrix.array as Float32Array);
+    groups.push({
+      part: partIdx,
+      material: materialIdx,
+      mesh,
+      lodMeshes: [mesh],
+      matrices,
+      levels: new Uint8Array(bucket.length),
+      radius: geometry.boundingSphere?.radius ?? 1,
+      ids,
+      dissolve,
+    });
   }
 
   return groups;
@@ -203,7 +228,9 @@ export class InstanceWriter {
       matrix.toArray(parked, slot.index * 16);
       if (this.hidden.get(slot.group)?.[slot.index]) return; // stays parked
     }
-    slot.group.mesh.setMatrixAt(slot.index, matrix);
+    // Into the authoritative array, indexed by *instance*. The LOD meshes are
+    // re-packed from this, and their row order is not instance order.
+    matrix.toArray(slot.group.matrices, slot.index * 16);
     this.dirtyMatrix.add(slot.group);
   }
 
@@ -213,7 +240,7 @@ export class InstanceWriter {
     const { group, index } = slot;
     let parked = this.parked.get(group);
     if (!parked) {
-      parked = new Float32Array(group.mesh.instanceMatrix.array);
+      parked = new Float32Array(group.matrices);
       this.parked.set(group, parked);
       this.hidden.set(group, new Uint8Array(group.ids.length));
     }
@@ -222,9 +249,9 @@ export class InstanceWriter {
     hidden[index] = visible ? 0 : 1;
     if (visible) {
       this.m.fromArray(parked, index * 16);
-      group.mesh.setMatrixAt(index, this.m);
+      this.m.toArray(group.matrices, index * 16);
     } else {
-      group.mesh.setMatrixAt(index, this.zero);
+      this.zero.toArray(group.matrices, index * 16);
     }
     this.dirtyMatrix.add(group);
   }
@@ -236,8 +263,12 @@ export class InstanceWriter {
     this.dirtyDissolve.add(slot.group);
   }
 
+  /** Groups whose authoritative matrices changed since the last flush —
+   * read by the LOD selector, which has to re-pack them. */
+  readonly touched = new Set<InstanceGroup>();
+
   flush(): void {
-    for (const group of this.dirtyMatrix) group.mesh.instanceMatrix.needsUpdate = true;
+    for (const group of this.dirtyMatrix) this.touched.add(group);
     for (const group of this.dirtyDissolve) group.dissolve.needsUpdate = true;
     this.dirtyMatrix.clear();
     this.dirtyDissolve.clear();

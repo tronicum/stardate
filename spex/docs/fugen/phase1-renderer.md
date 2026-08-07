@@ -977,12 +977,22 @@ site 400 m "away" does not need its studs.
 
 **Verification ladder.** 1, 2, 5 (**mandatory**), 7.
 
-**Status: 🟡 half done — LOD *generation* ships; LOD *selection* does not.**
-`crates/spex-mesh/src/lod.rs`, plus the change in `spex-ldraw` that makes it
-possible at all. The bundle still carries LOD0 only: a format that advertises
-levels no reader selects is a promise, not a feature. What remains is the
-writer emitting them and `instanced.ts` choosing between them per instance,
-with hysteresis, and the uniform-grid frustum cull.
+**Status: ✅ done.** `crates/spex-mesh/src/lod.rs` generates the levels, the
+bundle writer emits them, `viewer/src/mesh/lod.ts` selects between them per
+instance. Screenshots: `screenshots/m59-levels.png` (LOD0 / LOD1 / LOD2 of
+the same monolith), `m59-car.png`.
+
+**Additive, so no format version bump.** `parts[].lods[]` carries levels 1 and
+2; **level 0 remains the part entry's own buffers and counts** and is not a
+member of the array. A reader that ignores `lods` still gets full geometry.
+The buffer-path pattern gained an optional `.l1`/`.l2` infix and nothing else
+changed.
+
+**One packing function, three levels.** M59 turned the writer's loop body into
+`pack_level`: colour grouping, index packing, the winding reversal and the
+mirror handling all happen in one place, for every level. Anything a level did
+differently would be a bug, and one copy of the code is the only way to be
+sure it does not.
 
 **B5 is now actually fixed, not just relocated.** M51 gave every triangle and
 edge a `source`, but `sources` held the *leaf file name* — and that is not
@@ -1020,6 +1030,48 @@ windscreens and a steering wheel, which have no studs to remove.
 40-site Atlas scene (from M74)", a week-6 milestone gated on a week-17
 deliverable. It verifies against the synthetic 200 k-instance scene instead,
 and the real-Atlas measurement is an AC on M81. Frame rate is not asserted
-here for the reason recorded at M54's AC2.
+here for the reason recorded at M54's AC2 — what is:
+
+| 200 000 instances, 2 parts | |
+|---|---|
+| triangles at full detail | 44 000 000 |
+| triangles actually submitted | **2 400 000 — 94.5 % fewer** |
+| level population | 0 / 0 / 200 000 |
+| draw calls | 43 |
+| selection + full re-pack | **75.4 ms** |
+
+The 75.4 ms is the *worst* case and is recorded as a problem, not a result: it
+is a forced re-pack of every instance in every group. Steady state re-packs
+only the groups whose assignment actually changed, and a still camera costs
+one string compare. Bringing the worst case down is real work and belongs
+with M81's Atlas measurement.
+
+**AC2 passes, and getting an honest number out of it took two attempts.**
+Comparing consecutive frames of a dolly cannot answer "are the transitions
+visible", because the shot is changing too — at the far end a few-pixel object
+sits in a frame whose luminance is almost entirely ground, and the first run
+reported a 6.49 % "jump" that was the ground receding. The measurement that
+works renders **each frame twice**: once as selected, once with every instance
+pinned to LOD0, same camera. The difference is the LOD error and nothing else.
+
+Over a 60-frame dolly from 1× to ~150×, with the population moving
+9/0/0 → 1/8/0 → 0/9/0 → 0/0/9 (five distinct populations, so something really
+did switch): **largest LOD-induced luminance error 0.26 %**, against the 3 %
+AC2 allows.
+
+**A defect in the test harness, again, and a language one this time.** The
+dolly's first version wrote
+`c.position.copy(t).add(c.position.clone().sub(t).multiplyScalar(s))`.
+JavaScript evaluates `c.position.copy(t)` *before* the argument, so the clone
+was of the target: every frame parked the camera exactly on the object, the
+dolly went nowhere, and the test passed while proving nothing. It was caught
+only because the LOD population never changed — which is why that assertion
+is in there.
+
+**M57's edge gate moved from 40 px to 56 px** so the two systems agree:
+outlines switch off at the same size the studs they outline stop being drawn.
+The bands do not overlap, so edges-on-with-LOD1 cannot occur. (It *can* be
+forced, for the comparison screenshot, and then shows stud outlines with no
+studs — which is why that screenshot is taken with edges off.)
 
 ---

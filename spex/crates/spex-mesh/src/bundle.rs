@@ -154,6 +154,23 @@ pub struct PartBuffers {
     pub cond_edge: String,
 }
 
+/// One coarser level of one part. Same shape as the part's own level-0
+/// fields, because it is produced by exactly the same packing code.
+#[derive(Serialize)]
+pub struct LodEntry {
+    pub level: u8,
+    #[serde(rename = "vertexCount")]
+    pub vertex_count: usize,
+    #[serde(rename = "triangleCount")]
+    pub triangle_count: usize,
+    #[serde(rename = "hardEdgeCount")]
+    pub hard_edge_count: usize,
+    #[serde(rename = "conditionalEdgeCount")]
+    pub conditional_edge_count: usize,
+    pub buffers: PartBuffers,
+    pub submeshes: Vec<SubmeshRange>,
+}
+
 #[derive(Serialize)]
 pub struct PartEntry {
     pub index: usize,
@@ -171,9 +188,16 @@ pub struct PartEntry {
     pub bounds: Bounds,
     pub buffers: PartBuffers,
     pub submeshes: Vec<SubmeshRange>,
-    /// Real LDraw files this part's geometry came from — what M59's LOD pass
-    /// gates stud/tube removal on.
+    /// Real LDraw **reference chains** this part's geometry came from — what
+    /// M59's LOD pass gates stud/tube removal on. The chain, not the leaf:
+    /// the same primitive file is a stud in one chain and a wall in another.
     pub sources: Vec<String>,
+    /// Coarser levels, in ascending order: LOD1 (studs and tubes removed by
+    /// reference chain) and LOD2 (the part's box, 12 triangles + 12 edges).
+    /// **Level 0 is this entry's own `buffers`/counts**, not a member of this
+    /// array — so a reader that ignores `lods` entirely still gets full
+    /// geometry, which is why adding them did not need a format version bump.
+    pub lods: Vec<LodEntry>,
     pub license: Option<String>,
     pub author: Option<String>,
 }
@@ -245,6 +269,136 @@ pub struct Manifest {
     #[serde(rename = "instanceIds")]
     pub instance_ids: Vec<String>,
     pub attribution: Attribution,
+}
+
+
+/// Packs one level of one part: vertex/normal/index/edge buffers written to
+/// disk, plus the counts and submesh ranges that describe them.
+///
+/// M59 made this a function rather than the inside of a loop. Every level —
+/// LOD0's real geometry, LOD1 with its studs removed, LOD2's box — goes
+/// through exactly the same packing, colour grouping, winding reversal and
+/// mirror handling. Anything a level did differently would be a bug, and the
+/// only way to be sure of that is for there to be one copy of the code.
+struct PackedLevel {
+    buffers: PartBuffers,
+    submeshes: Vec<SubmeshRange>,
+    vertex_count: usize,
+    triangle_count: usize,
+    hard_edge_count: usize,
+    conditional_edge_count: usize,
+    min: [f64; 3],
+    max: [f64; 3],
+    bytes: u64,
+}
+
+fn pack_level(
+    out_dir: &Path,
+    prefix: &str,
+    geometry: &PartGeometry,
+    welded: &WeldedMesh,
+    material_index: &HashMap<u32, usize>,
+) -> Result<PackedLevel> {
+    let w = welded;
+    let mut pos = Vec::with_capacity(w.positions.len() * 12);
+    let mut nrm = Vec::with_capacity(w.normals.len() * 12);
+    let (mut mn, mut mx) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
+    for (v, n) in w.positions.iter().zip(w.normals.iter()) {
+        for k in 0..3 {
+            pos.extend_from_slice(&v[k].to_le_bytes());
+            nrm.extend_from_slice(&n[k].to_le_bytes());
+            mn[k] = mn[k].min(v[k] as f64);
+            mx[k] = mx[k].max(v[k] as f64);
+        }
+    }
+    if !mn[0].is_finite() {
+        mn = [0.0; 3];
+        mx = [0.0; 3];
+    }
+
+    // Triangles are grouped by colour so a submesh is one contiguous index
+    // range — a renderer draws each range with one material and never
+    // re-binds mid-buffer.
+    let mut by_color: Vec<(Option<u32>, Vec<u32>)> = Vec::new();
+    for (t, color) in w.triangle_colors.iter().enumerate() {
+        let slot = match by_color.iter().position(|(c, _)| c == color) {
+            Some(s) => s,
+            None => {
+                by_color.push((*color, Vec::new()));
+                by_color.len() - 1
+            }
+        };
+        by_color[slot].1.extend_from_slice(&w.indices[t * 3..t * 3 + 3]);
+    }
+    let mut idx = Vec::new();
+    let mut submeshes = Vec::new();
+    let mut offset = 0usize;
+    for (color, ids) in &by_color {
+        for id in ids {
+            idx.extend_from_slice(&id.to_le_bytes());
+        }
+        submeshes.push(SubmeshRange {
+            material: color.map(|c| material_index.get(&c).copied().unwrap_or(0)),
+            index_offset: offset,
+            index_count: ids.len(),
+        });
+        offset += ids.len();
+    }
+
+    let mut edge = Vec::new();
+    let mut cond = Vec::new();
+    let (mut hard_n, mut cond_n) = (0usize, 0usize);
+    for e in &geometry.edges {
+        let a = to_output_position(e.vertices[0]);
+        let b = to_output_position(e.vertices[1]);
+        match &e.kind {
+            EdgeKind::Hard => {
+                for v in [a, b] {
+                    for k in 0..3 {
+                        edge.extend_from_slice(&(v[k] as f32).to_le_bytes());
+                    }
+                }
+                hard_n += 1;
+            }
+            EdgeKind::Conditional { control } => {
+                let c0 = to_output_position(control[0]);
+                let c1 = to_output_position(control[1]);
+                for v in [a, b, c0, c1] {
+                    for k in 0..3 {
+                        cond.extend_from_slice(&(v[k] as f32).to_le_bytes());
+                    }
+                }
+                cond_n += 1;
+            }
+        }
+    }
+
+    let mut bytes = 0u64;
+    let mut written = Vec::new();
+    for (name, data) in [("pos", &pos), ("nrm", &nrm), ("idx", &idx), ("edge", &edge), ("cond", &cond)] {
+        let rel = format!("buffers/{prefix}.{name}.bin");
+        std::fs::write(out_dir.join(&rel), data).with_context(|| format!("writing {rel}"))?;
+        bytes += data.len() as u64;
+        written.push(rel);
+    }
+
+    Ok(PackedLevel {
+        buffers: PartBuffers {
+            position: written[0].clone(),
+            normal: written[1].clone(),
+            index: written[2].clone(),
+            hard_edge: written[3].clone(),
+            cond_edge: written[4].clone(),
+        },
+        submeshes,
+        vertex_count: w.vertex_count(),
+        triangle_count: w.triangle_count(),
+        hard_edge_count: hard_n,
+        conditional_edge_count: cond_n,
+        min: mn,
+        max: mx,
+        bytes,
+    })
 }
 
 // ------------------------------------------------------------- builder ----
@@ -456,111 +610,60 @@ impl MeshBundleBuilder {
         let mut global = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
 
         for (i, p) in self.parts.iter().enumerate() {
-            stats.lod1_triangles += crate::lod::lod1(&p.geometry).triangles.len();
-            stats.lod2_triangles += crate::lod::lod2(&p.geometry).triangles.len();
-            let w = &p.welded;
-            let mut pos = Vec::with_capacity(w.positions.len() * 12);
-            let mut nrm = Vec::with_capacity(w.normals.len() * 12);
-            let (mut mn, mut mx) = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
-            for (v, n) in w.positions.iter().zip(w.normals.iter()) {
-                for k in 0..3 {
-                    pos.extend_from_slice(&v[k].to_le_bytes());
-                    nrm.extend_from_slice(&n[k].to_le_bytes());
-                    mn[k] = mn[k].min(v[k] as f64);
-                    mx[k] = mx[k].max(v[k] as f64);
+            // LOD0 is the part as resolved; LOD1 drops studs and tubes by
+            // real reference chain; LOD2 is its box. All three are packed by
+            // the same function, so none of them can quietly differ.
+            let lod0 = pack_level(out_dir, &format!("p{i}"), &p.geometry, &p.welded, &self.material_index)?;
+            bytes += lod0.bytes;
+
+            let mut lods = Vec::new();
+            for (level, geo) in [(1u8, crate::lod::lod1(&p.geometry)), (2u8, crate::lod::lod2(&p.geometry))] {
+                let welded = weld_and_smooth(&to_output_triangles(&geo), self.crease_degrees);
+                let packed = pack_level(out_dir, &format!("p{i}.l{level}"), &geo, &welded, &self.material_index)?;
+                bytes += packed.bytes;
+                if level == 1 {
+                    stats.lod1_triangles += packed.triangle_count;
+                } else {
+                    stats.lod2_triangles += packed.triangle_count;
                 }
-            }
-            // Triangles are grouped by colour so a submesh is one contiguous
-            // index range — a renderer draws each range with one material and
-            // never re-binds mid-buffer.
-            let mut by_color: Vec<(Option<u32>, Vec<u32>)> = Vec::new();
-            for (t, color) in w.triangle_colors.iter().enumerate() {
-                let slot = match by_color.iter().position(|(c, _)| c == color) {
-                    Some(s) => s,
-                    None => {
-                        by_color.push((*color, Vec::new()));
-                        by_color.len() - 1
-                    }
-                };
-                by_color[slot].1.extend_from_slice(&w.indices[t * 3..t * 3 + 3]);
-            }
-            let mut idx = Vec::new();
-            let mut submeshes = Vec::new();
-            let mut offset = 0usize;
-            for (color, ids) in &by_color {
-                for id in ids {
-                    idx.extend_from_slice(&id.to_le_bytes());
-                }
-                submeshes.push(SubmeshRange {
-                    material: color.map(|c| self.material_index.get(&c).copied().unwrap_or(0)),
-                    index_offset: offset,
-                    index_count: ids.len(),
+                lods.push(LodEntry {
+                    level,
+                    vertex_count: packed.vertex_count,
+                    triangle_count: packed.triangle_count,
+                    hard_edge_count: packed.hard_edge_count,
+                    conditional_edge_count: packed.conditional_edge_count,
+                    buffers: packed.buffers,
+                    submeshes: packed.submeshes,
                 });
-                offset += ids.len();
             }
 
-            let mut edge = Vec::new();
-            let mut cond = Vec::new();
-            let (mut hard_n, mut cond_n) = (0usize, 0usize);
-            for e in &p.geometry.edges {
-                let a = to_output_position(e.vertices[0]);
-                let b = to_output_position(e.vertices[1]);
-                match &e.kind {
-                    EdgeKind::Hard => {
-                        for v in [a, b] {
-                            for k in 0..3 {
-                                edge.extend_from_slice(&(v[k] as f32).to_le_bytes());
-                            }
-                        }
-                        hard_n += 1;
-                    }
-                    EdgeKind::Conditional { control } => {
-                        let c0 = to_output_position(control[0]);
-                        let c1 = to_output_position(control[1]);
-                        for v in [a, b, c0, c1] {
-                            for k in 0..3 {
-                                cond.extend_from_slice(&(v[k] as f32).to_le_bytes());
-                            }
-                        }
-                        cond_n += 1;
-                    }
-                }
-            }
+            let (mn, mx) = (lod0.min, lod0.max);
+            let buffers = lod0.buffers;
+            let submeshes = lod0.submeshes;
+            let (hard_n, cond_n) = (lod0.hard_edge_count, lod0.conditional_edge_count);
+            let vertex_count = lod0.vertex_count;
+            let triangle_count = lod0.triangle_count;
 
-            let mut written = Vec::new();
-            for (name, data) in [("pos", &pos), ("nrm", &nrm), ("idx", &idx), ("edge", &edge), ("cond", &cond)] {
-                let rel = format!("buffers/p{i}.{name}.bin");
-                std::fs::write(out_dir.join(&rel), data)
-                    .with_context(|| format!("writing {rel}"))?;
-                bytes += data.len() as u64;
-                written.push(rel);
-            }
-            let buffers = PartBuffers {
-                position: written[0].clone(),
-                normal: written[1].clone(),
-                index: written[2].clone(),
-                hard_edge: written[3].clone(),
-                cond_edge: written[4].clone(),
-            };
-
-            stats.total_vertices += w.vertex_count();
-            stats.total_triangles += w.triangle_count();
+            stats.total_vertices += vertex_count;
+            stats.total_triangles += triangle_count;
             stats.total_hard_edges += hard_n;
             stats.total_conditional_edges += cond_n;
+
 
             part_local_bounds.push(([mn[0], mn[1], mn[2]], [mx[0], mx[1], mx[2]]));
             parts.push(PartEntry {
                 index: i,
                 part_file: p.part_file.clone(),
                 description: p.geometry.description.clone(),
-                vertex_count: w.vertex_count(),
-                triangle_count: w.triangle_count(),
+                vertex_count,
+                triangle_count,
                 hard_edge_count: hard_n,
                 conditional_edge_count: cond_n,
                 bounds: Bounds { min: mn, max: mx },
                 buffers,
                 submeshes,
                 sources: p.geometry.sources.clone(),
+                lods,
                 license: p.geometry.license.clone(),
                 author: p.geometry.author.clone(),
             });

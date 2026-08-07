@@ -29,6 +29,27 @@ export interface Submesh {
   indexCount: number;
 }
 
+/** A coarser level of one part (M59). Level 0 is the part's own buffers and
+ * counts, not a member of `lods` — so ignoring this field entirely still
+ * yields full geometry, which is why adding LODs needed no version bump. */
+export interface MeshLod {
+  level: 1 | 2;
+  vertexCount: number;
+  triangleCount: number;
+  hardEdgeCount: number;
+  conditionalEdgeCount: number;
+  buffers: PartBufferPaths;
+  submeshes: Submesh[];
+}
+
+export interface PartBufferPaths {
+  position: string;
+  normal: string;
+  index: string;
+  hardEdge: string;
+  condEdge: string;
+}
+
 export interface MeshPart {
   index: number;
   partFile: string;
@@ -38,15 +59,11 @@ export interface MeshPart {
   hardEdgeCount: number;
   conditionalEdgeCount: number;
   bounds: Bounds;
-  buffers: {
-    position: string;
-    normal: string;
-    index: string;
-    hardEdge: string;
-    condEdge: string;
-  };
+  buffers: PartBufferPaths;
   submeshes: Submesh[];
   sources: string[];
+  /** Absent in bundles written before M59. */
+  lods?: MeshLod[];
   license: string | null;
   author: string | null;
 }
@@ -178,19 +195,41 @@ async function fetchTyped<T>(
 /** Fetches every part's buffers in parallel. These are read straight into
  * typed arrays and handed to WebGL unchanged — no per-element JS loop and no
  * intermediate JSON, which is the entire reason the format is binary. */
+async function fetchLevel(baseUrl: string, paths: PartBufferPaths): Promise<PartBuffers> {
+  const [position, normal, index, hardEdge, condEdge] = await Promise.all([
+    fetchTyped(baseUrl, paths.position, Float32Array),
+    fetchTyped(baseUrl, paths.normal, Float32Array),
+    fetchTyped(baseUrl, paths.index, Uint32Array),
+    fetchTyped(baseUrl, paths.hardEdge, Float32Array),
+    fetchTyped(baseUrl, paths.condEdge, Float32Array),
+  ]);
+  return { position, normal, index, hardEdge, condEdge };
+}
+
+/** Every LOD of every part, keyed `part` for level 0 and `part:level`
+ * otherwise. They are all fetched up front and on purpose: an LOD is a few
+ * dozen triangles next to a few hundred, so the whole set costs less than one
+ * more brick, and a level that arrives mid-dolly is a visible pop. */
+export async function fetchMeshLodBuffers(
+  baseUrl: string,
+  bundle: MeshBundle,
+): Promise<Map<string, PartBuffers>> {
+  const jobs: Array<Promise<[string, PartBuffers]>> = [];
+  for (const part of bundle.parts) {
+    for (const lod of part.lods ?? []) {
+      jobs.push(fetchLevel(baseUrl, lod.buffers).then((b) => [`${part.index}:${lod.level}`, b]));
+    }
+  }
+  return new Map(await Promise.all(jobs));
+}
+
 export async function fetchMeshBuffers(
   baseUrl: string,
   bundle: MeshBundle,
 ): Promise<Map<number, PartBuffers>> {
   const entries = await Promise.all(
     bundle.parts.map(async (part): Promise<[number, PartBuffers]> => {
-      const [position, normal, index, hardEdge, condEdge] = await Promise.all([
-        fetchTyped(baseUrl, part.buffers.position, Float32Array),
-        fetchTyped(baseUrl, part.buffers.normal, Float32Array),
-        fetchTyped(baseUrl, part.buffers.index, Uint32Array),
-        fetchTyped(baseUrl, part.buffers.hardEdge, Float32Array),
-        fetchTyped(baseUrl, part.buffers.condEdge, Float32Array),
-      ]);
+      const { position, normal, index, hardEdge, condEdge } = await fetchLevel(baseUrl, part.buffers);
       if (position.length !== part.vertexCount * 3) {
         throw new Error(
           `${part.partFile}: position buffer holds ${position.length / 3} vertices, manifest says ${part.vertexCount}`,

@@ -56,7 +56,11 @@ export const DEFAULT_DEPTH_BIAS = 0;
  * threshold at ~40 px: at Atlas distance every brick's outline merges into
  * one black mass anyway, so drawing them costs a fortune and buys a worse
  * picture. */
-export const MIN_PROJECTED_HEIGHT_PX = 40;
+/** Raised from 40 to 56 by M59 so that this agrees with the LOD1 promote
+ * threshold: geometric outlines switch off at exactly the size the studs
+ * they outline stop being drawn. An outline of a stud that is not there is
+ * worse than no outline. */
+export const MIN_PROJECTED_HEIGHT_PX = 56;
 
 /** Hard ceiling on geometric edge quads for a whole scene.
  *
@@ -230,7 +234,10 @@ function matrixTexture(group: InstanceGroup): THREE.DataTexture {
   const rows = Math.ceil(count / MATRICES_PER_ROW);
   const width = MATRICES_PER_ROW * TEXELS_PER_MATRIX;
   const data = new Float32Array(width * rows * 4);
-  data.set(group.mesh.instanceMatrix.array as Float32Array);
+  // `group.matrices`, not `group.mesh.instanceMatrix`: M59 re-packs the LOD
+  // meshes every time an instance changes level, so their row order is not
+  // instance order any more. An edge indexes an *instance*.
+  data.set(group.matrices);
   const tex = new THREE.DataTexture(data, width, rows, THREE.RGBAFormat, THREE.FloatType);
   tex.needsUpdate = true;
   return tex;
@@ -446,9 +453,7 @@ export class EdgeRenderer {
    * frame that moved a brick. */
   syncMatrices() {
     for (const g of this.groups) {
-      (g.matrixTexture.image.data as Float32Array).set(
-        g.source.mesh.instanceMatrix.array as Float32Array,
-      );
+      (g.matrixTexture.image.data as Float32Array).set(g.source.matrices);
       g.matrixTexture.needsUpdate = true;
     }
   }
