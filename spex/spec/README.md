@@ -25,7 +25,7 @@ isn't just aspirational prose, it's enforced against real output.
 | `sequence.json` | [`sequence.schema.json`](sequence.schema.json) | `spex frame-sequence` (`crates/spex-cli/src/frame_sequence.rs`) | viewer (`fetchSequence`, real frame-advance playback) |
 | `mesh.json` | [`mesh.schema.json`](mesh.schema.json) | `spex-mesh` (`crates/spex-mesh/src/bundle.rs`) | the viewer's mesh render mode (M54) |
 | `show.json` | [`show.schema.json`](show.schema.json) | hand-authored (`shows/*.show.json`) | `spex-show` (`crates/spex-show/src/model.rs`), `spex show-build` |
-| `show-resolved.json` | [`show-resolved.schema.json`](show-resolved.schema.json) | `spex show-build` (M61) | the runtime show engine (M62+) |
+| `show-resolved.json` | [`show-resolved.schema.json`](show-resolved.schema.json) | `spex show-build` (`crates/spex-cli/src/show.rs`) | the runtime show engine (M62+) |
 
 `octree/<node-id>.bin` (the point data itself) is a small binary format, not
 JSON — see the "Tileset format" section of `CLAUDE.md`: `u32` LE point
@@ -94,6 +94,9 @@ far; the remaining acts are authored in Phase 5). It and a deliberately
 minimal one are validated against the schema by
 `crates/spex-show/tests/documents.rs`, which also checks the document
 against `spex_show::model` — a format with two readers needs both to agree.
+Real `spex show-build` output is validated against the resolved schema by
+`crates/spex-cli/tests/schema_validation.rs`, which also asserts that two
+runs at the same seed are byte-identical.
 
 ## Notes for anything reading these directly
 

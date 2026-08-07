@@ -89,6 +89,7 @@ fn a_minimal_resolved_document_validates() {
                      "barSeconds": 2.857142857142857, "beatSeconds": 0.7142857142857143 },
           "targetSec": 5.714285714285714,
           "durationSec": 5.714285714285714,
+          "beatAligned": true,
           "endless": false,
           "seed": 0,
           "scenes": [{ "id": "brick", "prefix": "brick", "bundle": "bundles/brick", "instanceCount": 1 }],
@@ -105,7 +106,7 @@ fn a_minimal_resolved_document_validates() {
                 "keys": [{ "timeSec": 2.857142857142857, "easing": "linear", "value": { "fovDeg": 28 } }] },
               "tracks": [
                 { "kind": "dissolve",
-                  "target": { "glob": "brick/*", "scene": "brick", "instances": [0] },
+                  "target": { "glob": "brick/**", "scene": "brick", "instances": [0] },
                   "keys": [{ "timeSec": 2.857142857142857, "value": 1, "easing": "step" }] }
               ],
               "cues": [{ "timeSec": 4, "kind": "marker", "shotId": "S02", "payload": {} }] }
@@ -215,6 +216,72 @@ fn every_scene_a_shot_names_is_defined() {
                 defined.contains(&scene.as_str()),
                 "{}/{} references undefined scene {scene:?}",
                 movement.id,
+                shot.id
+            );
+        }
+    }
+}
+
+/// Keyframes authored at the same shot-local `t` must resolve to the same
+/// absolute second.
+///
+/// A1-S03 briefly did not. Its crossfade and its edge arrival were marked
+/// `snapToBeat` and its rotation was not, so the resolver moved two of the
+/// three onto beat 51 and left the third 0.343 s earlier — the brick began
+/// turning before the outlines it was meant to reveal had arrived. Nothing
+/// failed; the numbers were simply different, and only reading the resolved
+/// output showed it. That is the failure mode beat snapping has, so this is
+/// the check it gets.
+#[test]
+fn keys_authored_at_the_same_moment_resolve_to_the_same_moment() {
+    use std::collections::BTreeMap;
+
+    let path = repo_root().join("shows/die-geschichtliche-matrix.show.json");
+    let show = spex_show::load(&path).unwrap();
+    let resolved = spex_show::resolve(
+        &show,
+        &spex_show::ResolveOptions { target_sec: 240.0, seed: show.seed, endless: false },
+    )
+    .unwrap();
+
+    let key_times = |t: &spex_show::ResolvedTrack| -> Vec<f64> {
+        match t {
+            spex_show::ResolvedTrack::Transform { keys, .. } => keys.iter().map(|k| k.time_sec).collect(),
+            spex_show::ResolvedTrack::Dissolve { keys, .. }
+            | spex_show::ResolvedTrack::Material { keys, .. }
+            | spex_show::ResolvedTrack::Post { keys, .. }
+            | spex_show::ResolvedTrack::Hud { keys, .. }
+            | spex_show::ResolvedTrack::PointCloud { keys, .. } => keys.iter().map(|k| k.time_sec).collect(),
+        }
+    };
+    let src_times = |t: &spex_show::Track| -> Vec<f64> {
+        match t {
+            spex_show::Track::Transform { keys, .. } => keys.iter().map(|k| k.t).collect(),
+            spex_show::Track::Dissolve { keys, .. }
+            | spex_show::Track::Material { keys, .. }
+            | spex_show::Track::Post { keys, .. }
+            | spex_show::Track::Hud { keys, .. }
+            | spex_show::Track::PointCloud { keys, .. } => keys.iter().map(|k| k.t).collect(),
+        }
+    };
+
+    for (_, shot) in show.shots() {
+        let Some(rshot) = resolved.shots.iter().find(|s| s.id == shot.id) else { continue };
+        // Authored t (as an exact bit pattern, since these are literals in the
+        // document) -> the absolute seconds it resolved to.
+        let mut by_t: BTreeMap<u64, Vec<f64>> = BTreeMap::new();
+        for (src, res) in shot.tracks.iter().zip(rshot.tracks.iter()) {
+            for (t, sec) in src_times(src).into_iter().zip(key_times(res)) {
+                by_t.entry(t.to_bits()).or_default().push(sec);
+            }
+        }
+        for (bits, secs) in by_t {
+            let t = f64::from_bits(bits);
+            let first = secs[0];
+            assert!(
+                secs.iter().all(|s| (s - first).abs() < 1e-9),
+                "{}: keys authored at t={t} resolved to {secs:?} — one of them is missing \
+                 `snapToBeat`, so the beat they were meant to share is not shared",
                 shot.id
             );
         }

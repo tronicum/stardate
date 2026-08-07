@@ -13,6 +13,7 @@ mod nav;
 mod npm_deps;
 mod ps_tree;
 mod pstree_demo;
+mod show;
 mod sql_schema;
 mod trace;
 
@@ -215,6 +216,50 @@ enum Command {
     },
 
     /// Render a full real multi-part LDraw scene as a MESH bundle. Each
+    /// Compile an authored show.json into a playable show directory: every
+    /// scene built as a real mesh bundle, the timeline resolved for ONE
+    /// duration and ONE seed, every instance-id glob bound to an index list.
+    /// The 4:00, 10:00 and 60:00 cuts are three resolutions of one document,
+    /// not three edits.
+    ShowBuild {
+        /// The authored document, e.g. shows/die-geschichtliche-matrix.show.json
+        show: PathBuf,
+
+        /// Output show directory.
+        #[arg(short, long)]
+        out: PathBuf,
+
+        /// Target duration in seconds. Defaults to the document's own
+        /// baseDurationBars. Tier 2 material appears from 600, tier 3 from 3600.
+        #[arg(long)]
+        duration: Option<f64>,
+
+        /// Resolve like the canonical cut and mark the output for looping.
+        #[arg(long)]
+        endless: bool,
+
+        /// Edition seed. Defaults to the document's own.
+        #[arg(long)]
+        seed: Option<u64>,
+
+        /// Resolve the timeline only — no geometry, no bundles. Seconds
+        /// instead of minutes when all you need is the arithmetic.
+        #[arg(long)]
+        no_bundles: bool,
+
+        /// Build the scenes that have a generator and drop the ones that do
+        /// not (build/flag/heritage sources, M72/M73/M75), naming each.
+        #[arg(long)]
+        skip_unbuildable: bool,
+
+        #[arg(long, default_value_t = spex_mesh::DEFAULT_CREASE_DEGREES)]
+        crease: f64,
+
+        /// Local cache directory for fetched real LDraw files.
+        #[arg(long, default_value = ".ldraw-cache")]
+        cache_dir: PathBuf,
+    },
+
     /// distinct real part is resolved exactly once no matter how many times
     /// the scene places it, and — because the geometry carries no colour —
     /// one mesh serves every colour it is placed in.
@@ -530,6 +575,12 @@ fn main() -> Result<()> {
         } => cmd_brick_cinematic(hero, scene, hero_points, hero_frames, hero_revolutions, scene_points, scene_frames, fps, out, &cache_dir),
         Command::MeshPart { part, color, crease, out, cache_dir } => cmd_mesh_part(part, color, crease, out, &cache_dir),
         Command::MeshModel { model, crease, out, cache_dir } => cmd_mesh_model(model, crease, out, &cache_dir),
+        Command::ShowBuild { show, out, duration, endless, seed, no_bundles, skip_unbuildable, crease, cache_dir } => show::build(
+            &show,
+            &out,
+            &cache_dir,
+            &show::BuildOptions { target_sec: duration, seed, endless, no_bundles, skip_unbuildable, crease },
+        ),
         Command::Serve {
             tileset_dir,
             port,

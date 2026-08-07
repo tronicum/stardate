@@ -184,3 +184,60 @@ fn mesh_bundle_matches_its_schema_and_is_deterministic() {
     }
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+/// M60's AC3, met by M61: a **real** `spex show-build` output validates
+/// against `show-resolved.schema.json`.
+///
+/// `--no-bundles` on purpose. This asserts something about the *timeline*, and
+/// building the geometry would make the check depend on a live LDraw fetch —
+/// which is why the mesh test above is `#[ignore]`d. The scene bindings are
+/// covered by `spex-show`'s own tests against real bundle ids.
+///
+/// It also checks AC4's core claim on the artefact that actually ships: two
+/// runs with the same seed produce byte-identical JSON. Determinism here is
+/// not tidiness — an edition is identified by its seed, and a seed that does
+/// not reproduce its edition identifies nothing.
+#[test]
+fn show_build_output_matches_its_schema_and_is_deterministic() {
+    let dir = std::env::temp_dir().join(format!("spex-show-test-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+    let show = repo_root().join("shows/die-geschichtliche-matrix.show.json");
+
+    let run = |out: &Path| {
+        let status = Command::new(spex_bin())
+            .arg("show-build")
+            .arg(&show)
+            .arg("-o")
+            .arg(out)
+            .args(["--duration", "240", "--no-bundles"])
+            .status()
+            .expect("running spex show-build");
+        assert!(status.success(), "spex show-build failed");
+    };
+
+    let a = dir.join("a");
+    let b = dir.join("b");
+    run(&a);
+    run(&b);
+
+    validate(&a.join("show-resolved.json"), "show-resolved.schema.json");
+
+    let ja = std::fs::read(a.join("show-resolved.json")).unwrap();
+    let jb = std::fs::read(b.join("show-resolved.json")).unwrap();
+    assert_eq!(ja, jb, "two runs with the same seed produced different bytes");
+
+    // The number the whole milestone is about. 240.000, not 239.997.
+    let doc: serde_json::Value = serde_json::from_slice(&ja).unwrap();
+    let total: f64 = doc["shots"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|s| s["durationSec"].as_f64().unwrap())
+        .sum();
+    assert!((total - 240.0).abs() < 1e-3, "the shots sum to {total}, not 240.000");
+    assert!((doc["durationSec"].as_f64().unwrap() - 240.0).abs() < 1e-3);
+    assert_eq!(doc["beatAligned"], serde_json::json!(true));
+
+    let _ = std::fs::remove_dir_all(&dir);
+}

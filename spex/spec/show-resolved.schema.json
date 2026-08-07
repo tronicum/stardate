@@ -13,6 +13,7 @@
     "tempo",
     "targetSec",
     "durationSec",
+    "beatAligned",
     "endless",
     "seed",
     "scenes",
@@ -47,6 +48,10 @@
       "type": "number",
       "exclusiveMinimum": 0,
       "description": "What was produced. Equals `targetSec` to within 1 ms by construction — it is written separately anyway so a consumer can check rather than trust."
+    },
+    "beatAligned": {
+      "type": "boolean",
+      "description": "Whether every shot boundary landed on a beat of the grid. True for the three canonical cuts, whose targets are whole numbers of beats (336, 840, 5040) — the resolver rounds each duration to a whole beat by largest remainder, which sums to the target by construction. False only when a caller asked for a duration that is not beat-aligned; the total is still exact, the boundaries are just wherever the water-filling put them."
     },
     "endless": {
       "type": "boolean",
@@ -165,12 +170,16 @@
           "additionalProperties": false,
           "properties": {
             "position": { "$ref": "#/$defs/vec3" },
+            "rotation": {
+              "$ref": "#/$defs/vec3",
+              "description": "Euler XYZ in degrees, passed through from the source rather than converted to a quaternion. The conversion looks like an obvious simplification and is a trap: a quaternion pair cannot express a rotation of more than 180 degrees, because slerp always takes the short way round, so A1-S03's single full revolution (0 to 360 about Y) would resolve to a brick that does not turn at all. Any rotation whose swing exceeds a half-turn MUST be authored as Euler."
+            },
             "quaternion": {
               "type": "array",
               "minItems": 4,
               "maxItems": 4,
               "items": { "type": "number" },
-              "description": "Always a quaternion here: Euler degrees in the source are converted once during resolution, so the player never has to know the rotation order and two authorings of the same rotation cannot interpolate differently."
+              "description": "Wins over `rotation` when both are present. Correct for any swing up to a half-turn, and unambiguous about axis order — which is why it is the better choice everywhere it can be used."
             },
             "scale": { "type": "number" }
           }

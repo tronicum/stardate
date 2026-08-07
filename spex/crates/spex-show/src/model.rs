@@ -308,7 +308,7 @@ pub enum Track {
     PointCloud { target: String, keys: Vec<Keyframe<f64>> },
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum CameraMode {
     Keyed,

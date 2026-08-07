@@ -11,8 +11,16 @@
 //! renderer, because the schema tests, the CLI and eventually the viewer all
 //! need to read one in contexts where none of those exist.
 
+pub mod compile;
 pub mod model;
+pub mod resolve;
 
+pub use compile::{bind_targets, glob_matches, SceneInstances};
+pub use resolve::{
+    resolve, ResolveOptions, ResolvedCameraTrack, ResolvedCue, ResolvedKey, ResolvedScene,
+    ResolvedShot, ResolvedShow, ResolvedTempo, ResolvedTrack, TargetBinding,
+    RESOLVED_FORMAT_VERSION,
+};
 pub use model::{
     validate, CameraMode, CameraTrack, CameraValue, Credits, Cue, CueKind, DollySpec,
     Easing, Keyframe, MaterialProperty, Movement, OrbitSpec, PostProperty, RepeatSpec, Scaling,

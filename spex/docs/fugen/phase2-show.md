@@ -174,9 +174,11 @@ piece of geometry, or the crossfade cannot converge). 16 tests pass.
   inventing a shape with no producer and no consumer, and every guess would
   be frozen into version 1. It lands with M67.
 
-**AC3 moved to M61.** It validates a real `spex show-build` output, and
-`show-build` is M61's binary — the criterion could not be met here by
-anything except a hand-written file pretending to be output. What *was* done
+**AC3 moved to M61 — and is now met there.** It validates a real
+`spex show-build` output, and `show-build` is M61's binary — the criterion
+could not be met here by anything except a hand-written file pretending to be
+output. `crates/spex-cli/tests/schema_validation.rs::show_build_output_matches_its_schema_and_is_deterministic`
+is the real thing. What *was* done
 instead: `crates/spex-show/tests/documents.rs` hand-writes a minimal
 `show-resolved.json` and validates it, because a schema that has never had a
 valid instance is a schema nobody has checked. That fixture is now the
@@ -285,6 +287,95 @@ writes:
 4. `show-build` is deterministic: same seed → byte-identical output.
 
 **Verification ladder.** 1, 2, 3. (6 runs at the end of the phase.)
+
+**Status: ✅ done.** `crates/spex-show/src/resolve.rs` and `compile.rs`,
+`crates/spex-cli/src/show.rs` and `main.rs`. 36 tests pass.
+
+**The split is not the one the file list implies, and the reason is Phase 6.**
+`compile.rs` binds globs to instance indices and nothing else; the scene
+*building* lives in `crates/spex-cli/src/show.rs`. `spex-show` therefore still
+depends on nothing but serde — which matters because
+[`phase6-wasm.md`](phase6-wasm.md) exposes `resolve_show(show_json, …)` to the
+browser, and a resolver that dragged the whole LDraw part resolver behind it
+would be the reason that wasm bundle is measured in megabytes. Resolving a
+timeline is arithmetic over text; it should link like it.
+
+**Two additions to the algorithm as specified.**
+
+- **Step 6 quantises to beats, not just `snapToBeat` keyframes.** Water-filling
+  produces arbitrary reals, and the screenplay's own rule is that cuts land on
+  the grid — so when the target is a whole number of beats *and* every fixed
+  shot is (336 / 840 / 5040 beats for the three cuts), every duration is
+  rounded to a whole beat by **largest remainder**, which sums to the target
+  *by construction* rather than approximately. Beats and not bars because the
+  screenplay itself contains a half-bar shot: DER KICK is two beats, and a bar
+  grid could not represent it. When a caller asks for a duration that is not
+  beat-aligned the continuous solution is kept and `beatAligned: false` says
+  so — the total is exact either way.
+- **The unreachable-target message had to stop inventing tiers.** At 3600 s
+  every tier is already in, so "add tier-4 material" is advice about something
+  that does not exist. It now says the document is too short.
+
+**AC1 passes.** 200 pseudo-random `(weight, min, max, scaling, tier)`
+configurations against targets in [60, 7200]: every one either resolves to
+within 1 ms of its target or refuses with a reason, and the test asserts that
+**both** outcomes occur — a property test where nothing is ever refused is
+only testing the easy half. splitmix64 rather than a crate, so a failure is
+reproducible from the seed in the panic.
+
+**AC2 passes for 240; 600 and 3600 correctly refuse, and that is the honest
+result.** The document is Act I only — 17 bars, six shots, whose `maxBars`
+add up to 108 bars = 308.571 s. There is no arrangement of six shots that
+fills ten minutes, and the resolver says exactly that: *"the clamps make
+600.000 s unreachable: the timeline resolves to 308.571 s, -291.429 s off."*
+Making that AC pass by widening a maximum would be authoring the piece to fit
+its test. The resolver's ability to hit 240 / 600 / 3600 exactly is proven
+against a document that can reach them
+(`the_three_canonical_cuts_are_exact_to_the_millisecond`); this AC becomes
+meetable on the real document when Phase 5 authors Acts II–IV.
+
+**AC3 passes** on synthetic documents, for the same reason: Act I has no
+tier-2 or tier-3 material yet. 240 s keeps tier 1 only, 599 s still does,
+600 s admits tier 2, 3600 s admits tier 3.
+
+**AC4 passes**, with its scope stated: two runs of the real `spex show-build`
+at the same seed are byte-identical. Nothing in the resolver *consults* the
+seed yet — the seeded choices are M74's site selection and M82's cycle
+advance — so today this asserts the weaker true thing, and keeps asserting the
+right one once those land. What it does prove now is that the largest-remainder
+tie-break is order-stable, which is the only place floating point could have
+made two runs differ.
+
+**Measured on the real document at 240 s.** Boundaries `5.714 | 20.000 |
+31.429 | 40.000 | 71.429 | 71.429`, every one on a beat, summing to 240.000.
+A1-S02, S03 and S04 all resolve **at their ceilings** (7 / 11 / 14 bars) and
+S05 and S06 absorb the rest at equal weight — which is the water-filling doing
+visibly what it is for, and also a note for Phase 5: three of Act I's six
+shots have no headroom left at four minutes.
+
+**One real defect, and only reading the output found it.** A1-S03 keys three
+tracks at the same shot-local `t`: the point-cloud crossfade, the edge arrival
+and the start of the brick's revolution. Two were marked `snapToBeat` and the
+third was not, so the resolver put two on beat 51 and left the third 0.343 s
+earlier — the brick began turning before the outlines it exists to reveal had
+arrived. Nothing failed. No test was red, no console printed anything; the
+numbers were simply different. There is now a test that every key authored at
+the same `t` within a shot resolves to the same second, which is the failure
+mode beat snapping actually has.
+
+**`--no-bundles` and `--skip-unbuildable` are both consequences of honesty.**
+The Act I document references `heritage/stonehenge`, whose generator is M73.
+Building it silently without that scene would produce a show that is missing
+its last image and says nothing about it, so `show-build` fails and names the
+milestone; `--skip-unbuildable` is the explicit opt-in, and it then prints
+every dropped scene and every target left matching nothing. `--no-bundles`
+resolves the timeline alone, which is what the duration arithmetic and the
+schema tests want, and turns a live LDraw fetch into a few milliseconds.
+
+**`spex show` and `show-export` are deferred to M66**, where the runtime that
+would play a show directory exists. A verb that serves a directory no viewer
+can read yet is a verb that only looks finished.
+
 ---
 
 ### M62 — the clock and the timeline evaluator

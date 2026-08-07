@@ -155,7 +155,7 @@
               "kind": "transform",
               "target": "brick/**",
               "keys": [
-                { "t": 0.33, "easing": "linear", "value": { "rotation": [0, 0, 0] } },
+                { "t": 0.33, "easing": "linear", "value": { "rotation": [0, 0, 0] }, "snapToBeat": true },
                 { "t": 1, "easing": "linear", "value": { "rotation": [0, 360, 0] } }
               ]
             }

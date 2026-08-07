@@ -2501,6 +2501,7 @@ dependencies = [
  "spex-ldraw",
  "spex-mesh",
  "spex-server",
+ "spex-show",
  "spex-tiler",
  "tempfile",
 ]
