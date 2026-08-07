@@ -556,6 +556,88 @@ except that one.
 3. `?free=1` gives full orbit control without breaking the timeline.
 
 **Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
+
+**Status: ✅ done.** `viewer/src/show/camera.ts`, a radial-blur pass in
+`viewer/src/mesh/post.ts`, and `scripts/viewer-shot/kick.mjs`.
+Screenshots: [`m63-kick-start.png`](screenshots/m63-kick-start.png),
+[`m63-kick-mid.png`](screenshots/m63-kick-mid.png),
+[`m63-kick-end.png`](screenshots/m63-kick-end.png).
+
+**The last frame is the piece's own last frame, and it fell out of the
+geometry.** At 3 000 000 mm the monolith is a single bright point at frame
+centre on black — 2×2 px, 4 lit pixels — which is the image A1-S01 opens on.
+Nothing was faked to get it: it is a nine-brick stack rendered at 10⁴ its
+framing distance.
+
+**`exponentialZoom` needed a direction, and the format did not have one.** A
+distance and a look-at point do not determine a position. `ZoomSpec` gained an
+optional `direction`, defaulting to the piece's own framing axis
+(`[0, 0.15, 1]`), in the model and both schemas — a director that silently
+picks an axis is a director that picks a *different* one after a refactor.
+
+**The spec's near/far is a mistake and is not implemented.** It asked for
+`[d/1e4, d·1e4]`: a far:near ratio of **10⁸**, which is worse than the static
+1:20 000 the viewer already had and would guarantee the artefacts it was
+written to prevent. What matters is bracketing the scene at the current
+distance, and the scene is small compared with `d`: `near = d/100`,
+`far = d·10` is a ratio of **10³**, five orders tighter, and still clears an
+object of radius up to 0.99·d.
+
+**Honest result on that correction: the two are pixel-equivalent on this
+scene.** Driving the zoom twice, once under each policy, showed **zero** sudden
+losses of the object under either and a mean difference of 7.3 lit pixels
+across 36 frames — which is the variance between two page loads, not an
+artefact. Nine bricks with no near-coplanar surfaces do not z-fight at 10⁸
+either. So the correction rests on the arithmetic and not on a picture, and
+that is recorded rather than dressed up: the run was done to find a visible
+difference and did not find one.
+
+**AC1 passes: 9 883 → 4 lit pixels, 182×189 → 2×2 px, two frames rising by
+more than 2 (worst +27).** Measured with **motion blur off**, and that
+separation is the milestone's real methodological point — see below.
+
+**AC2 passes:** no sudden loss of the object at any point of the pull-back
+under either depth policy.
+
+**AC3 passes:** with `?free=1` the camera does not move by 10⁻⁹ mm over 30
+timeline frames while `controls.enabled` is true — *and the show keeps
+running underneath*, which is the part worth testing. Near and far still
+track the timeline's distance (30 000 / 30 000 000 at the end) and the blur
+strength is still being computed. Only the transform is withheld.
+
+**Two measurement defects, both the same defect the project has now hit
+three times.** The first version counted *bright* pixels, and reported the
+object **growing by 1 181 px** while it was in fact shrinking — it was
+measuring the ground plane, whose lit area changes as the camera pulls back.
+That is M59's dolly confound exactly, and it takes M59's fix: render each
+frame twice with the same camera, once with the bricks and once without, and
+count the pixels that differ. The second was subtler. With that fixed the
+collapse still showed nine rises, worst +1 942 — and the cause was the motion
+blur, which *legitimately* grows an object's footprint while the object
+shrinks. Measuring the collapse through the blur is measuring the blur. So
+the harness now drives the zoom three times: blurred for the pictures,
+unblurred for the collapse, and spec-range for the depth comparison. The
+blurred run is reported alongside (9 883 → 12 px, worst rise +1 977, final
+cluster 4×4) as evidence that the effect is doing something, rather than
+being quietly excluded.
+
+**Motion blur is a stylistic approximation and is named as one in the
+code.** A real velocity buffer needs a previous-frame matrix per object and a
+second render target, which at Atlas scale costs more than the effect is
+worth. The pass streaks radially from the shot's focus point, driven by the
+camera's own speed relative to its viewing distance — very nearly the truth
+for a dolly or the Kick, merely plausible for an orbit. It sits **before** the
+grade pass so it smears linear radiance: blurring already-tone-mapped pixels
+darkens the streak as it spreads, which is backwards for a bright object in
+motion. It is disabled at zero strength rather than run with a no-op uniform,
+because most shots hold their camera and a full-screen pass that provably
+changes nothing is still a full-screen pass.
+
+**And the three-deep build order caught me again**, in exactly the way
+`docs/agents/verification.md` says it does: the harness died on
+`post.setMotionBlur is not a function` because the served binary still
+embedded the previous `viewer/dist`.
+
 ---
 
 ### M64 — runtime choreography (retiring baked frames for the show)

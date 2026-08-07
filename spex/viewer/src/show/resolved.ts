@@ -107,7 +107,7 @@ export interface ResolvedCameraTrack {
   keys?: ResolvedKey<CameraValue>[];
   orbit?: { center: Vec3; radius: number; height: number; startDeg: number; endDeg: number };
   dolly?: { from: Vec3; to: Vec3; lookAt: Vec3 };
-  exponentialZoom?: { from: number; to: number; lookAt: Vec3 };
+  exponentialZoom?: { from: number; to: number; lookAt: Vec3; direction?: Vec3 };
   motionBlur?: number;
 }
 

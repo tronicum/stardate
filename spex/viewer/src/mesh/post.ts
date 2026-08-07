@@ -149,9 +149,64 @@ const GRADE_SHADER = {
 };
 
 /** The whole chain, plus the knobs M62's timeline will drive. */
+/** M63 — camera-velocity radial blur.
+ *
+ * **A stylistic approximation, and named as one.** Real motion blur needs a
+ * velocity buffer: a previous-frame matrix per object and a second render
+ * target, which at Atlas scale costs more than the effect is worth. This
+ * streaks radially outward from the shot's own focus point instead, driven by
+ * how fast the camera is moving. For a dolly or the Kick's zoom that is very
+ * nearly the truth — the motion really is radial from the focus. For an orbit
+ * it is plausible and no more, and nothing here should be read as physics.
+ *
+ * It sits *before* the grade pass so it blurs linear radiance rather than
+ * encoded pixels — a smear of already-tone-mapped values darkens as it
+ * spreads, which is the wrong direction for a bright object streaking.
+ */
+export const RADIAL_BLUR_SHADER = {
+  uniforms: {
+    tDiffuse: { value: null as THREE.Texture | null },
+    uStrength: { value: 0 },
+    uFocus: { value: new THREE.Vector2(0.5, 0.5) },
+  },
+  vertexShader: /* glsl */ `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: /* glsl */ `
+    uniform sampler2D tDiffuse;
+    uniform float uStrength;
+    uniform vec2 uFocus;
+    varying vec2 vUv;
+
+    const int SAMPLES = 12;
+
+    void main() {
+      vec4 base = texture2D(tDiffuse, vUv);
+      if (uStrength <= 0.0) { gl_FragColor = base; return; }
+      vec2 toward = uFocus - vUv;
+      vec4 sum = vec4(0.0);
+      float wsum = 0.0;
+      for (int i = 0; i < SAMPLES; i++) {
+        float f = float(i) / float(SAMPLES - 1);
+        // Weighted toward the unblurred sample, so an object keeps a core
+        // instead of dissolving evenly into its own trail.
+        float w = 1.0 - f * 0.65;
+        sum += texture2D(tDiffuse, vUv + toward * f * uStrength * 0.25) * w;
+        wsum += w;
+      }
+      gl_FragColor = sum / wsum;
+    }
+  `,
+};
+
 export class PostChain {
   readonly composer: EffectComposer;
   readonly bloom: UnrealBloomPass;
+  readonly radialBlur: ShaderPass;
   readonly grade: ShaderPass;
   readonly ssao: SSAOPass | null;
   readonly smaa: SMAAPass | null;
@@ -207,6 +262,13 @@ export class PostChain {
     );
     this.composer.addPass(this.bloom);
 
+    // Before the grade pass, so it smears linear radiance: blurring
+    // already-tone-mapped pixels darkens the streak as it spreads, which is
+    // backwards for a bright object in motion.
+    this.radialBlur = new ShaderPass(RADIAL_BLUR_SHADER);
+    this.radialBlur.enabled = false;
+    this.composer.addPass(this.radialBlur);
+
     this.grade = new ShaderPass(GRADE_SHADER);
     this.composer.addPass(this.grade);
 
@@ -229,6 +291,16 @@ export class PostChain {
   render(elapsedSeconds: number) {
     this.grade.uniforms.uTime.value = elapsedSeconds;
     this.composer.render();
+  }
+
+  /** M63's camera director drives this. Disabled at zero rather than run with
+   * a no-op uniform: a full-screen pass that provably changes nothing is
+   * still a full-screen pass, and most shots hold their camera. */
+  setMotionBlur(strength: number, focusX: number, focusY: number) {
+    const s = strength > 1 ? 1 : strength < 0 ? 0 : strength;
+    this.radialBlur.enabled = s > 0.001;
+    this.radialBlur.uniforms.uStrength.value = s;
+    this.radialBlur.uniforms.uFocus.value.set(focusX, focusY);
   }
 
   // --- timeline-animatable parameters (M62 drives these) ---

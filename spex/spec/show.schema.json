@@ -406,7 +406,11 @@
           "properties": {
             "from": { "type": "number", "exclusiveMinimum": 0 },
             "to": { "type": "number", "exclusiveMinimum": 0 },
-            "lookAt": { "$ref": "#/$defs/vec3" }
+            "lookAt": { "$ref": "#/$defs/vec3" },
+            "direction": {
+              "$ref": "#/$defs/vec3",
+              "description": "Which way the camera pulls back from `lookAt`, normalised by the reader. A distance and a look-at point do not determine a position. Defaults to [0, 0.15, 1] — the piece's own framing axis, straight back with a slight rise."
+            }
           },
           "description": "The Kick: distance from `from` to `to` on a log scale, 10^4 over two beats."
         },

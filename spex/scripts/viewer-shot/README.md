@@ -184,3 +184,33 @@ clocks are independent — which is the reason the show reads the one the sound
 is on. Show time against its own chosen source measures 0.0000 ms, and that
 part is arithmetic rather than hardware: time is derived from an anchor, never
 accumulated frame by frame.
+
+## DER KICK
+
+```
+spex mesh-model ldraw-scenes/monolith.ldr -o /tmp/mono
+spex serve /tmp/mono --port 8098 --no-open &
+node scripts/viewer-shot/kick.mjs http://127.0.0.1:8098/ /tmp/m63
+```
+
+Drives M63's camera director through the piece's final two beats — a 10⁴
+pull-back — and reads pixels at every frame. Writes three keyframes and
+reports the collapse, the depth range, and `?free=1`.
+
+**It renders its own frames rather than using the viewer's loop.** That loop
+calls `controls.update()`, which rewrites `camera.position` from
+OrbitControls' internal spherical coordinates, so anything the harness wrote
+would be gone before it reached the screen. Each frame is therefore set,
+updated, `post.render`ed and `readPixels`ed synchronously, and the viewer's
+own loop never gets a turn in between.
+
+**Each frame is rendered twice, with the bricks and without.** Counting bright
+pixels instead measures the ground plane, whose lit area changes as the camera
+recedes — the first version reported the object *growing by 1181 px* while it
+was shrinking. Same confound as `dolly.mjs`, same fix.
+
+**And the zoom is driven three times**, because motion blur legitimately grows
+an object's footprint while the object shrinks: blurred for the pictures,
+unblurred for the collapse measurement, and once more under the spec's
+`[d/1e4, d*1e4]` depth range for comparison. Measuring a collapse through a
+blur is measuring the blur.

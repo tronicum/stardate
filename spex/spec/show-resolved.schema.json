@@ -329,7 +329,8 @@
           "properties": {
             "from": { "type": "number" },
             "to": { "type": "number" },
-            "lookAt": { "$ref": "#/$defs/vec3" }
+            "lookAt": { "$ref": "#/$defs/vec3" },
+            "direction": { "$ref": "#/$defs/vec3" }
           }
         },
         "motionBlur": { "type": "number", "minimum": 0, "maximum": 1 }

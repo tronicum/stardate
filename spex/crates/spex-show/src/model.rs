@@ -353,6 +353,14 @@ pub struct ZoomSpec {
     pub to: f64,
     #[serde(rename = "lookAt")]
     pub look_at: [f64; 3],
+    /// Which way the camera pulls back. A distance and a look-at point do
+    /// not determine a position — M63 found the gap while implementing the
+    /// Kick, and a director that silently picks an axis is a director that
+    /// picks a different one after a refactor. Optional, defaulting to the
+    /// piece's own framing axis (`[0, 0.15, 1]`, straight back with a slight
+    /// rise), so every document written before this stays valid.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub direction: Option<[f64; 3]>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
