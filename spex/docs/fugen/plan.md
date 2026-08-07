@@ -164,7 +164,7 @@ each of those now has either a real check or a **signed artefact**.
 
 | # | Criterion | How it is verified |
 |---|---|---|
-| 1 | `spex show-build … --duration 240` and `spex show` play the canonical cut end to end, with sound, ≥ 55 fps at 1080p, zero console errors | Automated headless run + counters ([`budgets.md`](budgets.md) §6) |
+| 1 | `spex show-build … --duration 240` and `spex show` play the canonical cut end to end, with sound, zero console errors, and the counters recorded. **Frame rate is a gate only on M92's named hardware** — nowhere in this pipeline has a GPU, so a number from anywhere else is not evidence | Automated headless run + counters ([`budgets.md`](budgets.md) §6) |
 | 2 | The 10:00, 60:00 and endless cuts each resolve to their exact duration and play end to end | Automated |
 | 3 | Frame 0 and the final frame of every cut are pixel-identical, and the audio meets itself at the seam | Automated frame hash — **and the final pixel is drawn in a pass that bypasses the composer**, or this silently fails on a different DPR |
 | 4 | The Kick is 2 beats in every cut, and its audio onset and first frame are within one frame | Measured, recorded |

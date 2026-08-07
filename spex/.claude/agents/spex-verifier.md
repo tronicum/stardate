@@ -11,10 +11,25 @@ design code — you're handed something already implemented and a concrete
 thing to check, and you check it for real.
 
 Read `docs/agents/verification.md` first if this is your first time running
-in this repo — it's the actual verification ladder this project uses:
-build → test → real CLI functional check → (if graph-pipeline) graph-layout
-+ ascii → (if viewer-visible) a real headless-browser session → full
-`walkthrough.sh` regeneration → full test suite again.
+in this repo. The ladder is mostly **conditional**: always build, always run
+the real CLI against real input once, always `cargo test --workspace` once —
+then `graph-layout` + `ascii` if the graph pipeline is involved, a real
+headless-browser screenshot **only if the picture is supposed to change**,
+and a full `walkthrough.sh` regeneration only at the end of a phase or after
+a shared change (a format, the tiler, the server).
+
+When a change is meant to leave the picture *identical* — a refactor, an
+instancing or LOD change, a data-format change — assert the **counters**
+instead of taking a screenshot: `scripts/viewer-shot/probe.mjs` reads
+`__spexMesh.stats`, the draw-call count and the console-error count without
+rendering a frame to disk.
+
+**Report measurements, not verdicts against invented bounds.** This
+environment has no GPU — Chromium falls back to SwiftShader, ~100x slower
+than real hardware — so any frame-rate number you see here says nothing
+about the renderer. Give the real counters and say what they were; if a task
+hands you a frame-rate threshold, measure and report rather than pass/fail
+it, and say why.
 
 Concrete things you should always do, not skip:
 

@@ -52,10 +52,27 @@ monolithic file remains as a stub pointing here.
 
 1. **One milestone = one or more small commits**, never one giant commit.
    `docs/agents/working-mode.md`'s commit discipline applies verbatim.
-2. **Verify before committing**, using `docs/agents/verification.md`'s ladder.
-   Every milestone names which rungs are mandatory for it. **Rung 5 (real
-   headless Chromium) is mandatory for every viewer-visible milestone** — this
-   is a cinematic project; "it compiles" proves nothing about it.
+2. **Verify before committing**, using `docs/agents/verification.md`'s ladder
+   — most of which is now conditional. **Rung 5 (real headless Chromium) is
+   mandatory when a milestone is supposed to change what a frame looks like**:
+   a render pass, a material, geometry, lighting, an effect. This is a
+   cinematic project and "it compiles" proves nothing about those. It is *not*
+   required when a milestone is supposed to leave the picture alone — a
+   refactor, an instancing or LOD change, a format change — where the counters
+   say more and cost a fraction. Rung 6 (`walkthrough.sh`) runs at the end of
+   a phase, not per commit.
+
+2a. **An acceptance criterion measures; it does not assert.** Write "measure X
+   and record the number", not "X must be ≥ N". This is not a softening: it is
+   what eight of Phase 1's own criteria had to be rewritten into, after every
+   one of them turned out to demand a frame rate or a bound that the
+   environment or the mathematics could not deliver — while the measurements
+   underneath were all worth having. Keep a hard bound only where exceeding it
+   should genuinely stop the build: a memory ceiling, a determinism check, a
+   format invariant. A bound that needs particular hardware **names** the
+   hardware and does not apply anywhere else. **Frame rates are measured only
+   in M92**, on the named machines; there is no GPU anywhere else in this
+   pipeline.
 3. **The build order is now three deep.** `wasm-pack build` → `npm run build`
    → `cargo build --release`. Skipping any step is the new "I changed it and
    nothing happened".
@@ -91,6 +108,46 @@ to reopen Phase 1.
 is authored easing), ray tracing, video export, WebGPU this cycle
 ([`budgets.md`](budgets.md) §7), and any use of the trademarked brand name,
 any official set's design, or any scraped commercial catalogue.
+
+## What a milestone looks like now
+
+Rev 3.1 (2026-08), after Phase 1 shipped and eight of its criteria had to be
+rewritten. Every milestone from M60 on is written in this shape:
+
+```markdown
+### Mnn — title
+
+**Why.** One paragraph. What is impossible without this.
+
+**Files.** The real paths.
+
+**Signatures.** Only where the shape is load-bearing.
+
+**Must hold.** 0-2 items, each one something that should genuinely stop the
+build if violated: a format invariant, a determinism check, a memory ceiling,
+"no existing demo changes".
+
+**Measure and record.** The rest. Counters, sizes, costs, reductions —
+written down with the real number, not compared against a guess.
+
+**Verification ladder.** 1, 2, 3 [, 4] [, 5 (**mandatory** — this milestone
+changes the picture)]. (6 runs at the end of the phase.)
+```
+
+Two rules behind that shape, both learned the expensive way:
+
+- **A frame rate is not a criterion.** Nothing in this pipeline has a GPU
+  except M92's named hardware. Three milestones asked for one anyway, in a
+  document that had already rejected `--disable-gpu` as a proxy for exactly
+  that reason.
+- **A bound you have not measured is a guess.** "draw calls ≤ 3 × distinct
+  part count" was impossible, because colour is a material binding. "< 4 ms"
+  was written for a machine this is not. Both read as rigour and were the
+  opposite.
+
+The already-written Phase 1 milestones keep their original text with the
+correction recorded underneath, because the *record of being wrong* is worth
+more than a tidy document.
 
 ## Milestone index
 

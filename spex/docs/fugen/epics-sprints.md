@@ -113,7 +113,7 @@ other.
 ## E9 — Atlas sites & flags · **M74, M75, M76**
 
 **Value:** the World Heritage sites and their flags actually stand on screen — the Atlas movement becomes demoable.
-**DoD:** each tier's recipes build, validate and render, no site over 8 000 placements, contact sheet reviewed per tier (M74); the Dannebrog cross and the Union Flag saltire match their published construction within one stud, ΔE > 12 flagged (M75); flags fly at ≥ 60 fps and are perfectly flat at zero wind (M76).
+**DoD:** each tier's recipes build, validate and render, no site over 8 000 placements, contact sheet reviewed per tier (M74); the Dannebrog cross and the Union Flag saltire match their published construction within one stud, ΔE > 12 flagged (M75); the flags' per-frame wave-evaluation cost and draw calls are recorded, and they are perfectly flat at zero wind (M76; frame rate belongs to M92).
 **Deps:** E3, E8.
 **Gates:** week 30 — the flag contact sheet with every ΔE, 2 h.
 **Risk:** medium — Foguang Si's `Bracket` primitive is time-boxed at three days before the fallback (D6).

@@ -178,8 +178,7 @@ tonal/real-answer distinction and test it).
 3. The authored subject is recorded in the spec file *and* in `TODOs.md`,
    in both scale-degree notation and letter names, so it is human-checkable.
 
-**Verification ladder.** 1, 2, 7.
-
+**Verification ladder.** 1, 2, 3. (6 runs at the end of the phase.)
 ---
 
 ### M68 — the counterpoint generator
@@ -221,8 +220,7 @@ tonal/real-answer distinction and test it).
    *listened to by a human* before the milestone closes. This one cannot be
    automated; the milestone note records who listened and what they said.
 
-**Verification ladder.** 1, 2, 3, plus the human listen.
-
+**Verification ladder.** 1, 2, 3, plus a human listen. (6 runs at the end of the phase.)
 ---
 
 ### M69 — the WebAudio engine
@@ -268,8 +266,7 @@ mix bus   -> master EQ (3-band BiquadFilter) -> DynamicsCompressor (limiter)
 3. CPU: audio thread under 10% on the development machine at 4 voices +
    pulse.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), plus a human listen.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture), plus a human listen. (6 runs at the end of the phase.)
 ---
 
 ### M70 — the scheduler and runtime realisation
@@ -300,8 +297,7 @@ mix bus   -> master EQ (3-band BiquadFilter) -> DynamicsCompressor (limiter)
    spectra against a full-run render at the same offsets).
 3. No stuck notes after 100 randomised seek/pause/play operations.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---
 
 ### M71 — audio↔visual binding, autoplay policy, and the mixer UI
@@ -336,6 +332,5 @@ mix bus   -> master EQ (3-band BiquadFilter) -> DynamicsCompressor (limiter)
    one frame (16.7 ms) — measured, recorded.
 3. Muting mid-run and unmuting does not desync anything.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), plus a human listen.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture), plus a human listen. (6 runs at the end of the phase.)
 ---

@@ -337,8 +337,7 @@ pub struct WeldedMesh {
    vertex is < 33° after welding.
 5. `MeshBundleStats` printed by the CLI in M53 reports real numbers.
 
-**Verification ladder.** 1, 2, 3, 7.
-
+**Verification ladder.** 1, 2, 3. (6 runs at the end of the phase.)
 ---
 
 ### M53 — `spex mesh-part` and `spex mesh-model`
@@ -372,8 +371,7 @@ same discipline as `brick::render_scene_to_points` — and emits one
 4. The bundle directory is servable as static files with no server change
    (`ServeDir` already handles it).
 
-**Verification ladder.** 1, 2, 3, 7.
-
+**Verification ladder.** 1, 2, 3. (6 runs at the end of the phase.)
 ---
 
 ### M54 — the viewer's mesh render mode
@@ -450,8 +448,8 @@ it. **What AC2 asserts instead:** instance count, part count, triangles drawn
 vs. unique, draw calls, zero console errors, zero failed requests — all
 hardware-independent — plus the picture. Frame rate moves to M92.
 
-**Verification ladder.** 1, 2, 3, 5 (**mandatory**, with screenshots
-attached to the milestone note), 6, 7.
+**Verification ladder.** 1, 2, 3, 5 (**mandatory**, with screenshots attached
+to the milestone note). (6 runs at the end of the phase.)
 
 **Status: ✅ done.** Screenshots in [`screenshots/`](screenshots/):
 `m54-car.png` (61 instances, 26 parts, 24 921 triangles drawn / 13 729
@@ -564,8 +562,7 @@ is not, so the criterion is recorded rather than passed and re-measured on
 the named hardware in M92 alongside fps. The gap between the two paths is
 itself the finding: choreography should hand over matrices it already has.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 **Status: ✅ done.** `viewer/src/mesh/instanced.ts`; the stress fixture is
 generated, not committed (`scripts/gen_stress_scene.py`, 50 000 real bricks
 on the real stud grid, 0.000 mm quantisation error).
@@ -676,8 +673,7 @@ in `materials.ts`, seeded from the show seed. Document that it is synthetic.
 3. Existing point-pipeline callers still compile and produce identical
    output (they only ever read `.value`).
 
-**Verification ladder.** 1, 2, 3, 5 (**mandatory**), 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 **Status: ✅ done.** `ldraw-scenes/finishes.ldr` is the test bundle AC2 asks
 for: nine real LDraw colour codes, one per finish keyword the official file
 actually uses, plus the two modifiers that are not finishes (`ALPHA`,
@@ -783,8 +779,8 @@ reads as the catalogue image everybody has in their head.
 4. Frame cost of the edge pass ≤ 25% of total frame time on the 50 000-
    instance scene.
 
-**Verification ladder.** 1, 2, 5 (**mandatory — this milestone is defined by
-its screenshots**), 7.
+**Verification ladder.** 1, 2, 3, 5 (**mandatory — this milestone is defined
+by its screenshots**). (6 runs at the end of the phase.)
 
 **Status: ✅ done.** `viewer/src/mesh/edges.ts`. Screenshots:
 `screenshots/m57-brick-2000.png` (AC1, and a crop of the stud),
@@ -884,8 +880,7 @@ it per-shot.
 3. No `NaN`/black-frame regressions when the scene is empty (an important
    edge case: Act I's first six seconds are almost empty).
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 **Status: ✅ done.** `viewer/src/mesh/post.ts` (a module rather than more of
 `render.ts` — the chain has its own vocabulary and its own order, and that
 order is the milestone). Screenshots: `screenshots/m58-car.png`,
@@ -975,8 +970,7 @@ site 400 m "away" does not need its studs.
 3. LOD1 reduces triangle count for `3001.dat` (Brick 2×4) by ≥ 55%; record
    the real measured figure.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 **Status: ✅ done.** `crates/spex-mesh/src/lod.rs` generates the levels, the
 bundle writer emits them, `viewer/src/mesh/lod.ts` selects between them per
 instance. Screenshots: `screenshots/m59-levels.png` (LOD0 / LOD1 / LOD2 of

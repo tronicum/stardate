@@ -126,8 +126,7 @@ pub trait Primitive {
    comment with the recipe's own hash — provenance travels with the file,
    the same discipline `spex-brick-mesh` used.
 
-**Verification ladder.** 1, 2, 3, 4 (render it), 7.
-
+**Verification ladder.** 1, 2, 3, 4. (6 runs at the end of the phase.)
 ---
 
 ### M73 — `spex-heritage`: the real World Heritage index
@@ -267,8 +266,7 @@ cheaper, and it is the thesis.
    assembled into a single image) is produced and *looked at by a human*
    at the end of each tier.
 
-**Verification ladder.** 1, 2, 3, 4, 5 (**mandatory**), 6, 7.
-
+**Verification ladder.** 1, 2, 3, 4, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---
 
 ### M75 — `spex-flag`: flags as real brick mosaics
@@ -386,8 +384,11 @@ per-frame CPU cost.
 
 **Acceptance criteria.**
 
-1. A 48×36 Dannebrog flies at ≥ 60 fps with 12 flags on screen
-   simultaneously.
+1. A 48×36 Dannebrog with 12 flags on screen simultaneously: record the
+   instance count, the draw calls and the per-frame wave-evaluation cost.
+   **Frame rate is measured in M92, not here** — there is no GPU in this
+   pipeline, and a number from a software rasteriser would say nothing about
+   the real thing.
 2. Lighting responds to the wave (the surface visibly catches the key light
    as it turns) — verified in a 60-frame capture, not asserted.
 3. `windStrength = 0` produces a perfectly flat flag, bit-identical to the
@@ -395,8 +396,7 @@ per-frame CPU cost.
 4. No tile ever separates from its neighbours by more than one stud width
    (the mosaic must read as cloth, not as confetti) — measured.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---
 
 ### M77 — Atlas autopilot: the XML-driven site pipeline *(the "perfect case")*

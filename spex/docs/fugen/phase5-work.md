@@ -25,7 +25,7 @@ in time, with sound".
 | **M85** | **Seeded editions** | `?seed=` visibly and audibly varies the piece within authored bounds, deterministically — the on-chain-edition prerequisite |
 
 Each of M78–M82 follows the same internal shape and the same verification
-ladder (1, 2, 3, 5 **mandatory**, 6, 7):
+ladder (1, 2, 3, 5 **mandatory** — an act is by definition a change to the picture; 6 at the end of the phase):
 
 1. Author the act's shots in `show.json` from §8's shot list.
 2. Build or generate every scene it needs.

@@ -99,8 +99,7 @@ pub fn resolve_show(show_json: &str, target_sec: f64, seed: u64, endless: bool) 
    point-cloud and graph pipelines must not gain a wasm dependency. Verified
    by loading a graph demo with the wasm fetch blocked.
 
-**Verification ladder.** 1, 2, 3, 5 (**mandatory**), 6, 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---
 
 ### M87 — the timeline evaluator in wasm, zero-copy
@@ -177,8 +176,7 @@ impl WasmTimeline {
 4. Growing-memory hazard covered by a test that deliberately triggers a
    grow and asserts the generation counter catches it.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), 6, 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---
 
 ### M88 — `spex-build`, `spex-ldraw` and `spex-flag` in the browser
@@ -231,8 +229,7 @@ own doc comment; it is the boundary that keeps the wasm module small.
    beyond the part bundle.
 4. Total `.wasm` still < 900 KB gzipped with all of Phase 6's exports.
 
-**Verification ladder.** 1, 2, 3, 5 (**mandatory**), 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---
 
 ### M89 — the fugue in wasm, and DSP in an AudioWorklet
@@ -283,8 +280,7 @@ material without memory growth (measure).
 -thread stall of 200 ms produces *no* audio dropout — the demonstration that
 the port was worth doing.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), plus a human listen.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture), plus a human listen. (6 runs at the end of the phase.)
 ---
 
 ### M90 — the wasm phase gate: measure, document, decide

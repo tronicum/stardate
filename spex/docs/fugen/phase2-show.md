@@ -141,8 +141,7 @@ never re-globbed per frame.
 3. `crates/spex-cli/tests/schema_validation.rs` validates a real
    `spex show-build` output against `show-resolved.schema.json`.
 
-**Verification ladder.** 1, 2, 7.
-
+**Verification ladder.** 1, 2, 3. (6 runs at the end of the phase.)
 ---
 
 ### M61 — `spex-show`: the compiler and the duration resolver
@@ -227,8 +226,7 @@ writes:
    3600 s cut contains every tier-3 shot.
 4. `show-build` is deterministic: same seed → byte-identical output.
 
-**Verification ladder.** 1, 2, 3, 7.
-
+**Verification ladder.** 1, 2, 3. (6 runs at the end of the phase.)
 ---
 
 ### M62 — the clock and the timeline evaluator
@@ -302,8 +300,7 @@ authored curves.
 4. Every easing function is unit-tested for `f(0)===0`, `f(1)===1`, and
    monotonicity where it applies.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---
 
 ### M63 — the camera director
@@ -330,8 +327,7 @@ authored curves.
 2. No near/far clipping visible at any point in the zoom.
 3. `?free=1` gives full orbit control without breaking the timeline.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---
 
 ### M64 — runtime choreography (retiring baked frames for the show)
@@ -362,12 +358,16 @@ for a quick demo. The *show* stops using them.
 1. A side-by-side headless capture of `spex brick-assembly
    ldraw-scenes/monolith.ldr` (baked) and the show's Act I S04 (runtime) at
    matching normalised times: per-part positions agree within 0.01 mm.
-2. 9-part monolith and a 5 000-part Atlas site both animate at ≥ 60 fps.
+2. Measure and record the per-frame transform cost for the 9-part monolith
+   and a 5 000-part Atlas site, via `__spexMesh.benchTransforms()` — a CPU
+   number that means the same thing on every machine. **Frame rate is not
+   asserted here**: this pipeline has no GPU outside M92, and M55 already
+   measured 6.3 ms for 50 000 instances through the matrix path against a
+   "< 4 ms" that was written for hardware this is not.
 3. `buildStep`-ordered stagger visibly differs from index-ordered stagger
    on a scene that has real `0 STEP` lines (use a real official model).
 
-**Verification ladder.** 1, 2, 3, 5 (**mandatory**), 6, 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---
 
 ### M65 — effects: dissolve, materialise, and the point↔mesh crossfade
@@ -410,8 +410,7 @@ show rather than being superseded by it.
 3. Cost of the dissolve shader ≤ 15% frame-time increase on the
    50 000-instance scene.
 
-**Verification ladder.** 1, 2, 5 (**mandatory**), 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---
 
 ### M66 — `spex show` / `spex show-export`, URL parameters, and the HUD
@@ -448,6 +447,5 @@ get typographically right.
    `export_static.rs` already enforces).
 3. Every URL parameter above verified individually in the headless session.
 
-**Verification ladder.** 1, 2, 3, 5 (**mandatory**), 6, 7.
-
+**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 ---

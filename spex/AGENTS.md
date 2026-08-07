@@ -54,11 +54,42 @@ See `docs/ARCHITECTURE.md` for the full reasoning and a worked example.
 - **Small, verified, pushed commits.** One real feature or fix per commit,
   built and tested *before* committing, with a message explaining *why*, not
   just *what*. Don't batch unrelated changes into one commit.
+- **Pushing from a cloud session may be blocked.** The sandbox's git proxy
+  can refuse to inject a credential for this repo ("not in this session's
+  authorized repository set"), and the desktop-bridge VM has no network at
+  all — so neither side can reach GitHub. `git fetch` still works, which is
+  enough to verify afterwards. The working handoff: `git bundle create
+  /tmp/<name>.bundle origin/<branch>..<branch>`, write it into the user's
+  own clone through the device bridge, `git fetch <bundle>
+  refs/heads/<branch>:refs/heads/<branch>` there, and let the user run one
+  `git push`. One bundle per milestone. Note the bridge cannot delete files —
+  move a spent bundle into `_to_delete/` rather than trying to `rm` it.
 - **Verify with the real thing, not just `cargo test`.** Tests prove the
   code is internally consistent; they don't prove a browser feature
   actually renders, or that a CLI command's output is sensible to a human.
-  See `docs/agents/verification.md` for the verification ladder used every
-  time in this project.
+  `docs/agents/verification.md` has the ladder. Most of it is **conditional**
+  — always build, always run the real CLI once, always `cargo test` once
+  before committing; screenshot only when the picture is *supposed* to
+  change; regenerate every demo only at the end of a phase. Running all of it
+  on every commit cost more than it caught.
+- **Measure, don't assert.** An acceptance criterion should say "measure X
+  and record the number", not "X must be ≥ N". Eight of Phase 1's ~30
+  criteria were factually wrong, every one of them because it asserted a
+  frame rate or a bound the environment or the mathematics could not
+  deliver — while the measurements underneath them were all valuable. Hard
+  bounds belong only where exceeding one should genuinely stop the build,
+  and a bound that needs particular hardware must name it.
+- **This environment has no GPU.** Chromium falls back to SwiftShader,
+  roughly two orders of magnitude slower than the slowest real machine. A
+  scene that renders at hundreds of fps on real hardware reports 2 here, and
+  a large frame can exceed a screenshot timeout outright. Assert *counters*
+  — draw calls, instance counts, zero console errors — which mean the same
+  thing everywhere. Frame rates are measured on named hardware, and nowhere
+  else.
+- **One test per bug that really happened.** Rust tests are cheap and have
+  caught real parser defects, so keep writing them — but write them against
+  something that went wrong, or could plausibly go wrong in a specific way,
+  rather than for coverage.
 - **Delegate expensive verification, keep synthesis in the main thread.** A
   headless-browser session or a long real-data fetch produces a lot of
   one-time-use tool output. Push that into a fork or subagent and let it

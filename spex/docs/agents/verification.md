@@ -3,77 +3,127 @@
 `cargo test` proves the code is internally consistent. It does **not** prove
 a browser feature actually renders, that a CLI command's output looks
 sensible to a human, or that a real external file/service really behaves
-the way a unit test's synthetic fixture assumes. This project's standard
-practice — used before essentially every commit — is a ladder that gets
-more expensive (and more real) as it goes:
+the way a unit test's synthetic fixture assumes.
 
-1. `cargo build --release` — must compile clean.
-2. `cargo test --workspace` — must be fully green. If a *pre-existing* test
-   fails and you didn't touch that code, investigate before assuming it's
-   unrelated — check `git log -- <file>` to see if it's actually new/edited
-   nearby, and whether the failure is deterministic (rerun it) or genuinely
-   flaky.
-3. **A real functional CLI check** — actually run the built binary against
-   real input and read the output: `spex graph-print`, `spex ascii`, `spex
-   info`, whatever the change touches. This is the cheapest real check and
-   catches a surprising number of things unit tests don't (e.g. a
-   projection that compiles and passes narrow unit tests but produces a
-   blank or nonsensical render on real data).
-4. **For anything the graph pipeline touches**: run it through
-   `graph-layout` and confirm the tileset builds, then `spex ascii` on the
-   result for a zero-browser-needed visual sanity check.
-5. **For anything viewer-visible** (a new checkbox, a color change, an
-   animation): a real headless-Chromium/Playwright session — see
-   "Delegate this to a fork" below. Screenshot it; look at the screenshot.
-   A blank frame is a failure to launch, not a passing check.
-6. `./scripts/walkthrough.sh` — regenerate every demo from scratch and
-   confirm nothing broke across the whole set, not just the one thing you
-   changed.
-7. `cargo test --workspace` again, as a final gate before committing.
+So there's a ladder. **Rev 2 (2026-08) made most of it conditional**, because
+running all of it before every commit cost more than it caught: across the
+whole of Phase 1 the full-regeneration rung found nothing at all, while the
+screenshot rung found three real bugs — but only on the commits where the
+picture was *supposed* to change.
 
-## The viewer-rebuild-order gotcha
+## The ladder
 
-`viewer/` (TypeScript/three.js) is embedded into the `spex` binary *at Rust
-compile time* via `rust-embed`, not read at runtime. After any
-`viewer/src/*.ts` change:
+| # | Step | When |
+|---|---|---|
+| 1 | `cargo build --release` | **Always.** |
+| 2 | A **real functional CLI check** — run the built binary against real input and read the output | **Always.** Cheapest real check there is. |
+| 3 | `cargo test --workspace` | **Always, once**, immediately before committing. |
+| 4 | `graph-layout` + `spex ascii` on the result | When the change touches the graph pipeline. |
+| 5 | A real headless-Chromium screenshot, looked at | **When the picture is supposed to change.** See below. |
+| 6 | `./scripts/walkthrough.sh` — regenerate every demo | At the **end of a phase**, or when something shared changed (a format, the tiler, the server). |
+
+Rung 3 used to appear twice, at the start and again as a final gate. Once is
+enough: it is the same command against the same tree.
+
+## When rung 5 is actually mandatory
+
+Not "any viewer-visible change" — that rule produced dozens of screenshots of
+frames that were meant to look identical, each costing a minute or more on a
+software rasteriser.
+
+**Mandatory** when the change is supposed to alter what a frame looks like: a
+new render pass, a material, geometry, lighting, an effect. Those are the
+milestones the pictures belong to anyway.
+
+**Not required** when the change is supposed to leave the picture alone — a
+refactor, an instancing change, a data-format change, a performance fix. For
+those, assert the *counters* instead (`__spexMesh.stats`, draw calls, zero
+console errors), which `scripts/viewer-shot/probe.mjs` reads without ever
+rendering a frame to disk. If a "should look identical" change is risky, one
+screenshot at a small viewport is a cheap tiebreak — that is a judgement
+call, not a rule.
+
+A blank frame is a failure to launch, not a passing check. Always read the
+console-error count, whichever rung you are on.
+
+## Measure, don't assert
+
+**Eight of Phase 1's ~30 acceptance criteria were factually wrong**, and every
+one failed the same way: it asserted a frame rate or a bound that the
+environment or the mathematics could not deliver.
+
+- `≥ 55 fps` and `≥ 60 fps` in a container with **no GPU**. Chromium falls
+  back to SwiftShader, roughly two orders of magnitude slower than the
+  slowest real hardware. The same document had already rejected
+  `--disable-gpu` as a proxy for exactly this reason, and then three
+  milestones asked for frame rates anyway.
+- `draw calls ≤ 3 × distinct part count` — impossible, because colour is a
+  material binding: one part in seven colours is seven instanced meshes.
+- `< 4 ms` for a transform pass "on the development machine", measured on a
+  shared container.
+- "the conditional-edge **count** changes as the camera orbits" — it does
+  not, and a correct renderer is why: a cylinder shows exactly two
+  silhouette edges from every direction. Only the *identity* rotates.
+
+**So: an acceptance criterion says "measure X and record the number" by
+default.** A hard bound belongs only where exceeding it should actually stop
+the build — a memory ceiling, a determinism check, a format invariant. If a
+bound needs particular hardware, the criterion names the hardware and does
+not apply anywhere else.
+
+This is not lowering the bar. Every one of those eight was *measured*, and
+the measurements were the valuable part: 29 draw calls at 50 000 instances,
+0.26 % LOD error over a dolly, 96 % fewer triangles at LOD1. It was the
+assertions that were worthless.
+
+## Unit tests: one per bug that really happened
+
+Rust tests are cheap and fast and have caught real parser bugs — keep
+writing them. But write them **against something that went wrong or could
+plausibly go wrong in a specific way**, not for coverage. The tests that
+earned their place in this project all name a real defect:
+
+- the same LDraw primitive classified differently depending on its reference
+  chain (a stud vs. a wall),
+- a speckle colour's `VALUE` read as the brick's because the line was not
+  split at `MATERIAL` first,
+- a mirrored reference matrix that must still face outward,
+- the manifest not being byte-identical across two runs.
+
+A test whose failure would not tell you anything you did not already know is
+a test that only costs time.
+
+## Two gotchas that are still real
+
+**The build order is three deep.** `viewer/` is embedded into the `spex`
+binary at *Rust compile time* via `rust-embed`, not read at runtime:
 
 ```sh
-cd viewer && npm run build   # produces viewer/dist
-cd ..       && cargo build --release   # re-embeds viewer/dist into the binary
+cd viewer && npm run build       # produces viewer/dist
+cd ..      && cargo build --release   # re-embeds it
 ```
 
-Skipping the second step is a real, repeated source of "I changed the
-viewer but nothing's different" confusion — the running binary is still
-serving the *old* embedded bundle.
+Skipping the second step is the single most repeated source of "I changed
+the viewer but nothing's different" in this project's history. With WASM it
+becomes `wasm-pack build` → `npm run build` → `cargo build --release`.
 
-## Delegate real browser/long-running verification to a fork
-
-A headless-browser session (screenshots, console-error checks, DOM queries)
-or a long real-data fetch produces a lot of tool output that's only useful
-once — reading it back into a coordinator's context wastes budget for no
-benefit once you have the verdict. Spawn a fork (or the
-`.claude/agents/spex-verifier.md` subagent) with a concrete, scoped
-verification task and specific pass/fail criteria to check, and let it
-report back a short summary. Good verification-fork prompts in this
-project's history have included exact things to check ("confirm the debug
-panel's hop count denominator matches N", "sample the tooltip at two points
-~1s apart and confirm the content differs") rather than an open-ended "does
-it look right?" — a concrete check is both cheaper to verify and easier to
-trust the summary of.
-
-## Stale server processes ruin a verification round-trip
-
-If a `spex serve`/`spex gallery` background process was started before your
-latest `cargo build --release` or before `demos/` was regenerated, it's
-serving stale content — any verification against it is meaningless. Check
-before trusting it:
+**A stale `spex serve` serves stale content.** If the process started before
+your latest build, every check against it is meaningless.
 
 ```sh
 ps aux | grep "target/release/spex" | grep -v grep
-ps -p <pid> -o pid,lstart          # compare against: ls -la target/release/spex demos/
 ```
 
-`pkill -f <pattern>` has failed to actually kill the old process more than
-once in this project's history — if a restart doesn't seem to take effect,
-verify the PID is actually gone (`kill -9 <pid>` then re-check) before
-re-running the check against what might still be the old process.
+`pkill -f` has failed to actually kill it more than once — and note that a
+`pkill -f "release/spex serve"` pattern can match the shell running it and
+kill your own command. Verify the PID is gone before re-checking.
+
+## Delegate expensive verification, keep the verdict
+
+A headless-browser session or a long real-data fetch produces a lot of tool
+output that is useful exactly once. Push it into a fork or the
+`.claude/agents/spex-verifier.md` subagent with **concrete pass/fail
+criteria** — "confirm the debug panel's hop denominator matches N", "sample
+the tooltip at two points ~1 s apart and confirm the content differs" — and
+let it report a short summary. An open-ended "does it look right?" is both
+more expensive and less trustworthy than a specific check.
