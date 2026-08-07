@@ -68,7 +68,20 @@ await page.goto(url, { waitUntil: 'networkidle' });
 // that scale without a GPU. Never pass it for a milestone's hero shot.
 if (rest.includes('--no-shadows')) {
   await page.evaluate(() => {
-    if (window.__spexMesh) window.__spexMesh.renderer.shadowMap.enabled = false;
+    const M = window.__spexMesh;
+    if (!M) return;
+    M.renderer.shadowMap.enabled = false;
+    // Every material was compiled with shadow samplers bound to shadow-map
+    // textures that are about to go away. Without forcing a recompile the
+    // draw calls keep running against a disposed texture, WebGL raises
+    // GL_INVALID_OPERATION ("Mismatch between texture format and sampler
+    // type") a few hundred times a frame, and — worst of all — it renders a
+    // plausible-looking picture: a car whose opaque bricks are invisible and
+    // whose outlines are not. A verification tool that produces a wrong
+    // picture quietly is worse than one that crashes.
+    M.scene.traverse((o) => {
+      for (const m of [].concat(o.material ?? [])) if (m) m.needsUpdate = true;
+    });
   });
 }
 // Long enough for the fps counter to have a real window behind it, not one

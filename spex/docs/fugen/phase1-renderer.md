@@ -886,6 +886,61 @@ it per-shot.
 
 **Verification ladder.** 1, 2, 5 (**mandatory**), 7.
 
+**Status: ✅ done.** `viewer/src/mesh/post.ts` (a module rather than more of
+`render.ts` — the chain has its own vocabulary and its own order, and that
+order is the milestone). Screenshots: `screenshots/m58-car.png`,
+`m58-brick.png` (Low), `m58-brick-high.png` (High).
+
+**The order, which the rev 3 corrections rewrote:** the scene renders into a
+**HalfFloat** target with the renderer's tone mapping **off**, so linear HDR
+above 1.0 survives → optional SSAO → **UnrealBloom, reading that HDR** → a
+custom grade pass that does vignette (in linear, before the curve), ACES, the
+sRGB encode, **±0.5/255 triangular dither and 1.5 % fixed grain** → SMAA last,
+on the encoded signal, where it belongs. The grade pass replaces three's
+`OutputPass` rather than following it: dither has to be applied to the encoded
+signal immediately before the 8-bit write, and anything after an `OutputPass`
+is already quantised.
+
+**AC1 was already rejected by this document and is not attempted.** It
+offered Chromium `--disable-gpu` as a Low-tier proxy; the rev 3 corrections
+struck that out — it is SwiftShader, ~100× slower than the slowest real
+hardware, and tuning Low against it would make Low far uglier than it needs
+to be. What is recorded instead: the tier actually chosen, and the honest
+per-frame draw-call total. Frame rates belong to M92, on named hardware.
+
+**AC2 passes, measured rather than eyeballed.** Ramping the bloom threshold
+1.0 → 0.2 over 30 captured frames and taking each frame's mean luminance:
+
+```
+1.00 → 62.6    0.53 → 63.5    0.31 → 68.1
+0.79 → 62.7    0.45 → 64.4    0.26 → 86.4
+0.64 → 62.8    0.37 → 64.6    0.20 → 91.5
+```
+
+Total rise **29.7 luma, zero non-monotonic steps**. The curve is nearly flat
+until ~0.35 and then climbs steeply, which is the real distribution of
+radiance in the shot: only the specular highlight lives above that. A flat
+curve would have meant bloom was reading an already-clipped signal — the
+exact defect the pipeline order exists to prevent.
+
+**AC3 passes:** with every brick, every edge and the ground hidden, the frame
+comes back at mean luminance **11.0**, not 0, with no `NaN` and no console
+errors. Act I's first six seconds are almost empty and now stay lit.
+
+**The quality benchmark runs against frames the viewer is already watching**,
+starting at Medium and settling after two seconds, rather than behind a
+two-second black screen. Same number, better first impression. `?quality=`
+and the dropdown override it, and choosing from the dropdown stops the
+automatic choice from second-guessing a human.
+
+**A defect in the verification harness, not the renderer** — and the more
+useful kind to have found. `shot.mjs --no-shadows` disabled the shadow map
+without forcing a material recompile, so every draw call kept running against
+disposed shadow textures: 243 × `GL_INVALID_OPERATION` per frame, and a
+plausible-looking picture of a car whose opaque bricks were invisible and
+whose outlines were not. A tool that renders a *wrong* picture quietly is
+worse than one that crashes. Fixed by marking every material for recompile.
+
 ---
 
 ### M59 — mesh LOD and culling

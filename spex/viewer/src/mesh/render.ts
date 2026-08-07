@@ -24,6 +24,7 @@ import {
 import { buildSyntheticEnvironment, MaterialLibrary } from './materials';
 import { buildInstanceGroups, InstanceWriter, type InstanceGroup } from './instanced';
 import { buildEdgeGroups, visibleConditionalEdges, EdgeRenderer } from './edges';
+import { PostChain, tierFromFps, tierFromUrl, TIERS, type QualityTier } from './post';
 
 /** `devicePixelRatio` unclamped is 9x the fragments on a 3x-DPR tablet, for a
  * difference nobody can see at arm's length. See `docs/fugen/budgets.md`. */
@@ -156,6 +157,8 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   const autoRotateInput = document.getElementById('autoRotate') as HTMLInputElement;
   const exposureRow = document.getElementById('mesh-exposure-row') as HTMLLabelElement;
   const exposureInput = document.getElementById('exposure') as HTMLInputElement;
+  const qualityRow = document.getElementById('mesh-quality-row') as HTMLLabelElement;
+  const qualitySelect = document.getElementById('quality') as HTMLSelectElement;
   const showEdgesInput = document.getElementById('showEdges') as HTMLInputElement;
   const edgeWidthRow = document.getElementById('mesh-edge-width-row') as HTMLLabelElement;
   const edgeWidthInput = document.getElementById('edgeWidth') as HTMLInputElement;
@@ -226,13 +229,12 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   // is that it is the same thickness on every display.
   edges.setResolution(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio, pixelRatio);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  // ACES on the renderer is correct *only while there is no post chain*. M58
-  // adds bloom, which must run in linear HDR — tone mapping before it makes
-  // the bloom threshold meaningless. At that point this becomes
-  // `NoToneMapping` and ACES moves into the final `OutputPass`. One line,
-  // one milestone, written down here so it is not rediscovered by eye.
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = parseFloat(exposureInput.value);
+  // M58: tone mapping is OFF here on purpose. The scene renders into a
+  // HalfFloat target so values above 1.0 reach bloom intact — a bloom
+  // threshold is a statement about scene radiance, and squashing everything
+  // into 0..1 first makes it a statement about nothing. ACES happens last,
+  // in `post.ts`'s grade pass, together with the sRGB encode and the dither.
+  renderer.toneMapping = THREE.NoToneMapping;
   renderer.shadowMap.enabled = true;
   // PCFSoftShadowMap is deprecated as of r185 and silently falls back to
   // PCFShadowMap anyway — asking for it only buys a console warning, and
@@ -240,8 +242,49 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   renderer.shadowMap.type = THREE.PCFShadowMap;
   document.getElementById('app')!.prepend(renderer.domElement);
 
+  // Quality tier: an explicit `?quality=` wins; otherwise the scene starts at
+  // Medium, is measured for two seconds while already on screen, and settles.
+  const forcedTier = tierFromUrl();
+  let tier: QualityTier = forcedTier ?? 'medium';
+  renderer.shadowMap.enabled = true;
+  // The composer issues several `renderer.render` calls per frame, and each
+  // one resets the counters — so with autoReset on, the HUD showed the draw
+  // calls of the *last* pass, which is one full-screen quad. Reset once per
+  // frame instead, and the number becomes the honest per-frame total.
+  renderer.info.autoReset = false;
+  const applyShadowSize = (t: QualityTier) => {
+    const size = TIERS[t].shadowMapSize;
+    scene.traverse((o) => {
+      const l = o as THREE.DirectionalLight;
+      if (l.isDirectionalLight && l.castShadow) {
+        l.shadow.mapSize.set(size, size);
+        l.shadow.map?.dispose();
+        l.shadow.map = null;
+      }
+    });
+  };
+  applyShadowSize(tier);
+
+  let post = new PostChain(renderer, scene, camera, tier, window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
+  post.exposure = parseFloat(exposureInput.value);
+
   exposureInput.addEventListener('input', () => {
-    renderer.toneMappingExposure = parseFloat(exposureInput.value);
+    post.exposure = parseFloat(exposureInput.value);
+  });
+  qualityRow.style.display = 'flex';
+  qualitySelect.value = tier;
+  const rebuildPost = (next: QualityTier) => {
+    if (next === tier) return;
+    tier = next;
+    applyShadowSize(tier);
+    post.dispose();
+    post = new PostChain(renderer, scene, camera, tier, window.innerWidth * pixelRatio, window.innerHeight * pixelRatio);
+    post.exposure = parseFloat(exposureInput.value);
+    qualitySelect.value = tier;
+  };
+  qualitySelect.addEventListener('change', () => {
+    benchmarkDone = true; // a human has spoken; stop second-guessing them
+    rebuildPost(qualitySelect.value as QualityTier);
   });
 
   const controls = new OrbitControls(camera, renderer.domElement);
@@ -261,6 +304,7 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
     renderer.setSize(window.innerWidth, window.innerHeight);
     const dpr = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
     edges.setResolution(window.innerWidth * dpr, window.innerHeight * dpr, dpr);
+    post.setSize(window.innerWidth * dpr, window.innerHeight * dpr);
   });
 
   edgeWidthRow.style.display = 'flex';
@@ -286,6 +330,9 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   let frames = 0;
   let fpsAccumMs = 0;
   let fps = 0;
+  const startedAt = performance.now();
+  let benchmarkDone = forcedTier !== null;
+  let benchFrames = 0;
 
   function updateHud() {
     hudEl.innerHTML = `
@@ -295,6 +342,7 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
       <div>${stats.materials} materials &middot; ${stats.finishes.join(', ')}</div>
       <div>${stats.edgeQuads.toLocaleString()} edge quads &middot; ${stats.conditionalEdges.toLocaleString()} conditional &middot; ${edges.visibleGroupCount}/${edges.groups.length} drawn</div>
       <div>crease ${bundle.creaseDegrees}&deg;</div>
+      <div>${tier} quality${benchmarkDone ? '' : ' (measuring…)'}</div>
       <div id="hud-fps">${fps.toFixed(0)} fps</div>
     `;
   }
@@ -312,7 +360,20 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
       fpsAccumMs = 0;
     }
     edges.update(camera, window.innerHeight * pixelRatio);
-    renderer.render(scene, camera);
+    renderer.info.reset();
+    post.render((now - startedAt) / 1000);
+
+    // The two-second benchmark, run against frames the viewer is already
+    // watching rather than behind a black screen. Same number, better first
+    // impression.
+    if (!benchmarkDone) {
+      benchFrames++;
+      const elapsed = now - startedAt;
+      if (elapsed >= 2000) {
+        benchmarkDone = true;
+        rebuildPost(tierFromFps((benchFrames * 1000) / elapsed));
+      }
+    }
     updateHud();
   }
   animate();
@@ -331,6 +392,8 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
     groups,
     writer,
     edges,
+    post: () => post,
+    quality: () => tier,
     /** M57 AC2: *which* conditional edges the shader's predicate lets through
      * from where the camera is now, recomputed on the CPU. The set must
      * change as the camera orbits — an unchanging set is proof the test is

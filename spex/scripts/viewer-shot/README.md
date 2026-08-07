@@ -115,3 +115,19 @@ angle — the set, not its size. That distinction is the point: a cylinder shows
 exactly two silhouette edges from every direction, so the count is constant
 even when everything works, and only the identity of the two rotates. Exits
 non-zero if the set never changes, which would mean the test is not running.
+
+## The bloom ramp and the empty scene
+
+```
+node scripts/viewer-shot/bloomramp.mjs http://127.0.0.1:8093/ /tmp/m58
+```
+
+Ramps the bloom threshold 1.0 → 0.2 over 30 captured frames and prints each
+frame's mean luminance, then hides every object and checks the frame is
+neither black nor NaN. Exits non-zero if the ramp is flat, non-monotonic, or
+the empty scene comes back black.
+
+A flat luminance curve is the interesting failure: it means bloom is reading a
+signal that was already clipped to 0..1 before it got there, which is the
+whole reason the post chain renders into a HalfFloat target with tone mapping
+off.
