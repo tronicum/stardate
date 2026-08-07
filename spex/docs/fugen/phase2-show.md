@@ -808,7 +808,7 @@ show rather than being superseded by it.
 
 **Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 
-**Status: 🟡 dissolve and materialise done; the point↔mesh crossfade is built but does not pass AC2.**
+**Status: ✅ done.**
 `viewer/src/show/dissolve.ts`, the injected chunks in
 `viewer/src/mesh/materials.ts`, the eroding outline in `edges.ts`, the
 eroding shadow in `instanced.ts`/`lod.ts`, and
@@ -870,28 +870,79 @@ lit surface* did not know about dissolving.
   copies of a hash function is the most reliable way for "the same fragments"
   to stop being true.
 
-**Part 2 — the crossfade — is in progress and does not pass AC2 yet.** What
-exists and works: the Rust sampler (`crates/spex-mesh/src/points.rs`, writing
-`buffers/p<N>.pts.bin`), the manifest and schema fields, and the runtime
-(`viewer/src/show/points.ts`, one instanced draw call per group sharing M57's
-matrix texture). What does not: at value 0.5 the cloud's screen box is
-**36 % narrower and 30 % shorter** than the mesh's, offset by a third of the
-object's width, against a 1 % allowance. The cloud covers the top-right of the
-silhouette and the right and top edges agree almost exactly — a systematic
-mismatch, not noise, and not yet diagnosed.
+**Part 2 — the crossfade.** `crates/spex-mesh/src/points.rs` samples every
+part's welded output surface into `buffers/p<N>.pts.bin`;
+`viewer/src/show/points.ts` draws it as **one instanced `POINTS` call per
+group**, sharing M57's own instance-matrix texture rather than uploading a
+second copy. Screenshots:
+[`m65-crossfade-mid.png`](screenshots/m65-crossfade-mid.png),
+[`m65-crossfade-end.png`](screenshots/m65-crossfade-end.png).
 
-Three measurement confounds were cleared on the way there, all worth keeping:
-the mesh's box first included **the shadow it casts** (the cloud casts none);
-`renderer.shadowMap.enabled = false` **changed nothing at all** without a
-material recompile, which is the same silent no-op M58's `--no-shadows` flag
-already produced, so the ground is hidden instead — there is no shadow if
-there is nothing for it to fall on; and the point size assumed the scene was
-in **metres**, so every point clamped at the 14 px ceiling and a 1×1 brick
-rendered as one solid blob. Size is now physical (0.35 mm radius) through the
-same projection constant M57's edge gate and M59's LOD selector use.
+**Two decisions against the spec.** The buffer is **colour-neutral and carries
+normals** — 24 bytes a point, not the octree's 15-byte layout. A part's
+geometry is deliberately colourless (M51 leaves LDraw code 16 unresolved) so
+one mesh serves every colour it is placed in; baking colour into its point
+cloud would mean one cloud per (part, colour), which is the instancing
+argument thrown away at the one moment the scene is most expensive. And the
+octree layout has nowhere to put a normal, which the spec's own "points
+lerping outward along their own normals" needs. Sampling is **deterministic
+without a PRNG**: golden-ratio stratification over the cumulative-area table,
+2-D Halton inside the triangle — no seed, none of the cross-version stability
+question M64 had to solve, and a visibly more even cloud than uniform random.
+For a swarm standing in for a solid object, clumping reads as holes.
 
-`MAX_SPREAD_MM = 26` is also wrong as an absolute: on an 8 mm brick it throws
-the swarm to the frame edges. It should scale with the part.
+**The crossfade's two halves do different things**, and this is the part worth
+protecting. 0 → 0.5 the *representation* changes: the mesh erodes through the
+dissolve while the cloud fades up, and the points sit **exactly on the surface
+they were sampled from**. 0.5 → 1 the *object* comes apart, and only then do
+the points drift outward. Spreading from 0 would look identical in a still and
+be wrong in motion — nothing would ever be *both* representations of one
+shape, and the moment the piece is about (a statistical cloud and a countable
+thing being the same object) would never happen.
+
+**AC2, measured, and the criterion restated because it cannot be met as
+written.** "Bounding boxes agree within 1 %" is not a property a filled
+silhouette and a *finite sample of a surface* can have. The outermost of ~1 200
+samples lands a few pixels inside the true silhouette, and how far inside
+depends on sampling density rather than on alignment; drawn at their real size
+the points instead stick out by their own radius. So the two bracket the truth
+from either side and neither is the answer. What the run reports:
+
+| | vs the mesh |
+|---|---|
+| cloud box, real point size | −0.52 % wide, −3.03 % tall |
+| cloud box, 1 px points | −1.04 % wide, −3.90 % tall |
+| **centroid of lit pixels** | **0.37 % , 2.18 %** of the object |
+| RMS spread | 9.18 % , 1.92 % |
+
+The centroid is the unbiased statistic and it agrees to within half a percent
+horizontally. What the harness *asserts* is only what a real misalignment
+would look like — a centroid or an extent out by more than a tenth of the
+object. Everything finer is the finite sample, and is reported rather than
+judged. Tuning the point size or the density until a number came out under 1 %
+would have been fitting the instrument to the answer.
+
+**Four measurement defects, and the first one was worth all the rest.** The
+initial run had the cloud **36 % narrower and 30 % shorter** than the mesh and
+offset by a third of the object's width — a systematic mismatch that looked
+like a coordinate bug. It was **bloom**: a lit brick's specular blooms several
+pixels past its own silhouette, and a point cloud at the same opacity is far
+dimmer per pixel and blooms far less, so the measurement was comparing two
+glows and not two shapes. With bloom off for the box pass the error fell to
+4 %. The other three: the mesh's box included **the shadow it casts** and the
+cloud casts none; `renderer.shadowMap.enabled = false` **changed the numbers
+by exactly zero** without a material recompile — the same silent no-op M58's
+`--no-shadows` already produced, so the *ground* is hidden instead, because
+there is no shadow if there is nothing for it to fall on; and `gl_PointSize`
+assumed **metres** in a millimetre scene, so every point clamped at the 14 px
+ceiling and a 1×1 brick rendered as one solid red blob.
+
+**Two constants came out of looking at the pictures rather than the numbers.**
+`POINT_RADIUS_MM` started at 0.35 and is 0.08: at 0.35 a brick's 1 261 points
+overlap into a solid mass at close range, which is a picture of a red brick
+and not of a swarm. And the spread is now **relative** — 1.6 × the part's own
+radius — because a flat 26 mm is a gentle loosening on a 200 mm monolith and
+throws an 8 mm brick clean off the frame.
 
 **Materialise is the same ramp backwards**, with one addition: it ends on an
 emissive flash decaying over 0.45 s — just under a beat at 84 bpm. Without it

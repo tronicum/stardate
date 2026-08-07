@@ -4,12 +4,12 @@ import {
   buildPointClouds,
   fetchPartPoints,
   PointCloudRenderer,
-  MAX_SPREAD_MM,
+  SPREAD_RADII,
 } from '../../viewer/src/show/points';
 
 (globalThis as unknown as { __spexPoints: unknown }).__spexPoints = {
   buildPointClouds,
   fetchPartPoints,
   PointCloudRenderer,
-  MAX_SPREAD_MM,
+  SPREAD_RADII,
 };

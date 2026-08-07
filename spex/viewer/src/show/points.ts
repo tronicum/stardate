@@ -44,12 +44,14 @@ import type { InstanceGroup } from '../mesh/instanced';
 import type { MaterialLibrary } from '../mesh/materials';
 import type { MeshBundle } from '../mesh/bundle';
 
-/** How far a point drifts from its surface, in millimetres, at value 1.
+/** How far a point drifts at value 1, as a multiple of its own part's radius.
  *
- * 26 mm is about three brick-widths: far enough that the object has visibly
- * stopped being an object, close enough that the swarm still occupies the
- * space the object did. The Inkpour is a dissolution, not an explosion. */
-export const MAX_SPREAD_MM = 26;
+ * Relative and not absolute: the first version used a flat 26 mm, which on a
+ * 200 mm monolith is a gentle loosening and on an 8 mm brick throws the swarm
+ * clean off the frame. 1.6 radii means the object roughly triples in extent —
+ * visibly no longer an object, still occupying the space it did. The Inkpour
+ * is a dissolution, not an explosion. */
+export const SPREAD_RADII = 1.6;
 /** A point's physical radius, in millimetres.
  *
  * Physical and not "N device pixels", because the scene is in millimetres and
@@ -60,7 +62,7 @@ export const MAX_SPREAD_MM = 26;
  * The first version wrote `uSize / -mv.z * 1000.0`, which assumed the scene
  * was in metres. Every point came out clamped at the 24 px ceiling and the
  * brick rendered as one solid red blob. */
-export const POINT_RADIUS_MM = 0.35;
+export const POINT_RADIUS_MM = 0.08;
 /** Ceiling, in device pixels. A point the camera is almost inside would
  * otherwise become a full-screen quad. */
 export const MAX_POINT_PX = 14;
@@ -130,6 +132,9 @@ export interface PointCloudGroup {
   material: THREE.ShaderMaterial;
   /** Points in one instance's cloud. */
   pointsPerInstance: number;
+  /** The part's own bounding radius, in millimetres — what the spread scales
+   * against. */
+  radiusMm: number;
 }
 
 /** Reads one part's `p<N>.pts.bin` — 24 bytes a point, position then normal,
@@ -214,7 +219,13 @@ export function buildPointClouds(
     points.frustumCulled = false;
     points.visible = false;
     points.name = `points:${part.partFile}#${group.material}`;
-    out.push({ source: group, points, material, pointsPerInstance: n });
+    out.push({
+      source: group,
+      points,
+      material,
+      pointsPerInstance: n,
+      radiusMm: geometry.boundingSphere.radius,
+    });
   }
   return out;
 }
@@ -252,10 +263,10 @@ export class PointCloudRenderer {
     // for the whole of the coming-apart, because a swarm that is still
     // fading in while it disperses reads as an error rather than an event.
     const opacity = Math.min(1, v * 2);
-    const spread = Math.max(0, v - 0.5) * 2 * MAX_SPREAD_MM;
+    const t = Math.max(0, v - 0.5) * 2;
     for (const g of this.groups) {
       g.material.uniforms.uOpacity.value = opacity;
-      g.material.uniforms.uSpread.value = spread;
+      g.material.uniforms.uSpread.value = t * SPREAD_RADII * g.radiusMm;
       g.points.visible = opacity > 0.001;
     }
   }
