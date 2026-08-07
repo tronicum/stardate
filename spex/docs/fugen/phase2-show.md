@@ -449,7 +449,86 @@ authored curves.
 4. Every easing function is unit-tested for `f(0)===0`, `f(1)===1`, and
    monotonicity where it applies.
 
-**Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
+**Verification ladder.** 1, 2, 3. Rung 5 is **not** applicable here, and
+the correction is the point of rev 2's rule: this milestone adds no render
+pass, no material and no geometry, and nothing it produces reaches a frame
+until M66 wires it up. There is no picture for a screenshot to be of. Rung 5
+belongs to M63, where a camera first moves. (6 runs at the end of the phase.)
+
+**Status: ✅ done.** `viewer/src/show/{easing.ts, clock.ts, timeline.ts,
+resolved.ts}` plus `scripts/viewer-shot/showprobe.mjs`, which measures all four
+criteria in real Chromium against the real resolved Act I document.
+
+**`resolved.ts` was not in the file list and had to exist.** The evaluator
+reads `show-resolved.json`, so something has to describe its shape in
+TypeScript. It mirrors the schema by hand, the same way `mesh/bundle.ts`
+mirrors `mesh.schema.json` — generating it would be one more build step to
+keep alive, and the schema is already validated against real `show-build`
+output on the Rust side, so the schema is the authority and this is a reader.
+
+**Time is derived, never accumulated.** Not `time += delta`. Show time is
+*(source now − source reading when playback last started) + the offset it
+started from*. Accumulating deltas accumulates their rounding — sixty
+additions a second for an hour is 216 000 of them — and makes a dropped frame
+permanent, where derived time is already correct on the very next tick after
+a stall of any length.
+
+**AC1 passes, at four points in the show.** Seeking to *t* and evaluating one
+second produces a byte-identical FNV hash of every value the evaluator emits,
+compared against the same window reached by playing from zero. `7e08f98d`,
+`8ed0bc5c`, `2772e07c`, `4468f859` — seeked and played-through, identical at
+all four. And the one piece of state the evaluator *does* keep gets its own
+check: reaching 75 % by seeking fires **0** cues, reaching it by playing fires
+**9**. A seek that replayed three minutes of accents would be audible.
+
+**AC2 passes by four orders of magnitude, and the interesting number is the
+other one.** Show time against `audioContext.currentTime`: worst **0.0000 ms**
+over 722 frames — which is not luck, it is what "derived, never accumulated"
+means. The number worth recording is the comparison the design exists for:
+`performance.now()` against the audio clock drifted **18.3 ms in 12 s**, about
+90 ms a minute. **That rate is a headless-Chromium figure, not a hardware
+one** — there is no audio device here and the context runs on a synthesised
+clock, so the magnitude should not be quoted as what a real machine does. What
+it does show is that the two clocks are genuinely independent, which is the
+whole reason the show reads the one the sound is on.
+
+**AC3 passes, and the positive control is the part that makes it mean
+anything.** Chromium heap sampling at a 512 B interval over 6 000 frames:
+`evaluate` 1.90 B/frame against an empty loop's 1.19 B/frame — the difference
+is sampling noise. The measurement is only worth stating because the same
+instrument, in the same run, sees **28.25 B/frame** from a loop that allocates
+one small object per frame. So the instrument can see what is being claimed
+absent.
+
+**The first version of that control measured nothing, and said so
+confidently.** It built 6 000 objects into a local array and reported only
+`array.length`, so V8's escape analysis proved they never leave the loop and
+allocated none of them — 6 000 "allocations" came out as 1.4 kB. A positive
+control the optimiser is free to delete is not a control. It now parks the
+array on `globalThis`.
+
+**AC4 passes for all sixteen curves**, with one correction to the criterion:
+`bounceOut` is **not** monotonic and must not be asserted to be. It reaches
+1.0 at t≈0.364 and falls away again, three times — that is what a bounce is.
+`backOut` and `elasticOut` overshoot to 1.100 and 1.373 by design. All
+sixteen have exact endpoints and all sixteen clamp outside [0,1] rather than
+extrapolating, which matters because a keyframe segment gets sampled a hair
+past its end by floating point. `cubicBezier(0,0,1,1)` reproduces the identity
+to 0.00e+0.
+
+**`cubicInOut` is a port of `brick.rs::ease_in_out_cubic`, not a
+re-derivation** — same branch, same expressions. M64 has to match the baked
+`brick-assembly` demo to within 0.01 mm, and two independently written cubics
+agree to about three decimals.
+
+**One design note that will look like an omission later.** Euler rotations are
+interpolated componentwise and deliberately *not* wrapped to a shortest path.
+A1-S03 turns the brick 0° → 360°, and any "take the short way round" step —
+which is exactly what a quaternion conversion does — turns a full revolution
+into no revolution at all. The quaternion path is still there and still
+slerps; it is correct for every swing up to a half-turn, which is every swing
+except that one.
+
 ---
 
 ### M63 — the camera director

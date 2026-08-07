@@ -150,3 +150,37 @@ dolly where nothing switched would pass the luminance test trivially and prove
 nothing. That assertion is what caught the harness bug where
 `c.position.copy(t).add(c.position.clone()…)` parked the camera on the object
 every frame — JavaScript runs the `copy` before evaluating the argument.
+
+## The show engine, measured without a picture
+
+```
+spex show-build shows/die-geschichtliche-matrix.show.json -o /tmp/show --duration 240 --no-bundles
+node scripts/viewer-shot/showprobe.mjs /tmp/show/show-resolved.json
+```
+
+M62's clock and timeline evaluator have no render pass, so there is nothing to
+screenshot — but they are still browser code, and three of their four
+acceptance criteria are only answerable in a real browser. `showprobe.mjs`
+bundles `viewer/src/show/` with esbuild, injects it into Chromium, and reports
+four numbers: seek determinism (an FNV hash over every value the evaluator
+emits, seeked versus played-through), clock drift against
+`audioContext.currentTime`, allocations per frame from Chromium's heap
+sampler, and the endpoint/monotonicity behaviour of every easing curve.
+
+**The allocation number is only worth reading because of the positive
+control.** Alongside the measurement the probe runs a loop that allocates one
+small object per frame, so the report says both "evaluate is at the noise
+floor" and "here is what the noise floor can see" (28 B/frame). The first
+version of that control kept its objects in a local array and reported only
+`array.length` — V8's escape analysis then allocated nothing at all, and 6 000
+allocations measured 1.4 kB. A control the optimiser may delete measures the
+optimiser.
+
+**The drift figure is not a hardware figure.** This container has no audio
+device, so Chromium's `AudioContext` runs on a synthesised clock, and the
+~90 ms/minute divergence between it and `performance.now()` should not be
+quoted as what a real machine does. What it does establish is that the two
+clocks are independent — which is the reason the show reads the one the sound
+is on. Show time against its own chosen source measures 0.0000 ms, and that
+part is arithmetic rather than hardware: time is derived from an anchor, never
+accumulated frame by frame.
