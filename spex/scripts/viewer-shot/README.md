@@ -102,3 +102,16 @@ once the environment was raised to fix it; and — the one nobody would have
 guessed — red rendering `255,120,88` **with every direct light switched off**,
 against `40,0,0` from the entire rig, which is how the three small "highlight"
 cards turned out to be the scene's actual lighting.
+
+## Orbiting, for the conditional-edge test
+
+```
+node scripts/viewer-shot/orbit.mjs http://127.0.0.1:8093/ /tmp/m57
+```
+
+Twelve angles, one screenshot each, plus 0.5x and 50x the default camera
+distance. Prints *which* conditional edges pass the silhouette test at each
+angle — the set, not its size. That distinction is the point: a cylinder shows
+exactly two silhouette edges from every direction, so the count is constant
+even when everything works, and only the identity of the two rotates. Exits
+non-zero if the set never changes, which would mean the test is not running.

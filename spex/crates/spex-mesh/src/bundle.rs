@@ -42,7 +42,16 @@ use std::path::Path;
 
 use crate::weld::{weld_and_smooth, WeldedMesh, DEFAULT_CREASE_DEGREES};
 
-pub const FORMAT_VERSION: u32 = 1;
+/// Bumped to 2 by M56.
+///
+/// M56 added `finish` and `pbr` to every material entry and made both
+/// *required*. That is a breaking change to the format, and the first version
+/// of it shipped without saying so — a bundle built before M56 then reached
+/// the viewer, passed the `version === 1` check, and died on
+/// `entry.pbr.opacity` with a TypeError pointing at minified three.js. A
+/// format that changes what readers must find has to change its number, or
+/// the check it offers them is worthless.
+pub const FORMAT_VERSION: u32 = 2;
 /// Instance translations are quantised to whole LDraw units, which is exact
 /// for grid-legal geometry and 0.4 mm at worst for anything else. i16 gives
 /// +/- 32767 LDU, i.e. +/- 13.1 m of local extent per bundle.

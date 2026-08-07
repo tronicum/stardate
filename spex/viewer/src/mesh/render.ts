@@ -23,6 +23,7 @@ import {
 } from './bundle';
 import { buildSyntheticEnvironment, MaterialLibrary } from './materials';
 import { buildInstanceGroups, InstanceWriter, type InstanceGroup } from './instanced';
+import { buildEdgeGroups, visibleConditionalEdges, EdgeRenderer } from './edges';
 
 /** `devicePixelRatio` unclamped is 9x the fragments on a 3x-DPR tablet, for a
  * difference nobody can see at arm's length. See `docs/fugen/budgets.md`. */
@@ -135,6 +136,11 @@ export interface MeshSceneStats {
   /** Distinct real LDConfig finishes in this bundle — M56's acceptance
    * criterion, read off the data rather than asserted. */
   finishes: string[];
+  /** Screen-space quads submitted by the edge pass: (type-2 + type-5) x
+   * brick instances. */
+  edgeQuads: number;
+  /** How many of those are conditional, i.e. tested per frame. */
+  conditionalEdges: number;
 }
 
 /** The whole mesh-mode viewer: its own renderer, camera, controls and loop.
@@ -150,10 +156,13 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   const autoRotateInput = document.getElementById('autoRotate') as HTMLInputElement;
   const exposureRow = document.getElementById('mesh-exposure-row') as HTMLLabelElement;
   const exposureInput = document.getElementById('exposure') as HTMLInputElement;
+  const showEdgesInput = document.getElementById('showEdges') as HTMLInputElement;
+  const edgeWidthRow = document.getElementById('mesh-edge-width-row') as HTMLLabelElement;
+  const edgeWidthInput = document.getElementById('edgeWidth') as HTMLInputElement;
 
   // The point-cloud controls have no meaning here; leaving a dead "Point
   // budget" slider on screen is worse than hiding it.
-  for (const id of ['pointSize', 'pointBudget', 'showLabels', 'animatePacket', 'showEdges']) {
+  for (const id of ['pointSize', 'pointBudget', 'showLabels', 'animatePacket']) {
     document.getElementById(id)?.closest('label')?.setAttribute('style', 'display:none');
   }
   exposureRow.style.display = 'flex';
@@ -182,23 +191,40 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
   for (const g of groups) instanceRoot.add(g.mesh);
   scene.add(instanceRoot);
   const writer = new InstanceWriter(groups);
+
+  // M57: real LDraw type-2 and type-5 lines, as screen-space quads. This is
+  // the difference between a soft plastic blob and the catalogue picture.
+  const edges = new EdgeRenderer(buildEdgeGroups(bundle, buffers, materials, groups));
+  edges.addTo(instanceRoot);
+
   scene.add(createLightingRig(bundle.bounds));
   scene.add(createGround(bundle.bounds));
 
   const center = boundsCenter(bundle.bounds);
   const diag = boundsDiagonal(bundle.bounds);
 
+  // Near and far are set from the scene's own size *and* from how far the
+  // screenplay actually pulls the camera. M57's AC3 tests 50x the default
+  // distance — with the old `far = diag * 20` the object simply fell out of
+  // the frustum there and the test rendered an empty frame, which is not a
+  // pass. Ratio is ~30 000:1, which a 24-bit depth buffer handles; the
+  // coincident-surface problem is solved by `polygonOffset` on the faces
+  // rather than by depth precision, so widening this is safe.
   const camera = new THREE.PerspectiveCamera(
     45,
     window.innerWidth / window.innerHeight,
-    Math.max(diag / 1000, 0.01),
-    diag * 20,
+    Math.max(diag / 200, 0.005),
+    diag * 150,
   );
   camera.position.set(center.x + diag * 1.1, center.y + diag * 0.7, center.z + diag * 1.35);
   camera.lookAt(center);
 
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
+  const pixelRatio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
+  renderer.setPixelRatio(pixelRatio);
   renderer.setSize(window.innerWidth, window.innerHeight);
+  // Device pixels, not CSS pixels — the whole point of a screen-space width
+  // is that it is the same thickness on every display.
+  edges.setResolution(window.innerWidth * pixelRatio, window.innerHeight * pixelRatio, pixelRatio);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   // ACES on the renderer is correct *only while there is no post chain*. M58
   // adds bloom, which must run in linear HDR — tone mapping before it makes
@@ -233,7 +259,15 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    const dpr = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
+    edges.setResolution(window.innerWidth * dpr, window.innerHeight * dpr, dpr);
   });
+
+  edgeWidthRow.style.display = 'flex';
+  edgeWidthInput.addEventListener('input', () => edges.setWidth(parseFloat(edgeWidthInput.value)));
+  showEdgesInput.closest('label')?.setAttribute('style', 'display:flex');
+  showEdgesInput.addEventListener('input', () => edges.setVisible(showEdgesInput.checked));
+  edges.setVisible(showEdgesInput.checked);
 
   const stats: MeshSceneStats = {
     parts: bundle.parts.length,
@@ -243,6 +277,8 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
     uniqueTriangles: bundle.parts.reduce((sum, p) => sum + p.triangleCount, 0),
     materials: bundle.materials.length,
     finishes: materials.finishes(),
+    edgeQuads: edges.quadCount,
+    conditionalEdges: edges.conditionalCount,
   };
   statusEl.style.display = 'none';
 
@@ -257,6 +293,7 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
       <div>${stats.drawnTriangles.toLocaleString()} triangles drawn &middot; ${stats.uniqueTriangles.toLocaleString()} unique</div>
       <div>${renderer.info.render.calls} draw calls</div>
       <div>${stats.materials} materials &middot; ${stats.finishes.join(', ')}</div>
+      <div>${stats.edgeQuads.toLocaleString()} edge quads &middot; ${stats.conditionalEdges.toLocaleString()} conditional &middot; ${edges.visibleGroupCount}/${edges.groups.length} drawn</div>
       <div>crease ${bundle.creaseDegrees}&deg;</div>
       <div id="hud-fps">${fps.toFixed(0)} fps</div>
     `;
@@ -274,6 +311,7 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
       frames = 0;
       fpsAccumMs = 0;
     }
+    edges.update(camera, window.innerHeight * pixelRatio);
     renderer.render(scene, camera);
     updateHud();
   }
@@ -292,6 +330,24 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
     scene,
     groups,
     writer,
+    edges,
+    /** M57 AC2: *which* conditional edges the shader's predicate lets through
+     * from where the camera is now, recomputed on the CPU. The set must
+     * change as the camera orbits — an unchanging set is proof the test is
+     * not running. The set, not the count: a cylinder has two silhouette
+     * edges from every angle, so the count is constant even when everything
+     * is working. */
+    conditionalEdgesDrawn: () => {
+      const res = new THREE.Vector2(window.innerWidth, window.innerHeight);
+      return edges.groups.flatMap((g, gi) =>
+        visibleConditionalEdges(g, camera, res).map((i) => `${gi}:${i}`));
+    },
+    orbitTo: (radians: number) => {
+      const r = Math.hypot(camera.position.x - center.x, camera.position.z - center.z);
+      camera.position.set(center.x + Math.cos(radians) * r, camera.position.y, center.z + Math.sin(radians) * r);
+      camera.lookAt(center);
+      controls.update();
+    },
     /** M55 AC3: what it really costs to rewrite every instance's transform
      * and upload it — the per-frame price of choreography, measured rather
      * than asserted, because the show's budget is built on this number.

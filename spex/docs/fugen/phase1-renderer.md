@@ -786,6 +786,71 @@ reads as the catalogue image everybody has in their head.
 **Verification ladder.** 1, 2, 5 (**mandatory — this milestone is defined by
 its screenshots**), 7.
 
+**Status: ✅ done.** `viewer/src/mesh/edges.ts`. Screenshots:
+`screenshots/m57-brick-2000.png` (AC1, and a crop of the stud),
+`m57-car.png`, `m57-monolith.png`.
+
+**AC2's phrasing was wrong, and the measurement is the more interesting
+result.** Rev 1 asked that "the conditional-edge count actually drawn changes
+between angles". It does not, and a correct renderer is why: a cylinder is a
+body of revolution, so it presents exactly **two** silhouette edges from every
+direction. Measured on a real `3005.dat` stud across twelve orbit angles: 2
+drawn out of 16, at every single one. What changes is *which* two —
+
+```
+angle  0: 56, 64      angle  4: 62, 69      angle  8: 58, 67
+angle  1: 58, 65      angle  5: 63, 70      angle  9: 60, 68
+angle  2: 59, 66      angle  6: 56, 64      angle 10: 61, 70
+angle  3: 60, 68      angle  7: 57, 66      angle 11: 62, 71
+```
+
+— ten distinct sets over twelve angles, rotating with the camera around the
+16-segment stud (two repeat because 12 angles alias against 16 segments). The
+criterion now asserts on the **set**, not its size; asserting on the count
+would have failed a working renderer. `scripts/viewer-shot/orbit.mjs` runs it.
+
+**Three defects found by rendering it.**
+
+- *Nothing drew at all, with no error anywhere.* The program linked, the draw
+  call was issued, `renderer.info.render.calls` went up, and the frame was
+  unchanged. A screen-space quad's winding flips with the direction of the
+  line it expands, so at any camera angle about half of them are back-facing —
+  and the material was `FrontSide`. `DoubleSide` is not an optimisation to
+  skip here, it is a correctness requirement.
+- *Biasing the edges toward the viewer cannot work.* The spec's own
+  prescription (`gl_Position.z -= bias * gl_Position.w`) was implemented and
+  produced a brick whose **interior** edges showed through its front wall —
+  and on a hollow LDraw brick that is most of them. Any offset large enough
+  to beat a coplanar face is large enough to beat the wall in front of it.
+  The fix is at the other end: `polygonOffset` on the **solid** material,
+  which moves only the coincident surface and scales with its own depth
+  slope. `uDepthBias` stays, defaulting to **0**, for tuning at extremes.
+- *AC3's 50× camera distance rendered an empty frame.* Not a z-fighting pass
+  — the object simply fell outside `far = diag * 20`, which is what the
+  camera had been configured with since M54 while the screenplay pulls back
+  fifty times further. Now `near = diag/200`, `far = diag*150`. Widening it
+  is safe precisely *because* coincident surfaces are handled by
+  `polygonOffset` rather than by depth precision.
+
+**And one caught in the format rather than the renderer:** M56 added `finish`
+and `pbr` as *required* material fields without bumping `FORMAT_VERSION`. A
+bundle built before it passed the viewer's `version === 1` check and then died
+on `entry.pbr.opacity`, with a stack trace pointing into minified three.js.
+The format is now **version 2**, and the viewer's error names the fix
+("rebuild it with `spex mesh-model`"). A format that changes what readers must
+find has to change its number, or the check it offers them is worthless.
+
+**AC4 is not met, deliberately, and the number says why.** Geometric edges are
+gated by a build-time budget (`MAX_EDGE_QUADS`, 1.5 M ≈ 84 MB of attributes)
+and a per-frame projected-height test (40 px, per the rev 3 corrections).
+Measured: the 50 000-instance lattice wants **10 800 000** edge quads — about
+600 MB — so the pass is skipped entirely with a console warning naming the
+real number. WebGL2 has no instancing-of-instances, so there is no cheaper
+encoding available; crowd-scale outlines need the **screen-space
+depth+normal-discontinuity pass**, whose cost is independent of instance
+count. That is recorded here as not-built rather than half-built. Real scenes
+stay well under: the car is 22 284 quads, the monolith 3 240.
+
 ---
 
 ### M58 — the post-processing and lighting pipeline

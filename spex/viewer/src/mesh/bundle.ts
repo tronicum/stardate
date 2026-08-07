@@ -17,6 +17,9 @@
 
 import type { Bounds } from '../tileset';
 
+/** Must match `spex_mesh::FORMAT_VERSION`. */
+export const MESH_FORMAT_VERSION = 2;
+
 export interface Submesh {
   /** Index into `materials[]`, or `null` for LDraw colour 16 ("inherit") —
    * meaning: take the *instance's* own material. A number is a fixed accent
@@ -135,10 +138,16 @@ export async function fetchMeshBundle(baseUrl: string): Promise<MeshBundle | nul
   const res = await fetch(`${baseUrl}/mesh.json`);
   if (!res.ok) return null;
   const bundle = (await res.json()) as MeshBundle;
-  if (bundle?.version !== 1) {
-    // Loud rather than silent: a bundle we can't read is a build problem, and
-    // falling through to the point path would hide it behind an empty screen.
-    throw new Error(`unsupported mesh bundle version ${bundle?.version}`);
+  if (bundle?.version !== MESH_FORMAT_VERSION) {
+    // Loud rather than silent, and specific: a bundle we can't read is a
+    // build problem. Saying "rebuild it" here is the difference between a
+    // one-line fix and an afternoon inside minified three.js — which is
+    // exactly what happened when M56 added required material fields without
+    // bumping this number.
+    throw new Error(
+      `mesh bundle is version ${bundle?.version}, this viewer reads ${MESH_FORMAT_VERSION}. ` +
+      `Rebuild it with \`spex mesh-model\`.`,
+    );
   }
   if (bundle.colorSpace !== 'linear') {
     throw new Error(`mesh bundle declares colorSpace "${bundle.colorSpace}"; this viewer only reads linear`);

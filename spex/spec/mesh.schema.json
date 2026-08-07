@@ -23,7 +23,8 @@
   "properties": {
     "version": {
       "type": "integer",
-      "const": 1
+      "const": 2,
+      "description": "2 since M56, which made `finish` and `pbr` required on every material. A version-1 bundle has neither and must be rebuilt rather than read."
     },
     "generator": {
       "type": "string",

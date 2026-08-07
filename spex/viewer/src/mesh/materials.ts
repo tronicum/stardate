@@ -191,6 +191,18 @@ export class MaterialLibrary {
       // place backface culling is off.
       side: transparent ? THREE.DoubleSide : THREE.FrontSide,
       depthWrite: !transparent,
+      // M57: push faces *away* from the viewer by a slope-dependent amount so
+      // the edge lines that sit exactly on them win the depth test — without
+      // biasing the edges themselves toward the viewer. Biasing the edges was
+      // tried first and is wrong in a way that is obvious once seen: a
+      // constant pull forward large enough to beat the face it lies on is
+      // also large enough to let the brick's *interior* edges show through
+      // its front wall. polygonOffset moves only the coincident surface, and
+      // scales with the polygon's own depth slope, so it holds at every
+      // camera distance.
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1,
     });
     if (p.emissiveIntensity > 0) {
       // Glow-in-the-dark: LDraw's real LUMINANCE, emitting its own colour.
