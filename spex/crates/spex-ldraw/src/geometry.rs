@@ -291,8 +291,17 @@ pub struct FullTriangle {
 pub struct PartGeometry {
     pub triangles: Vec<FullTriangle>,
     pub edges: Vec<Edge>,
-    /// Every real LDraw file that contributed, in first-seen order. A
-    /// triangle's or edge's `source` indexes into this.
+    /// Every real LDraw **reference path** that contributed, in first-seen
+    /// order. A triangle's or edge's `source` indexes into this.
+    ///
+    /// The *path*, not the file: `parts/3010.dat > p/stug-1x4.dat > p/stud.dat`
+    /// rather than `p/stud.dat`. That distinction is what M59's LOD1 stands
+    /// on. `p/4-4cyli.dat` is a quarter-cylinder primitive, and the same file
+    /// is used for a stud, for an underside tube, and for a hole in a
+    /// technic beam — the leaf name cannot tell them apart. The chain can:
+    /// a cylinder *reached through* a stud is a stud. Review 01, finding B5,
+    /// which is exactly the "gate on the reference path, never on a
+    /// heuristic about geometry" rule.
     pub sources: Vec<String>,
     /// The part's own title — LDraw's convention is that a file's first line
     /// is `0 <description>`.
@@ -356,6 +365,7 @@ fn resolve_full_into(
     depth: u32,
     inherited_reversed: bool,
     top_level: bool,
+    parent_chain: &str,
 ) -> Result<()> {
     if depth > 8 {
         bail!("LDraw reference recursion too deep at {part_file:?} - likely a real cycle or bug");
@@ -367,7 +377,9 @@ fn resolve_full_into(
     } else {
         resolve_ref_path(ctx.cache, part_file)?
     };
-    let source = ctx.intern(&path);
+    // The reference *chain*, not just this file: see `PartGeometry::sources`.
+    let chain = if parent_chain.is_empty() { path.clone() } else { format!("{parent_chain} > {path}") };
+    let source = ctx.intern(&chain);
     let mut bfc = BfcState::new(inherited_reversed);
     let mut first_comment_seen = false;
 
@@ -420,6 +432,7 @@ fn resolve_full_into(
                     depth + 1,
                     child_reversed,
                     false,
+                    &chain,
                 )?;
             }
             "3" | "4" => {
@@ -519,7 +532,7 @@ pub fn resolve_part_full(cache: &LdrawCache, part_file: &str) -> Result<PartGeom
         geo: PartGeometry::default(),
         source_index: std::collections::HashMap::new(),
     };
-    resolve_full_into(&mut ctx, part_file, &IDENTITY, &ZERO, None, 0, false, true)
+    resolve_full_into(&mut ctx, part_file, &IDENTITY, &ZERO, None, 0, false, true, "")
         .with_context(|| format!("fully resolving real LDraw part {part_file:?}"))?;
     Ok(ctx.geo)
 }
@@ -833,7 +846,11 @@ mod tests {
         assert_eq!(g.description.as_deref(), Some("Provenance"));
         assert_eq!(g.author.as_deref(), Some("A Real Author"));
         assert_eq!(g.license.as_deref(), Some("Redistributable under CCAL version 2.0"));
-        assert_eq!(g.sources, vec!["parts/p.dat".to_string(), "p/stud.dat".to_string()]);
+        assert_eq!(
+            g.sources,
+            vec!["parts/p.dat".to_string(), "parts/p.dat > p/stud.dat".to_string()],
+            "sources record the reference *chain*, which is what LOD1 gates on"
+        );
         assert_eq!(g.triangles[0].source, 0, "the part's own face");
         assert_eq!(g.triangles[1].source, 1, "the stud's face — this is what M59 gates LOD on");
         assert_eq!(g.edges[0].source, 1);

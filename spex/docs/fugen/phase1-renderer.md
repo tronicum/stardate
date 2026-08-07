@@ -977,4 +977,49 @@ site 400 m "away" does not need its studs.
 
 **Verification ladder.** 1, 2, 5 (**mandatory**), 7.
 
+**Status: 🟡 half done — LOD *generation* ships; LOD *selection* does not.**
+`crates/spex-mesh/src/lod.rs`, plus the change in `spex-ldraw` that makes it
+possible at all. The bundle still carries LOD0 only: a format that advertises
+levels no reader selects is a promise, not a feature. What remains is the
+writer emitting them and `instanced.ts` choosing between them per instance,
+with hysteresis, and the uniform-grid frustum cull.
+
+**B5 is now actually fixed, not just relocated.** M51 gave every triangle and
+edge a `source`, but `sources` held the *leaf file name* — and that is not
+enough to gate on. `p/4-4cyli.dat` is a quarter-cylinder primitive, and the
+same file is a stud, an underside tube, and a hole through a technic beam.
+`sources` now holds the real reference **chain**:
+
+```
+parts/3001.dat > parts/s/3001s01.dat > p/stud.dat  > p/4-4cyli.dat   <- a stud
+parts/3001.dat > parts/s/3001s01.dat > p/stud4.dat > p/4-4cyli.dat   <- a tube
+parts/3001.dat > parts/s/3001s01.dat > p/box5.dat                    <- the wall
+```
+
+A cylinder *reached through* a stud is a stud. The match is anchored to
+LDraw's `p/` primitive directory and to each segment's own file stem, so a
+*part* named like a primitive cannot be deleted by its name — there is a test
+for exactly that.
+
+**AC3 passes by a wide margin, measured on the real parts, and reported by
+the CLI on every build:**
+
+| part / scene | LOD0 | LOD1 (no studs/tubes) | LOD2 (box) |
+|---|---|---|---|
+| `3001.dat` Brick 2×4 | 700 tris | **28 — 96.0 % fewer** | 12 — 98.3 % |
+| the car (26 parts) | 13 729 | 6 747 — 50.9 % | 312 — 97.7 % |
+| stress lattice (2 parts) | 440 | 56 — 87.3 % | 24 — 94.5 % |
+
+AC3 asked for ≥ 55 % on `3001.dat`; the real figure is **96 %**, and the
+reason is worth stating plainly: a 2×4 brick is *almost entirely studs and
+tubes* by triangle count. Its walls are two box primitives and nothing else.
+The car's 50.9 % is lower only because a quarter of its parts are wheels,
+windscreens and a steering wheel, which have no studs to remove.
+
+**AC1 was already corrected by review 01 (B10):** it measured against "a
+40-site Atlas scene (from M74)", a week-6 milestone gated on a week-17
+deliverable. It verifies against the synthetic 200 k-instance scene instead,
+and the real-Atlas measurement is an AC on M81. Frame rate is not asserted
+here for the reason recorded at M54's AC2.
+
 ---

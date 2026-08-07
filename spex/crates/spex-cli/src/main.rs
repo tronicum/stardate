@@ -782,6 +782,19 @@ fn report(stats: &spex_mesh::MeshBundleStats, out: &Path) {
         "{} vertices, {} triangles, {} hard edges, {} conditional edges",
         stats.total_vertices, stats.total_triangles, stats.total_hard_edges, stats.total_conditional_edges
     );
+    if stats.total_triangles > 0 {
+        // M59: what the coarser levels would cost, gated on the real LDraw
+        // reference chain (`p/stud*.dat`, `p/stug*.dat`) rather than on any
+        // guess about the geometry — review 01's finding B5.
+        let pct = |n: usize| 100.0 - (n as f64 / stats.total_triangles as f64) * 100.0;
+        println!(
+            "LOD1 (no studs/tubes) {} triangles, {:.1}% fewer | LOD2 (bounding box) {} triangles, {:.1}% fewer",
+            stats.lod1_triangles,
+            pct(stats.lod1_triangles),
+            stats.lod2_triangles,
+            pct(stats.lod2_triangles),
+        );
+    }
     if stats.max_translation_error_mm > 0.0 {
         println!(
             "note: instance translations are off the LDraw grid by up to {:.3} mm",

@@ -265,6 +265,12 @@ struct PendingInstance {
 
 #[derive(Debug, Default, PartialEq)]
 pub struct MeshBundleStats {
+    /// M59: what the coarser levels would cost, measured on this bundle's own
+    /// parts and gated on the real LDraw reference chain. Reported rather
+    /// than written — the bundle still carries LOD0 only, and a format that
+    /// advertises levels no reader selects would be a promise, not a feature.
+    pub lod1_triangles: usize,
+    pub lod2_triangles: usize,
     pub part_count: usize,
     pub instance_count: usize,
     pub material_count: usize,
@@ -450,6 +456,8 @@ impl MeshBundleBuilder {
         let mut global = ([f64::INFINITY; 3], [f64::NEG_INFINITY; 3]);
 
         for (i, p) in self.parts.iter().enumerate() {
+            stats.lod1_triangles += crate::lod::lod1(&p.geometry).triangles.len();
+            stats.lod2_triangles += crate::lod::lod2(&p.geometry).triangles.len();
             let w = &p.welded;
             let mut pos = Vec::with_capacity(w.positions.len() * 12);
             let mut nrm = Vec::with_capacity(w.normals.len() * 12);
