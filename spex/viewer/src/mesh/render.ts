@@ -403,6 +403,9 @@ export async function runMeshViewer(baseUrl: string, bundle: MeshBundle): Promis
     groups,
     writer,
     edges,
+    // M65: the crossfade needs each group's own material colour, and a
+    // harness has no other way to reach the library.
+    materials,
     post: () => post,
     lod: () => lod,
     quality: () => tier,

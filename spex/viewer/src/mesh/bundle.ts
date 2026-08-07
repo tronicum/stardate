@@ -36,6 +36,8 @@ export interface MeshLod {
   level: 1 | 2;
   vertexCount: number;
   triangleCount: number;
+  /** M65: how many points `buffers.points` holds. */
+  pointCount?: number;
   hardEdgeCount: number;
   conditionalEdgeCount: number;
   buffers: PartBufferPaths;
@@ -48,6 +50,9 @@ export interface PartBufferPaths {
   index: string;
   hardEdge: string;
   condEdge: string;
+  /** M65: the companion point cloud, 24 bytes a point (position, normal).
+   * Absent for a part with no triangles, and only ever on level 0. */
+  points?: string;
 }
 
 export interface MeshPart {

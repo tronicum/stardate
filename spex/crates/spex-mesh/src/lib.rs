@@ -7,6 +7,7 @@
 pub mod bundle;
 pub mod lod;
 pub mod material;
+pub mod points;
 pub mod weld;
 
 pub use bundle::{
@@ -15,4 +16,5 @@ pub use bundle::{
 };
 pub use lod::{chain_is_stud, lod1, lod2};
 pub use material::{from_ldraw, PbrMaterial, SpeckleParams};
+pub use points::{sample_surface, SurfacePoint, MAX_POINTS, MIN_POINTS, POINT_DENSITY_PER_MM2};
 pub use weld::{weld_and_smooth, WeldedMesh, DEFAULT_CREASE_DEGREES};

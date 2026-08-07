@@ -808,7 +808,7 @@ show rather than being superseded by it.
 
 **Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
 
-**Status: 🟡 dissolve and materialise done; the point↔mesh crossfade is not.**
+**Status: 🟡 dissolve and materialise done; the point↔mesh crossfade is built but does not pass AC2.**
 `viewer/src/show/dissolve.ts`, the injected chunks in
 `viewer/src/mesh/materials.ts`, the eroding outline in `edges.ts`, the
 eroding shadow in `instanced.ts`/`lod.ts`, and
@@ -869,6 +869,29 @@ lit surface* did not know about dissolving.
   GLSL is exported from one module and used by all three shaders, because two
   copies of a hash function is the most reliable way for "the same fragments"
   to stop being true.
+
+**Part 2 — the crossfade — is in progress and does not pass AC2 yet.** What
+exists and works: the Rust sampler (`crates/spex-mesh/src/points.rs`, writing
+`buffers/p<N>.pts.bin`), the manifest and schema fields, and the runtime
+(`viewer/src/show/points.ts`, one instanced draw call per group sharing M57's
+matrix texture). What does not: at value 0.5 the cloud's screen box is
+**36 % narrower and 30 % shorter** than the mesh's, offset by a third of the
+object's width, against a 1 % allowance. The cloud covers the top-right of the
+silhouette and the right and top edges agree almost exactly — a systematic
+mismatch, not noise, and not yet diagnosed.
+
+Three measurement confounds were cleared on the way there, all worth keeping:
+the mesh's box first included **the shadow it casts** (the cloud casts none);
+`renderer.shadowMap.enabled = false` **changed nothing at all** without a
+material recompile, which is the same silent no-op M58's `--no-shadows` flag
+already produced, so the ground is hidden instead — there is no shadow if
+there is nothing for it to fall on; and the point size assumed the scene was
+in **metres**, so every point clamped at the 14 px ceiling and a 1×1 brick
+rendered as one solid blob. Size is now physical (0.35 mm radius) through the
+same projection constant M57's edge gate and M59's LOD selector use.
+
+`MAX_SPREAD_MM = 26` is also wrong as an absolute: on an 8 mm brick it throws
+the swarm to the frame edges. It should scale with the part.
 
 **Materialise is the same ramp backwards**, with one addition: it ends on an
 emissive flash decaying over 0.45 s — just under a beat at 84 bpm. Without it

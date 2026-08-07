@@ -85,8 +85,8 @@ export const MAX_EDGE_QUADS = 1_500_000;
  * scene; a texel fetch costs nothing and — more importantly — moving a brick
  * later (M60's choreography) is then one texel write instead of hundreds of
  * attribute writes. */
-const MATRICES_PER_ROW = 64;
-const TEXELS_PER_MATRIX = 4;
+export const MATRICES_PER_ROW = 64;
+export const TEXELS_PER_MATRIX = 4;
 
 export interface EdgeGroup {
   /** The instance group these edges belong to — same part, same colour. */

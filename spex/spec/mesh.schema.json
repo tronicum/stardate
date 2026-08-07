@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://spex.local/spec/mesh.schema.json",
   "title": "spex-brick-mesh bundle manifest (mesh.json)",
-  "description": "Written by `spex-mesh` (crates/spex-mesh/src/bundle.rs): describes real LDraw geometry packed for one-time upload to WebGL \u2014 a manifest plus tightly packed little-endian binary buffers, the same shape as tileset.json + octree/*.bin. Read by the viewer's mesh render mode (M54). Absent for every point-cloud and graph tileset, which is exactly how the viewer decides which of its two render paths to take.\n\nTwo properties of this format are load-bearing and are stated in the manifest rather than assumed by readers. Positions are in MILLIMETRES with +Y up, converted once from LDraw's own LDU/Y-down frame \u2014 and because negating Y is a mirror, the writer also reverses every triangle's winding, without which backface culling is inverted for the entire library. Colours are LINEAR, not sRGB, because three.js r152+ reads them as linear and would otherwise render every material about 2.2x too bright.",
+  "description": "Written by `spex-mesh` (crates/spex-mesh/src/bundle.rs): describes real LDraw geometry packed for one-time upload to WebGL — a manifest plus tightly packed little-endian binary buffers, the same shape as tileset.json + octree/*.bin. Read by the viewer's mesh render mode (M54). Absent for every point-cloud and graph tileset, which is exactly how the viewer decides which of its two render paths to take.\n\nTwo properties of this format are load-bearing and are stated in the manifest rather than assumed by readers. Positions are in MILLIMETRES with +Y up, converted once from LDraw's own LDU/Y-down frame — and because negating Y is a mirror, the writer also reverses every triangle's winding, without which backface culling is inverted for the entire library. Colours are LINEAR, not sRGB, because three.js r152+ reads them as linear and would otherwise render every material about 2.2x too bright.",
   "type": "object",
   "required": [
     "version",
@@ -38,7 +38,7 @@
     "upAxis": {
       "type": "string",
       "const": "+Y",
-      "description": "LDraw is Y-down. The conversion negates Y, which is a mirror \u2014 see the writer's own doc comment for why triangle winding is reversed with it."
+      "description": "LDraw is Y-down. The conversion negates Y, which is a mirror — see the writer's own doc comment for why triangle winding is reversed with it."
     },
     "colorSpace": {
       "type": "string",
@@ -77,7 +77,7 @@
           },
           "partFile": {
             "type": "string",
-            "description": "The real LDraw part filename, e.g. \"3005.dat\". Parts are keyed on this ALONE and never on (part, colour) \u2014 the geometry carries no colour, which is what lets two colours of the same part share one mesh and makes instancing possible."
+            "description": "The real LDraw part filename, e.g. \"3005.dat\". Parts are keyed on this ALONE and never on (part, colour) — the geometry carries no colour, which is what lets two colours of the same part share one mesh and makes instancing possible."
           },
           "description": {
             "type": [
@@ -90,6 +90,11 @@
             "type": "integer",
             "minimum": 0,
             "description": "position and normal buffers are each vertexCount * 12 bytes."
+          },
+          "pointCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "M65. How many points `buffers.points` holds. Absent for a part with no triangles."
           },
           "triangleCount": {
             "type": "integer",
@@ -104,7 +109,7 @@
           "conditionalEdgeCount": {
             "type": "integer",
             "minimum": 0,
-            "description": "real LDraw type-5 lines; the condEdge buffer is conditionalEdgeCount * 48 bytes \u2014 two endpoints followed by two control points. A conditional edge is drawn when both control points project to the SAME side of the edge."
+            "description": "real LDraw type-5 lines; the condEdge buffer is conditionalEdgeCount * 48 bytes — two endpoints followed by two control points. A conditional edge is drawn when both control points project to the SAME side of the edge."
           },
           "bounds": {
             "$ref": "#/$defs/bounds"
@@ -134,6 +139,10 @@
               },
               "condEdge": {
                 "$ref": "#/$defs/bufferPath"
+              },
+              "points": {
+                "$ref": "#/$defs/bufferPath",
+                "description": "M65. The companion surface point cloud: 24 bytes a point, position (3x f32 LE) then normal (3x f32 LE), in the same millimetre +Y-up frame as the mesh. COLOUR-NEUTRAL, exactly like the geometry it was sampled from — a part is deliberately colourless (M51 leaves LDraw code 16 unresolved) so one mesh serves every colour it is placed in, and baking colour here would mean one cloud per (part, colour). That is also why this is not the octree's 15-byte layout: that format bakes RGB and has nowhere to put a normal, and the crossfade needs the normal to pour the points outward along it. Level 0 only — a point cloud of a simplified brick would be a cloud of a different object. Absent for a part with no triangles."
               }
             }
           },
@@ -155,7 +164,11 @@
                     "null"
                   ],
                   "minimum": 0,
-                  "description": "Index into materials[], or NULL meaning LDraw colour 16 (\"inherit\") \u2014 take the instance's own material. A number is a fixed accent colour molded into the part itself."
+                  "description": "Index into materials[], or NULL meaning LDraw colour 16 (\"inherit\") — take the instance's own material. A number is a fixed accent colour molded into the part itself."
+                },
+                "points": {
+                  "type": "string",
+                  "description": "M65. The companion surface point cloud: 24 bytes a point, position (3x f32 LE) then normal (3x f32 LE), in the same millimetre +Y-up frame as the mesh. COLOUR-NEUTRAL, exactly like the geometry it was sampled from — a part is deliberately colourless (M51 leaves LDraw code 16 unresolved) so one mesh serves every colour it is placed in, and baking colour here would mean one cloud per (part, colour). That is why this is not the octree's 15-byte layout: that format bakes RGB and has nowhere to put a normal, and the crossfade needs the normal to pour the points outward. Level 0 only — a point cloud of a simplified brick would be a cloud of a different object. Absent for a part with no triangles."
                 },
                 "indexOffset": {
                   "type": "integer",
@@ -173,7 +186,7 @@
             "items": {
               "type": "string"
             },
-            "description": "Every real LDraw file that contributed geometry, in first-seen order \u2014 e.g. [\"parts/3005.dat\", \"parts/s/3005s01.dat\", \"p/stud.dat\"]. This is what a LOD pass gates stud and tube removal on: by real reference path, never by guessing from geometry."
+            "description": "Every real LDraw file that contributed geometry, in first-seen order — e.g. [\"parts/3005.dat\", \"parts/s/3005s01.dat\", \"p/stud.dat\"]. This is what a LOD pass gates stud and tube removal on: by real reference path, never by guessing from geometry."
           },
           "license": {
             "type": [
@@ -190,7 +203,7 @@
           },
           "lods": {
             "type": "array",
-            "description": "Coarser levels in ascending order (M59). LOD1 has studs and underside tubes removed, gated on the real LDraw reference chain (`p/stud*.dat`, `p/stug*.dat`) rather than on any guess about the geometry; LOD2 is the part's own box, 12 triangles and 12 hard edges, colour-neutral so it inherits the instance's colour. **Level 0 is the part entry's own buffers and counts and is NOT a member of this array** \u2014 which is why adding LODs was additive and needed no format version bump: a reader that ignores this field still gets full geometry.",
+            "description": "Coarser levels in ascending order (M59). LOD1 has studs and underside tubes removed, gated on the real LDraw reference chain (`p/stud*.dat`, `p/stug*.dat`) rather than on any guess about the geometry; LOD2 is the part's own box, 12 triangles and 12 hard edges, colour-neutral so it inherits the instance's colour. **Level 0 is the part entry's own buffers and counts and is NOT a member of this array** — which is why adding LODs was additive and needed no format version bump: a reader that ignores this field still gets full geometry.",
             "items": {
               "type": "object",
               "required": [
@@ -271,7 +284,7 @@
                           "null"
                         ],
                         "minimum": 0,
-                        "description": "Index into materials[], or NULL meaning LDraw colour 16 (\"inherit\") \u2014 take the instance's own material. A number is a fixed accent colour molded into the part itself."
+                        "description": "Index into materials[], or NULL meaning LDraw colour 16 (\"inherit\") — take the instance's own material. A number is a fixed accent colour molded into the part itself."
                       },
                       "indexOffset": {
                         "type": "integer",
@@ -335,7 +348,7 @@
           },
           "pbr": {
             "type": "object",
-            "description": "PBR parameters resolved from the finish by spex_mesh::material::from_ldraw. EVERY NUMBER HERE IS A CALIBRATED ARTISTIC CHOICE, not a measurement \u2014 the one exception is `ior` 1.53 for transparent parts, which is polycarbonate's real refractive index. They are written into the bundle rather than derived in the renderer so that a second renderer (an offline path tracer, the WASM path, a still export) resolves the same brick to the same look.",
+            "description": "PBR parameters resolved from the finish by spex_mesh::material::from_ldraw. EVERY NUMBER HERE IS A CALIBRATED ARTISTIC CHOICE, not a measurement — the one exception is `ior` 1.53 for transparent parts, which is polycarbonate's real refractive index. They are written into the bundle rather than derived in the renderer so that a second renderer (an offline path tracer, the WASM path, a still export) resolves the same brick to the same look.",
             "required": [
               "metalness",
               "roughness",
@@ -390,7 +403,7 @@
                 "type": "number",
                 "minimum": 0,
                 "maximum": 1,
-                "description": "Pearlescent is a dielectric with a thin-film layer, NOT a metal \u2014 modelling it as one removes the diffuse term that gives it its colour."
+                "description": "Pearlescent is a dielectric with a thin-film layer, NOT a metal — modelling it as one removes the diffuse term that gives it its colour."
               },
               "iridescenceIOR": {
                 "type": "number",
@@ -404,7 +417,7 @@
               },
               "speckle": {
                 "type": "object",
-                "description": "The particle layer of a MATERIAL SPECKLE / MATERIAL GLITTER colour, carried in full even though M56 renders only the base material \u2014 a renderer with the procedural chunk needs these exact numbers rather than a guess.",
+                "description": "The particle layer of a MATERIAL SPECKLE / MATERIAL GLITTER colour, carried in full even though M56 renders only the base material — a renderer with the procedural chunk needs these exact numbers rather than a guess.",
                 "required": [
                   "color",
                   "fraction"
@@ -439,7 +452,7 @@
     "orientations": {
       "type": "array",
       "maxItems": 256,
-      "description": "Distinct 3x3 row-major orientations, already conjugated into the output frame. An instance references one by u8 index \u2014 which is what makes a 10-byte instance record possible at all. A scene needing more than 256 fails the write rather than silently degrading.",
+      "description": "Distinct 3x3 row-major orientations, already conjugated into the output frame. An instance references one by u8 index — which is what makes a 10-byte instance record possible at all. A scene needing more than 256 fails the write rather than silently degrading.",
       "items": {
         "type": "array",
         "minItems": 9,
@@ -475,7 +488,7 @@
         "translationUnitMm": {
           "type": "number",
           "exclusiveMinimum": 0,
-          "description": "0.4 \u2014 translations are stored as i16 counts of one LDraw unit, which is exact for grid-legal geometry and gives +/- 13.1 m of addressable local extent."
+          "description": "0.4 — translations are stored as i16 counts of one LDraw unit, which is exact for grid-legal geometry and gives +/- 13.1 m of addressable local extent."
         },
         "maxTranslationErrorMm": {
           "type": "number",
@@ -494,7 +507,10 @@
     },
     "instanceBuildSteps": {
       "type": "array",
-      "items": { "type": "integer", "minimum": 0 },
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      },
       "description": "M64. The real `0 STEP` build stage of each instance, in the same order as instanceIds. Present only when the source scene actually has step markers AND they are not all identical — a column of zeroes is not information. A runtime assembly staggers by this where it exists and by array index where it does not, and the difference is visible: real build order looks like something being built, index order looks like a list being iterated. Additive and optional, so a reader that ignores it still gets a complete bundle; that is why it needed no version bump, unlike M56's required `finish`/`pbr`."
     },
     "instanceIds": {
@@ -554,7 +570,7 @@
     },
     "bufferPath": {
       "type": "string",
-      "pattern": "^buffers/p[0-9]+(\\.l[12])?\\.(pos|nrm|idx|edge|cond)\\.bin$",
+      "pattern": "^buffers/p[0-9]+(\\.l[12])?\\.(pos|nrm|idx|edge|cond|pts)\\.bin$",
       "description": "Relative to this manifest's own directory, so a bundle can be served from a domain root or any subpath. The optional `.l1`/`.l2` infix marks a coarser LOD (M59)."
     },
     "linearRgb": {

@@ -143,6 +143,11 @@ pub struct SubmeshRange {
 /// breaks byte-for-byte reproducibility of the manifest. Determinism is an
 /// acceptance criterion for this format and the foundation of M91's frame-hash
 /// regression fixture, so nothing in it may iterate a hash map.
+/// `skip_serializing_if` for a count that is only meaningful when non-zero.
+fn is_zero(n: &usize) -> bool {
+    *n == 0
+}
+
 #[derive(Serialize)]
 pub struct PartBuffers {
     pub position: String,
@@ -152,6 +157,13 @@ pub struct PartBuffers {
     pub hard_edge: String,
     #[serde(rename = "condEdge")]
     pub cond_edge: String,
+    /// M65: the companion surface point cloud — position + normal, 24 bytes
+    /// per point, **colour-neutral like the mesh it was sampled from**. Only
+    /// on level 0: a point cloud of a simplified brick would be a cloud of a
+    /// different object, and the crossfade's whole claim is that the two
+    /// representations are the same thing.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub points: Option<String>,
 }
 
 /// One coarser level of one part. Same shape as the part's own level-0
@@ -186,6 +198,10 @@ pub struct PartEntry {
     #[serde(rename = "conditionalEdgeCount")]
     pub conditional_edge_count: usize,
     pub bounds: Bounds,
+    /// M65: how many points `buffers.points` holds. Absent (0) for a part
+    /// with no triangles.
+    #[serde(rename = "pointCount", default, skip_serializing_if = "is_zero")]
+    pub point_count: usize,
     pub buffers: PartBuffers,
     pub submeshes: Vec<SubmeshRange>,
     /// Real LDraw **reference chains** this part's geometry came from — what
@@ -301,6 +317,7 @@ struct PackedLevel {
     min: [f64; 3],
     max: [f64; 3],
     bytes: u64,
+    point_count: usize,
 }
 
 fn pack_level(
@@ -384,6 +401,21 @@ fn pack_level(
         }
     }
 
+    // M65: the point cloud, level 0 only. `prefix` carries the level, so this
+    // is the one place that has to know the difference.
+    let mut point_count = 0usize;
+    let mut points_rel: Option<String> = None;
+    if !prefix.contains(".l") {
+        let sampled = crate::points::sample_surface(w);
+        if !sampled.is_empty() {
+            let rel = format!("buffers/{prefix}.pts.bin");
+            let data = crate::points::to_bytes(&sampled);
+            std::fs::write(out_dir.join(&rel), &data).with_context(|| format!("writing {rel}"))?;
+            point_count = sampled.len();
+            points_rel = Some(rel);
+        }
+    }
+
     let mut bytes = 0u64;
     let mut written = Vec::new();
     for (name, data) in [("pos", &pos), ("nrm", &nrm), ("idx", &idx), ("edge", &edge), ("cond", &cond)] {
@@ -400,8 +432,10 @@ fn pack_level(
             index: written[2].clone(),
             hard_edge: written[3].clone(),
             cond_edge: written[4].clone(),
+            points: points_rel,
         },
         submeshes,
+        point_count,
         vertex_count: w.vertex_count(),
         triangle_count: w.triangle_count(),
         hard_edge_count: hard_n,
@@ -664,6 +698,7 @@ impl MeshBundleBuilder {
             let submeshes = lod0.submeshes;
             let (hard_n, cond_n) = (lod0.hard_edge_count, lod0.conditional_edge_count);
             let vertex_count = lod0.vertex_count;
+            let point_count = lod0.point_count;
             let triangle_count = lod0.triangle_count;
 
             stats.total_vertices += vertex_count;
@@ -682,6 +717,7 @@ impl MeshBundleBuilder {
                 hard_edge_count: hard_n,
                 conditional_edge_count: cond_n,
                 bounds: Bounds { min: mn, max: mx },
+                point_count,
                 buffers,
                 submeshes,
                 sources: p.geometry.sources.clone(),
