@@ -19,6 +19,7 @@
  */
 
 import * as THREE from 'three';
+import { makeDissolveDepthMaterial } from '../show/dissolve';
 import type { MeshBundle, PartBuffers } from './bundle';
 import type { MaterialLibrary } from './materials';
 import type { InstanceGroup, InstanceWriter } from './instanced';
@@ -75,6 +76,7 @@ export function attachLodMeshes(
         group.ids.length,
       );
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      mesh.customDepthMaterial = makeDissolveDepthMaterial();
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       mesh.count = 0;

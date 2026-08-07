@@ -807,6 +807,74 @@ show rather than being superseded by it.
    50 000-instance scene.
 
 **Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
+
+**Status: 🟡 dissolve and materialise done; the point↔mesh crossfade is not.**
+`viewer/src/show/dissolve.ts`, the injected chunks in
+`viewer/src/mesh/materials.ts`, the eroding outline in `edges.ts`, the
+eroding shadow in `instanced.ts`/`lod.ts`, and
+`scripts/viewer-shot/dissolve.mjs`. Screenshots:
+[`m65-dissolve-000.png`](screenshots/m65-dissolve-000.png),
+[`m65-dissolve-034.png`](screenshots/m65-dissolve-034.png),
+[`m65-dissolve-062.png`](screenshots/m65-dissolve-062.png).
+
+**The milestone is split at its own seam.** Its three requirements are three
+things, and AC1/AC3 belong to the dissolve while AC2 belongs to the crossfade.
+The crossfade needs a companion point buffer per part, a `THREE.Points` path
+that scales past one brick, and a Rust-side sampler — comfortably another
+milestone's work. Splitting it is better than half-landing both.
+
+**A design decision for that half, recorded now so it is not re-litigated:**
+the spec says to bake colour into the point buffer and reuse the octree's
+15-bytes-per-point layout. **That cannot be right.** A part's geometry is
+deliberately colour-neutral (M51 leaves LDraw code 16 unresolved) precisely so
+one mesh serves every colour it is placed in; baking colour into its point
+cloud would mean one point cloud per (part, colour), which is the instancing
+argument thrown away at the transition. The companion buffer must carry
+**positions and normals** — normals because the spec's own "points lerping
+outward along their own normals" needs them, and the octree layout has no room
+for them — with colour coming from the instance's material at runtime.
+
+**AC1 passes: 17 309 → 0 lit pixels**, largest single-frame change 6.67 % of
+the object, and the rim measured rather than asserted — 5 231
+brighter-than-background pixels when solid, peaking at **9 181** at dissolve
+0.43. The object gets *brighter* as it goes, which is the rim doing its job.
+
+**AC3 measured: −18 % render time at dissolve 0.5** versus solid, on the
+monolith. The sign is meaningful and the magnitude is not: this is a software
+rasteriser, where `discard` is a branch that saves shading work, and on a GPU
+it is close to free but can defeat early-Z. The criterion asked for "≤ 15 %
+increase" and what happened was a decrease, which says the shader is not
+adding measurable cost here and says nothing at all about a GPU.
+
+**Three defects, each found by a picture that the numbers had already passed.**
+Every one is the same shape: something that renders the object *other than the
+lit surface* did not know about dissolving.
+
+- **The outline survived its own object.** At dissolve 1.0 the first run still
+  had 13 637 lit pixels — a perfect wireframe of the monolith hanging in
+  space, which is a striking image and entirely the wrong one. M57's edge
+  material is its own `ShaderMaterial`; it now reads the same per-instance
+  value through a `DataTexture` (a texture and not an attribute, because a
+  quad is per *edge* and a 1×4 brick has 360 of them).
+- **The shadow survived too.** With the edges fixed, 5 591 pixels remained and
+  `meanDelta` went **negative** — the object was making the frame darker than
+  the empty scene, which is a shadow of nothing and cannot be anything else.
+  three.js renders shadows with its own depth material, so
+  `customDepthMaterial` now carries the same erosion.
+- **And the outline eroded at the wrong rate.** With both fixed, the halfway
+  frame showed bricks turned into wire cages: the edge pass used a uniform
+  per-edge hash, and smoothed two-octave value noise is concentrated around
+  0.5, so at threshold 0.56 most of the surface was gone and only about half
+  the edges were. Same field now, sampled at the edge midpoint — the noise
+  GLSL is exported from one module and used by all three shaders, because two
+  copies of a hash function is the most reliable way for "the same fragments"
+  to stop being true.
+
+**Materialise is the same ramp backwards**, with one addition: it ends on an
+emissive flash decaying over 0.45 s — just under a beat at 84 bpm. Without it
+a materialise finishes on a completely ordinary frame, and the *arrival* is
+the event.
+
 ---
 
 ### M66 — `spex show` / `spex show-export`, URL parameters, and the HUD

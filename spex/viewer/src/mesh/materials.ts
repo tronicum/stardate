@@ -14,6 +14,7 @@
  */
 
 import * as THREE from 'three';
+import { applyDissolveChunks } from '../show/dissolve';
 import type { MeshBundle, MeshMaterial, MeshPart } from './bundle';
 
 function linearColor(rgb: [number, number, number]): THREE.Color {
@@ -210,6 +211,13 @@ export class MaterialLibrary {
       material.emissiveIntensity = p.emissiveIntensity;
     }
     if (this.environment) material.envMap = this.environment;
+    // M65: the dissolve is injected into this material rather than replacing
+    // it. A brick's look is clearcoat, transmission, iridescence, IBL and
+    // shadow — a hand-written ShaderMaterial would have to reproduce all of
+    // it in order to be able to erode it. The rim takes the colour's own
+    // LDraw EDGE value, so a dissolving brick is outlined in the same colour
+    // M57 draws its real edges in.
+    applyDissolveChunks(material, linearColor(entry.edgeColor));
     material.name = `${entry.name} (${entry.finish})`;
     this.cache.set(index, material);
     return material;

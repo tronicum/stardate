@@ -30,6 +30,7 @@
  */
 
 import * as THREE from 'three';
+import { NOISE_GLSL } from '../show/dissolve';
 import type { MeshBundle, PartBuffers } from './bundle';
 import type { MaterialLibrary } from './materials';
 import type { InstanceGroup } from './instanced';
@@ -94,6 +95,8 @@ export interface EdgeGroup {
   material: THREE.ShaderMaterial;
   /** Instance matrices, shared with the InstancedMesh's own buffer. */
   matrixTexture: THREE.DataTexture;
+  /** M65: per-instance dissolve, refreshed from `source.dissolve`. */
+  dissolveTexture: THREE.DataTexture;
   hardEdgeCount: number;
   conditionalEdgeCount: number;
   /** Quads submitted: (hard + conditional) x brick instances. */
@@ -112,6 +115,8 @@ in float aConditional;    // 1.0 for a type-5 line
 in float aBrick;          // row into the instance-matrix texture
 
 uniform sampler2D uMatrices;
+uniform sampler2D uDissolve;   // M65: one texel per instance, R = 0 solid .. 1 gone
+${NOISE_GLSL}
 uniform vec2 uResolution;     // device pixels
 uniform float uWidth;         // device pixels
 uniform float uDepthBias;
@@ -136,6 +141,33 @@ vec3 toScreen(vec4 clip) {
 }
 
 void main() {
+  // M65. A brick's outline has to go with its surface, or a fully dissolved
+  // object leaves a perfect wireframe of itself hanging in the air — which is
+  // a striking picture and entirely the wrong one. Each edge gets its own
+  // threshold from a hash of its start point, so the outline erodes rather
+  // than switching off, and it erodes at the same rate as the faces because
+  // both read the same per-instance value.
+  int dissolveRow = int(aBrick) / ${MATRICES_PER_ROW};
+  int dissolveCol = int(aBrick) - dissolveRow * ${MATRICES_PER_ROW};
+  float dissolve = texelFetch(uDissolve, ivec2(dissolveCol, dissolveRow), 0).r;
+  if (dissolve > 0.0) {
+    // The SAME noise field the surface uses, sampled at the edge's midpoint,
+    // and not a uniform per-edge hash. See NOISE_GLSL: a uniform hash
+    // erodes linearly while smoothed value noise erodes around its mean, so
+    // the two came apart in the middle of every dissolve and the bricks read
+    // as turning into wire cages.
+    vec3 mid = (aStart + aEnd) * 0.5;
+    float n = dissolveNoise(mid * 0.35);
+    n = mix(n, dissolveNoise(mid * 0.35 * 3.7), 0.35);
+    if (n < dissolve * 1.06) {
+      // Off-screen and degenerate: cheaper than a discard in the fragment
+      // stage, and it removes the quad rather than making it invisible.
+      gl_Position = vec4(2.0, 2.0, 2.0, 1.0);
+      vDiscard = 1.0;
+      return;
+    }
+  }
+
   mat4 model = brickMatrix(aBrick);
   mat4 mvp = projectionMatrix * viewMatrix * model;
 
@@ -243,6 +275,20 @@ function matrixTexture(group: InstanceGroup): THREE.DataTexture {
   return tex;
 }
 
+/** One texel per instance, R = the same 0..1 the solid material reads.
+ *
+ * A texture rather than a per-quad attribute because a quad is per *edge*,
+ * and a 1x4 brick has 360 of them: duplicating one float across 360 quads per
+ * instance would cost more upload than the matrices do. Same width as the
+ * matrix texture so one index arithmetic serves both. */
+function dissolveTexture(group: InstanceGroup): THREE.DataTexture {
+  const rows = Math.ceil(group.ids.length / MATRICES_PER_ROW);
+  const data = new Float32Array(MATRICES_PER_ROW * rows);
+  const tex = new THREE.DataTexture(data, MATRICES_PER_ROW, rows, THREE.RedFormat, THREE.FloatType);
+  tex.needsUpdate = true;
+  return tex;
+}
+
 /** Builds one edge mesh per instance group.
  *
  * Every (edge, brick) pair is one instanced quad. That is a real multiplier —
@@ -332,6 +378,7 @@ export function buildEdgeGroups(
     geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 1e9);
 
     const tex = matrixTexture(group);
+    const dtex = dissolveTexture(group);
     const material = new THREE.ShaderMaterial({
       glslVersion: THREE.GLSL3,
       // A screen-space quad's winding flips with the direction of the line it
@@ -350,6 +397,7 @@ export function buildEdgeGroups(
         // LDraw's own EDGE value for this colour, linear — not a hardcoded
         // black. A black brick's edge is lighter than the brick.
         uColor: { value: materials.edgeColor(group.material) },
+        uDissolve: { value: dtex },
       },
     });
 
@@ -366,6 +414,7 @@ export function buildEdgeGroups(
       mesh,
       material,
       matrixTexture: tex,
+      dissolveTexture: dtex,
       hardEdgeCount: hard,
       conditionalEdgeCount: cond,
       quadCount: total,
@@ -414,6 +463,7 @@ export class EdgeRenderer {
    * which is the whole point. */
   update(camera: THREE.PerspectiveCamera, viewportHeightPx: number) {
     if (!this.enabled) return;
+    this.syncDissolve();
     const fovRad = (camera.fov * Math.PI) / 180;
     const k = viewportHeightPx / (2 * Math.tan(fovRad / 2));
     for (const g of this.groups) {
@@ -455,6 +505,22 @@ export class EdgeRenderer {
     for (const g of this.groups) {
       (g.matrixTexture.image.data as Float32Array).set(g.source.matrices);
       g.matrixTexture.needsUpdate = true;
+    }
+    this.syncDissolve();
+  }
+
+  /** M65: the outline reads the same per-instance dissolve the surface does,
+   * refreshed from the one authoritative attribute rather than written twice
+   * by the caller.
+   *
+   * Called from `update()` as well as from `syncMatrices()`: dissolving is
+   * not moving, and a shot that erodes a still object would otherwise leave
+   * its wireframe hanging in the air — which is exactly what the first run of
+   * `dissolve.mjs` photographed. */
+  syncDissolve() {
+    for (const g of this.groups) {
+      (g.dissolveTexture.image.data as Float32Array).set(g.source.dissolve.array as Float32Array);
+      g.dissolveTexture.needsUpdate = true;
     }
   }
 

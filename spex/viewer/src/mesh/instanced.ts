@@ -21,6 +21,7 @@
  */
 
 import * as THREE from 'three';
+import { makeDissolveDepthMaterial } from '../show/dissolve';
 import type { MeshBundle, MeshInstance, PartBuffers } from './bundle';
 import type { MaterialLibrary } from './materials';
 
@@ -121,6 +122,9 @@ export function buildInstanceGroups(
     // Choreography rewrites these every frame from M60 on; telling the driver
     // now avoids it guessing STATIC_DRAW and re-allocating later.
     mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    // M65: the shadow pass has to erode with the surface, or a fully
+    // dissolved object still casts a complete shadow.
+    mesh.customDepthMaterial = makeDissolveDepthMaterial();
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.name = `${part.partFile}#${materialIdx}`;
