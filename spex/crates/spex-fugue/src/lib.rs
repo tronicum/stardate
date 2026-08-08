@@ -12,10 +12,19 @@
 //!   `audio` field, and the two authored lines: the subject and the
 //!   countersubject.
 //!
-//! The score itself is not here. M68 emits a standard MIDI file, and that
-//! file is both what the browser plays and what a person opens in a DAW —
-//! one artefact, so review and runtime cannot disagree.
+//! - [`counterpoint`] (M68) — the rules, as named predicates that return
+//!   *where* they were broken, and the generator that realises a plan into
+//!   four voices under them. Deterministic from `(seed, spec)`; what it cannot
+//!   satisfy it relaxes in a fixed order and records.
+//! - [`emit`] (M68) — a hand-rolled type-1 SMF writer, and a reader, because
+//!   the acceptance criterion is about the *emitted* score rather than about
+//!   what the generator was holding in memory.
+//!
+//! The score is one artefact: the browser plays the same file a person opens
+//! in a DAW, so review and runtime cannot disagree.
 
+pub mod counterpoint;
+pub mod emit;
 pub mod model;
 pub mod theory;
 
@@ -23,4 +32,6 @@ pub use model::{
     act_one_countersubject, act_one_key, act_one_subject, subject_facts, FugueSpec, PulseSpec,
     Section, SubjectFacts,
 };
+pub use counterpoint::{realise, Placed, Realisation, Relaxation, Rule};
+pub use emit::{read_smf, to_smf};
 pub use theory::{Key, Line, Mode, Note};

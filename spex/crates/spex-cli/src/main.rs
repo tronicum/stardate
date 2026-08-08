@@ -13,6 +13,7 @@ mod nav;
 mod npm_deps;
 mod ps_tree;
 mod pstree_demo;
+mod fugue;
 mod show;
 mod sql_schema;
 mod trace;
@@ -280,6 +281,24 @@ enum Command {
         /// Local cache directory for fetched real LDraw files.
         #[arg(long, default_value = ".ldraw-cache")]
         cache_dir: PathBuf,
+    },
+
+    /// Realise a show document's fugue plan as a standard MIDI file.
+    ///
+    /// One artefact: this is what the browser loads and what you open in a
+    /// DAW, so review and runtime cannot disagree. Prints every rule the
+    /// generator had to relax, with the bar and the voice.
+    FugueBuild {
+        /// The authored document, e.g. shows/die-geschichtliche-matrix.show.json
+        show: PathBuf,
+
+        /// Output .mid path.
+        #[arg(short, long)]
+        out: PathBuf,
+
+        /// Edition seed. Defaults to the document's own.
+        #[arg(long)]
+        seed: Option<u64>,
     },
 
     /// Play a built show directory: serve it and open the viewer on it.
@@ -627,6 +646,7 @@ fn main() -> Result<()> {
             &cache_dir,
             &show::BuildOptions { target_sec: duration, seed, endless, no_bundles, skip_unbuildable, crease },
         ),
+        Command::FugueBuild { show, out, seed } => fugue::build(&show, &out, seed),
         Command::Show { show_dir, port, no_open, at, cut, director } =>
             cmd_show(&show_dir, port, !no_open, at, cut.as_deref(), director),
         Command::ShowExport { show_dir, out } => cmd_show_export(&show_dir, &out),

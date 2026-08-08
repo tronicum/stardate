@@ -2496,6 +2496,7 @@ dependencies = [
  "serde",
  "serde_json",
  "spex-core",
+ "spex-fugue",
  "spex-graph",
  "spex-io",
  "spex-ldraw",

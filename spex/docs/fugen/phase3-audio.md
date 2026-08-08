@@ -309,6 +309,66 @@ browser something that can play it.
    automated; the milestone note records who listened and what they said.
 
 **Verification ladder.** 1, 2, 3, plus a human listen. (6 runs at the end of the phase.)
+
+**Status: ⏳ AC1–AC3 done, AC4 waiting on a human.**
+`crates/spex-fugue/src/{counterpoint.rs, emit.rs}` and `spex fugue-build`.
+The canonical cut realises to **475 notes in four voices over 84 bars**, a
+4 473-byte type-1 SMF.
+
+**Every check runs against the score that comes out, not the one in memory.**
+`emit::read_smf` exists for exactly that: analysing the `Realisation` would
+test the generator against itself and would pass unchanged if the writer
+dropped every second note. So the tests write the file, read it back, and run
+the same predicates on what they find.
+
+**AC1 passes: zero parallel fifths or octaves** in the emitted score. It did
+not at first — there were **six on one beat**, every voice pair at once, which
+is the signature of one specific mistake and of nothing else: `realise_cadence`
+wrote the same two pitches into every idle voice, and four voices moving from
+the same note to the same note *is* parallel octaves in all six pairs. The
+cadence now gives the progression to the lowest idle voice and puts the others
+through the same constrained chooser as everything else — which already knows
+every rule, so the fix was to stop hand-writing music the generator could
+choose better.
+
+**AC2 passes:** four entries, alto → soprano → tenor → bass, alternating tonic
+and dominant, at bars 5, 7, 11 and 14, each of them actually sounding notes.
+**AC3 passes:** the stretto's entries are 4 beats apart against an 8-beat
+subject, so they genuinely overlap.
+
+**Six relaxations in 84 bars, and the breakdown is the interesting part:**
+0 parallel, **4 range**, 1 voice crossing, 1 weak-beat dissonance.
+
+The four range breaches are one fact repeated: **this subject does not fit
+every voice at every transposition, and the generator will not move it.** The
+subject spans a ninth — A3 to B4 at the tonic, fourteen semitones — and the
+tenor's stated range is C3–A4, twenty-one semitones, which is wider and still
+does not hold it: D4 sits near the tenor's top, so the subject goes two
+semitones over the ceiling at pitch and three under the floor an octave down.
+There is no octave that works. The same happens to the bass on the answer and
+to the soprano at bar 21.
+
+That is a consequence of the authored subject, and the rule that produces it is
+deliberate: **entries are placed, free voices are chosen.** A subject statement
+is the fugue's fixed material and is never adjusted to make a rule pass — if it
+does not fit, the least-bad octave is used and the breach is recorded with its
+bar and its voice. Every one of the four is over by exactly two semitones,
+which a singer would call a stretch rather than an impossibility, and the test
+asserts that bound rather than asserting there are none.
+
+**A seed that changed nothing.** The chooser put the PRNG in its last sort key,
+which sounds like a tie-break and was not one: melodic motion decided every
+comparison before the tie-break was ever reached, and two different seeds
+produced byte-identical files. It now chooses among the candidates that are
+*equally good* — at most the top three — so `?seed=` is a real edition and not
+a promise the format goes on making about nothing.
+
+**AC4 is the one that cannot be automated, and it is open.** The file has been
+delivered to Stefan as `die-geschichtliche-matrix.mid`, together with a
+soundfont render for anyone without a DAW to hand. **The milestone stays open
+until a person has listened and this block records who and what they said** —
+which is the criterion as written, and the only one here that a test could
+never have replaced.
 ---
 
 ### M69 — the WebAudio engine
