@@ -2484,6 +2484,13 @@ dependencies = [
 [[package]]
 name = "spex-build"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "spex-ldraw",
+ "tempfile",
+]
 
 [[package]]
 name = "spex-cli"
