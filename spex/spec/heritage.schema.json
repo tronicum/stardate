@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/heritage.schema.json",
+  "title": "spex Heritage (wikidata-whs-<date>.json + curation.json)",
+  "description": "Covers the two real JSON documents crates/spex-heritage produces/reads (docs/FUGEN-ENGINE.md M73): the committed Wikidata World Heritage Site snapshot written by `spex heritage-index` (a JSON array of heritageSite, e.g. scripts/heritage-data/wikidata-whs-2026-08-08.json) and the hand-curated buildability/exclusion file read by `spex heritage-list --buildable` (scripts/heritage-data/curation.json). A document validates against exactly one of the two shapes below.",
+  "oneOf": [
+    { "$ref": "#/$defs/siteList" },
+    { "$ref": "#/$defs/curationFile" }
+  ],
+  "$defs": {
+    "siteList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/heritageSite" }
+    },
+    "heritageSite": {
+      "type": "object",
+      "required": ["id", "name", "state_parties", "inscribed_year", "criteria", "category", "lat", "lon", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Wikidata QID, e.g. \"Q188694\"."
+        },
+        "name": { "type": "string" },
+        "state_parties": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Country name(s) as given by Wikidata's own English label (label form, not normalized to ISO 3166-1 alpha-2). A real transboundary/serial site lists more than one."
+        },
+        "inscribed_year": { "type": "integer", "minimum": 1, "maximum": 3000 },
+        "criteria": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"] },
+          "description": "Real UNESCO World Heritage criteria codes. May be empty when Wikidata has no pq:P2614 qualifier recorded for this item — an honest gap, never a fabricated guess."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["Cultural", "Natural", "Mixed"]
+        },
+        "lat": { "type": "number", "minimum": -90, "maximum": 90 },
+        "lon": { "type": "number", "minimum": -180, "maximum": 180 },
+        "source": {
+          "type": "string",
+          "description": "Provenance, e.g. \"wikidata:Q188694\"."
+        }
+      }
+    },
+    "curationFile": {
+      "type": "object",
+      "required": ["sites", "excluded"],
+      "additionalProperties": false,
+      "properties": {
+        "sites": {
+          "type": "object",
+          "description": "Hand-curated buildability decisions, keyed by Wikidata QID. A QID absent from this map has simply not been reviewed yet -- spex_heritage::is_buildable treats that as not buildable (fails closed), never as an implicit true.",
+          "additionalProperties": { "$ref": "#/$defs/curationEntry" }
+        },
+        "excluded": {
+          "type": "object",
+          "description": "The ethical exclusion list, keyed by Wikidata QID -> a one-line real written reason. Checked independently of (and always overriding) `sites`.",
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "curationEntry": {
+      "type": "object",
+      "required": ["buildable", "justification"],
+      "additionalProperties": false,
+      "properties": {
+        "buildable": { "type": "boolean" },
+        "justification": {
+          "type": "string",
+          "minLength": 1,
+          "description": "A real, specific one-line reason -- not a generic template."
+        }
+      }
+    }
+  }
+}

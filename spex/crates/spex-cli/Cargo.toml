@@ -14,6 +14,7 @@ spex-tiler = { workspace = true }
 spex-server = { workspace = true }
 spex-graph = { workspace = true }
 spex-ldraw = { workspace = true }
+spex-heritage = { workspace = true }
 anyhow = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

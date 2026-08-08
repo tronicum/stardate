@@ -8,6 +8,7 @@ mod export_static;
 mod frame_sequence;
 mod graph_diff;
 mod graph_morph;
+mod heritage;
 mod heritage_preview;
 mod molecule;
 mod nav;
@@ -511,6 +512,40 @@ enum Command {
         #[arg(short, long)]
         out: Option<PathBuf>,
     },
+
+    /// Live-query the real Wikidata SPARQL endpoint for World Heritage Site
+    /// records and write them as the committed snapshot (real data,
+    /// CC0-licensed — see docs/FUGEN-ENGINE.md M73). Not run routinely: a
+    /// slow, rate-limited real network fetch, kept out of
+    /// scripts/walkthrough.sh on purpose (mirrors `spex trace`/other
+    /// live-fetch tools, and the gen_wikipedia_crawl.py/gen_wikipedia_demo.py
+    /// split already established in this repo).
+    HeritageIndex {
+        /// Output path for the real committed snapshot, e.g.
+        /// scripts/heritage-data/wikidata-whs-2026-08-08.json
+        #[arg(short, long)]
+        out: PathBuf,
+    },
+
+    /// Read the committed World Heritage Site snapshot (no live fetch) and
+    /// print a human-readable table.
+    HeritageList {
+        /// Only show sites that pass the hand-curated buildability filter
+        /// (see spex_heritage::is_buildable) — fails closed: a site with no
+        /// curation entry is never shown here even if it's Cultural/Mixed.
+        #[arg(long)]
+        buildable: bool,
+
+        /// Snapshot file to read. Defaults to the most recently dated
+        /// scripts/heritage-data/wikidata-whs-*.json.
+        #[arg(long)]
+        snapshot: Option<PathBuf>,
+
+        /// Curation file (buildable/exclusion decisions), only read when
+        /// --buildable is passed.
+        #[arg(long, default_value = "scripts/heritage-data/curation.json")]
+        curation: PathBuf,
+    },
 }
 
 fn main() -> Result<()> {
@@ -596,6 +631,8 @@ fn main() -> Result<()> {
         Command::DiskUsage { path, out } => cmd_disk_usage(&path, &out),
         Command::SqlSchema { db, out } => cmd_sql_schema(&db, &out),
         Command::Molecule { smiles_or_name, out } => cmd_molecule(smiles_or_name, out),
+        Command::HeritageIndex { out } => heritage::run_index(&out),
+        Command::HeritageList { buildable, snapshot, curation } => heritage::run_list(buildable, snapshot, &curation),
     }
 }
 

@@ -1,0 +1,179 @@
+{
+  "sites": {
+    "Q587584": {
+      "buildable": true,
+      "justification": "A ring of megalithic standing stones and trilithons on a simple repeated post-and-lintel module — the reason it anchors the milestone's own first (4-minute) cut."
+    },
+    "Q215429": {
+      "buildable": true,
+      "justification": "Guild-hall facades are narrow, gabled, flat-fronted rowhouses with a repeated rectilinear module and stepped-gable silhouette — a brick abstraction of the facade line, not the ornament."
+    },
+    "Q1175856": {
+      "buildable": true,
+      "justification": "Stepped and smooth pyramidal massing is close to the simplest solid geometry a brick medium can render."
+    },
+    "Q131013": {
+      "buildable": true,
+      "justification": "The Parthenon's peripteral colonnade — evenly spaced columns under a plain entablature and pediment — is a textbook repeated-module classical temple."
+    },
+    "Q9141": {
+      "buildable": true,
+      "justification": "A symmetrical domed mausoleum on a plinth with four corner minarets — a small, highly regular set of primitives (dome, cube, cylinder). Principally a tomb, not a congregational worship space; a small working mosque flanks one side but isn't the monument being abstracted."
+    },
+    "Q3331815": {
+      "buildable": true,
+      "justification": "Dry-stone terracing and rectangular one-story structures on a hillside — coursed masonry is close to a brick module by construction, not just by analogy."
+    },
+    "Q29070": {
+      "buildable": true,
+      "justification": "A stepped, terraced stupa mountain — concentric square-to-circular terraces stacking into one pyramidal silhouette."
+    },
+    "Q4176": {
+      "buildable": true,
+      "justification": "Twin spires and a repeated vertical bay rhythm (buttresses, pinnacles, lancet windows) give it an unusually regular, countable Gothic module for its scale. It is a real, active cathedral with regular services — included because its exterior massing is real and simple; flagged here explicitly as the clearest active-place-of-worship case in this seed set, not silently skipped."
+    },
+    "Q189764": {
+      "buildable": true,
+      "justification": "A three-tier Roman aqueduct of repeated round arches, diminishing in span per tier — as modular as engineering gets."
+    },
+    "Q5788": {
+      "buildable": true,
+      "justification": "The Treasury's rock-cut facade reads, from the front, as a flat, symmetrical two-story classical colonnade with a broken pediment, even though it's carved rather than built."
+    },
+    "Q5859": {
+      "buildable": true,
+      "justification": "El Castillo is a textbook stepped pyramid with a single square temple on top — the same primitive family as Giza/Borobudur, just stepped rather than smooth."
+    },
+    "Q129072": {
+      "buildable": true,
+      "justification": "A raised rectangular terrace lined with rows of identical fluted columns (the Apadana) — a repeated post module."
+    },
+    "Q237128": {
+      "buildable": true,
+      "justification": "Cliff Palace's stacked rectangular masonry rooms and towers, built into a stepped rock alcove, are a naturally blocky, coursed-stone module."
+    },
+    "Q14863645": {
+      "buildable": true,
+      "justification": "Modernist International Style buildings (flat roofs, plain rectilinear volumes, ribbon windows) are close to the simplest possible built massing — literally boxes."
+    },
+    "Q122026": {
+      "buildable": true,
+      "justification": "Shaft XII's steel-framed rectilinear halls and its iconic headframe tower are simple industrial box-and-tower forms."
+    },
+    "Q189358": {
+      "buildable": true,
+      "justification": "A rectangular Renaissance fortress with four corner towers around a courtyard — simple, highly symmetrical castle massing."
+    },
+    "Q750675": {
+      "buildable": true,
+      "justification": "A single freestanding rectangular tower (the type site is Bruges' belfry) is about the simplest possible civic monument massing — a tall box with a spire."
+    },
+    "Q45178": {
+      "buildable": true,
+      "justification": "The shell roofs are literally derived from sections of a single sphere (Utzon's real solution to the construction problem) — a small number of repeated curved-shell primitives, unusually simple for a modern icon."
+    },
+    "Q2844": {
+      "buildable": true,
+      "justification": "The National Congress's twin towers plus one dome and one inverted dome are close to pure geometric primitives — some of the most literally 'simple solid' civic architecture built in the 20th century."
+    },
+    "Q1763364": {
+      "buildable": true,
+      "justification": "The moai are freestanding blocky monolithic figures on rectangular platforms (ahu) — about as simple a standing-stone module as exists, closely related to Stonehenge in spirit."
+    },
+    "Q9427": {
+      "buildable": true,
+      "justification": "The great mudbrick mosques (Djinguereber, Sankoré) have a distinctive stepped, buttressed, blocky earthen massing with projecting toron beams. Djinguereber and Sankoré remain active mosques; included for their real, celebrated, highly legible architectural form, not for their interior as a devotional space — flagged explicitly per the active-place-of-worship review requirement."
+    },
+    "Q29317": {
+      "buildable": true,
+      "justification": "Thousands of stepped, terraced brick stupas and temples share one architectural vocabulary — the same tiered-terrace family as Borobudur, at the scale of a whole plain."
+    },
+    "Q188754": {
+      "buildable": true,
+      "justification": "A tiered, white-plastered castle keep with a strongly stepped, pagoda-like roofline — one of the most legible modular silhouettes in castle architecture anywhere."
+    },
+    "Q237": {
+      "buildable": true,
+      "justification": "Bernini's colonnade around St. Peter's Square is a radial ring of repeated identical columns — a pure repeated-module structure. Scoped explicitly to the public piazza colonnade, not the Basilica's interior as an active worship space."
+    },
+    "Q647958": {
+      "buildable": true,
+      "justification": "The Iron Bridge itself is a single, small, geometrically simple arched span — the world's first major cast-iron bridge, an obvious skeletal/brick abstraction candidate."
+    },
+    "Q127754": {
+      "buildable": true,
+      "justification": "A real 19th/20th-century blast-furnace industrial complex — riveted steel skeletal towers and rectilinear halls, the same simple industrial-module family as Zollverein."
+    },
+    "Q272153": {
+      "buildable": true,
+      "justification": "A rock fortress with a monolithic outcrop, a grand staircase, and rectangular terraces/gardens at its base — a blocky stepped composition on a dramatic but geometrically simple monolith."
+    },
+    "Q209217": {
+      "buildable": true,
+      "justification": "Dry-stone curvilinear enclosure walls built from coursed granite blocks with no mortar — arguably the most direct real-world analogue to a Klemmbaustein wall in this whole list."
+    },
+    "Q718001": {
+      "buildable": true,
+      "justification": "Circular and rectangular earthen communal roundhouses are pure ring/drum primitives — among the simplest large-scale residential building forms anywhere in the world."
+    },
+    "Q4993586": {
+      "buildable": true,
+      "justification": "Two conical burial mounds, two runestones, and a small single-nave stone church — about as minimal a built vocabulary as any WHS gets. The church is a real, currently active parish church; included as a simple stone volume, not as a devotional space to be entered/interacted with."
+    },
+    "Q18448486": {
+      "buildable": true,
+      "justification": "The Colosseum's tiered arcade of repeated round arches (four superimposed orders) is a highly regular, countable module — abstracting the amphitheatre drum specifically, not this designation's whole extraterritorial extent."
+    },
+    "Q2397751": {
+      "buildable": true,
+      "justification": "Angkor Wat's central quincunx of stepped, tiered towers on a stepped platform is a repeated conical/stepped module. Angkor Wat remains an active Buddhist site with resident monks; the abstraction targets the tiered tower massing, not the interior shrine as a devotional space — flagged explicitly per the active-place-of-worship review requirement."
+    },
+    "Q20644172": {
+      "buildable": true,
+      "justification": "Repeated narrow brick warehouse blocks along the canals, plus the Chilehaus's faceted prow — an unusually literal case of a real brick building being abstracted into a brick model."
+    },
+    "Q15240748": {
+      "buildable": true,
+      "justification": "The real WHS-protected surface architecture (the historic timber/steel headframes and shaft-tower buildings) is a simple industrial tower form, the same family as Zollverein/Völklingen — the underground chambers themselves aren't what's being abstracted here."
+    },
+    "Q9603543": {
+      "buildable": true,
+      "justification": "The Alcazaba's crenellated fortress walls and rectangular towers are simple defensive massing; the Nasrid palaces' famously intricate interior ornament is explicitly NOT what a brick abstraction would attempt — only the exterior fortress silhouette is in scope."
+    },
+    "Q17117964": {
+      "buildable": true,
+      "justification": "The whole island reads, from a distance, as a single stepped-pyramid silhouette rising to the abbey spire — the same massing family as Borobudur/Giza at the scale of an entire settlement, not the intricate abbey interior."
+    },
+    "Q15728389": {
+      "buildable": true,
+      "justification": "A double-tier Roman aqueduct of unmortared granite blocks and repeated round arches — the same simple modular family as Pont du Gard."
+    },
+    "Q64763166": {
+      "buildable": true,
+      "justification": "A Caspian hilltop citadel (Naryn-Kala) with long parallel defensive walls running down to the sea — simple crenellated wall-and-tower massing, the same family as Kronborg."
+    },
+    "Q172613": {
+      "buildable": true,
+      "justification": "The Pyramid of the Sun and Pyramid of the Moon are textbook stepped pyramids along a single axial avenue — the same primitive family as Chichen Itza/Giza, and simpler than most Maya sites' more elaborate roof-combs."
+    },
+    "Q16913064": {
+      "buildable": true,
+      "justification": "Conical dry-stone huts (trulli) with whitewashed cylindrical walls — one of the single simplest real vernacular building forms anywhere, essentially a repeated cone-on-cylinder module."
+    },
+    "Q192518": {
+      "buildable": true,
+      "justification": "Mudbrick tower houses rising straight-walled for several stories (\"the Manhattan of the desert\") — a real, famous case of extreme repeated-module verticality in earthen construction."
+    },
+    "Q833781": {
+      "buildable": true,
+      "justification": "Vauban's star-shaped bastion fortifications are pure geometric plan-forms (angular bastions, straight ramparts) — about as literally 'simple solid geometry' as military architecture gets."
+    }
+  },
+  "excluded": {
+    "Q7341": "Auschwitz-Birkenau, German Nazi Concentration and Extermination Camp: real historical site of genocide during the Holocaust — never rendered as a toy/game object.",
+    "Q231140": "Hiroshima Peace Memorial (Genbaku Dome): real site of the atomic bombing of Hiroshima and its mass civilian death toll — never rendered as a toy/game object.",
+    "Q244347": "Island of Gorée: real historical site tied to the Atlantic slave trade — never rendered as a toy/game object.",
+    "Q192493": "Robben Island: real site of political imprisonment and forced labour under apartheid — never rendered as a toy/game object.",
+    "Q152225": "Bikini Atoll Nuclear Test Site: real site of mass displacement and nuclear weapons testing with lasting harm to its Marshallese community — never rendered as a toy/game object."
+  }
+}
