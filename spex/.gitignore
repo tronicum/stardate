@@ -14,6 +14,10 @@
 /viewer/node_modules
 /viewer/dist
 
+# Agent/session scratch space (see AGENTS.md) — a repo-local directory,
+# never system-wide /tmp
+/.tmp/
+
 # OS / editor cruft
 .DS_Store
 *.swp
