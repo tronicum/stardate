@@ -2482,6 +2482,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "spex-ankerstein"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "jsonschema",
+ "serde",
+ "serde_json",
+ "spex-core",
+ "spex-ldraw",
+ "tempfile",
+]
+
+[[package]]
 name = "spex-cli"
 version = "0.1.0"
 dependencies = [
@@ -2495,6 +2508,7 @@ dependencies = [
  "ratatui",
  "serde",
  "serde_json",
+ "spex-ankerstein",
  "spex-core",
  "spex-graph",
  "spex-io",
