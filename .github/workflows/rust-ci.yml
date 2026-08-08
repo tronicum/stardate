@@ -1,0 +1,55 @@
+name: Rust build + test
+
+# Runs on every push (any branch) and every PR against main — deliberately
+# broader than pages.yml's main-only trigger, since this is meant to give
+# real build/test feedback on feature branches before they're merged, not
+# just gate the deployed site. See spex/docs/agents/verification.md: this
+# is rung 1-2 of the verification ladder, automated — it does not replace
+# the real functional/headless-browser checks further up that ladder for
+# viewer-visible changes.
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache cargo registry/target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            spex/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('spex/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      # spex-server embeds viewer/dist at Rust compile time (rust-embed),
+      # not at runtime, so the viewer must build first — same ordering
+      # pages.yml already uses.
+      - name: Build viewer
+        working-directory: spex/viewer
+        run: |
+          npm ci
+          npm run build
+
+      - name: cargo build --workspace
+        working-directory: spex
+        run: cargo build --workspace --release
+
+      - name: cargo test --workspace
+        working-directory: spex
+        run: cargo test --workspace --release
