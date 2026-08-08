@@ -25,6 +25,10 @@ ansi-to-tui = "8.0.1"
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
+# Raw ICMP socket creation for `spex trace --icmp` (needs elevated
+# privileges to open); already present transitively via tokio, kept at the
+# same locked major so no new dependency version enters the tree.
+socket2 = "0.6"
 
 [dev-dependencies]
 jsonschema = { version = "0.48", default-features = false }
