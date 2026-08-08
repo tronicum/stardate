@@ -88,6 +88,17 @@ interface MovementSpan {
   endSec: number;
 }
 
+/** One mixer row. A *class*, not an id: `el` sets an id, there are three of
+ * these, and three elements sharing an id is a document that no selector and
+ * no stylesheet can talk about — which is exactly what the first version
+ * produced, and why the probe counted zero rows on a mixer that was there. */
+function row(parent: HTMLElement): HTMLLabelElement {
+  const node = document.createElement('label');
+  node.className = 'show-mixer-row';
+  parent.appendChild(node);
+  return node;
+}
+
 function el(tag: string, id?: string, parent?: HTMLElement): HTMLDivElement {
   const node = document.createElement(tag) as HTMLDivElement;
   if (id) node.id = id;
@@ -108,6 +119,14 @@ export class ShowHud {
   private readonly credits: HTMLDivElement;
   private readonly creditsInner: HTMLDivElement;
   private readonly director: HTMLDivElement;
+  /** M71: the autoplay gate and the mixer. Both are `pointer-events: auto`
+   * islands inside a HUD that is otherwise transparent to the mouse. */
+  private readonly gate: HTMLDivElement;
+  private readonly gateButton: HTMLButtonElement;
+  private readonly gateNote: HTMLDivElement;
+  private readonly section: HTMLDivElement;
+  private readonly mixer: HTMLDivElement;
+  private sectionHideAt = 0;
   /** Lazily created for element names the layout does not know. */
   private readonly cards = new Map<string, HTMLDivElement>();
 
@@ -131,6 +150,26 @@ export class ShowHud {
     this.creditsInner = el('div', 'show-credits-inner', this.credits);
     this.director = el('div', 'show-director', parent);
     this.director.style.display = opts.director ? 'block' : 'none';
+
+    // The gate. Not a workaround dressed as a feature: an installation piece
+    // that begins when someone chooses to begin it is the correct behaviour,
+    // and the browser's autoplay policy — which will not start an
+    // `AudioContext` without a gesture — happens to want the same thing.
+    this.gate = el('div', 'show-gate', this.root);
+    const gateTitle = el('div', 'show-gate-title', this.gate);
+    gateTitle.textContent = show.title;
+    const gateSub = el('div', 'show-gate-sub', this.gate);
+    gateSub.textContent = [show.subtitle, show.archiveSignature].filter(Boolean).join(' · ');
+    this.gateButton = document.createElement('button');
+    this.gateButton.className = 'show-gate-button';
+    this.gateButton.textContent = '\u25B6 begin';
+    this.gate.appendChild(this.gateButton);
+    this.gateNote = el('div', 'show-gate-note', this.gate);
+    this.gate.style.display = 'none';
+
+    this.section = el('div', 'show-section', this.root);
+    this.mixer = el('div', 'show-mixer', this.root);
+    this.mixer.style.display = 'none';
 
     const green = show.palette?.terminalgruen ?? [0, 0.79, 0.03];
     this.seedPoint.style.background = linearToCss(green as [number, number, number]);
@@ -159,6 +198,99 @@ export class ShowHud {
     for (const node of [this.seedPoint, this.titleCard, this.caption, this.metrics, this.credits]) {
       node.style.opacity = '0';
     }
+  }
+
+  // ------------------------------------------------------------------- gate
+
+  /** Show the gate and call `begin` when it is used. */
+  showGate(begin: () => void, note = ''): void {
+    this.gate.style.display = 'flex';
+    this.gateNote.textContent = note;
+    this.gateButton.addEventListener('click', () => begin(), { once: true });
+  }
+
+  hideGate(): void {
+    this.gate.style.display = 'none';
+  }
+
+  get gateVisible(): boolean {
+    return this.gate.style.display !== 'none';
+  }
+
+  // ------------------------------------------------------------- section card
+
+  /** The movement card a section boundary raises. `holdSec` rather than a CSS
+   * transition, for the reason the title card's comment already gives: the
+   * piece has one clock and a transition would be a second, slower one. */
+  showSection(label: string, holdSec = 3.2): void {
+    this.section.textContent = label;
+    this.section.style.opacity = '1';
+    this.sectionHideAt = holdSec;
+  }
+
+  /** Called each frame with frame time. */
+  updateSection(dtSec: number): void {
+    if (this.sectionHideAt <= 0) return;
+    this.sectionHideAt -= dtSec;
+    if (this.sectionHideAt <= 0) {
+      this.section.style.opacity = '0';
+      this.sectionHideAt = 0;
+    } else if (this.sectionHideAt < 0.6) {
+      this.section.style.opacity = String(this.sectionHideAt / 0.6);
+    }
+  }
+
+  // ------------------------------------------------------------------ mixer
+
+  /** Master volume, mute, and the monitor switch. Useful for review and
+   * harmless to ship — and the only way anyone checks by ear that the pulse
+   * and the counterpoint are two layers rather than one busy mix. */
+  buildMixer(state: {
+    master: number;
+    muted: boolean;
+    monitor: string;
+    onMaster: (v: number) => void;
+    onMuted: (v: boolean) => void;
+    onMonitor: (v: string) => void;
+  }): void {
+    this.mixer.style.display = 'flex';
+    this.mixer.textContent = '';
+
+    const volumeRow = row(this.mixer);
+    volumeRow.appendChild(document.createTextNode('master'));
+    const volume = document.createElement('input');
+    volume.type = 'range';
+    volume.min = '0';
+    volume.max = '1';
+    volume.step = '0.01';
+    volume.value = String(state.master);
+    volume.addEventListener('input', () => state.onMaster(Number(volume.value)));
+    volumeRow.appendChild(volume);
+
+    const muteRow = row(this.mixer);
+    muteRow.appendChild(document.createTextNode('mute'));
+    const mute = document.createElement('input');
+    mute.type = 'checkbox';
+    mute.checked = state.muted;
+    mute.addEventListener('change', () => state.onMuted(mute.checked));
+    muteRow.appendChild(mute);
+
+    const monitorRow = row(this.mixer);
+    monitorRow.appendChild(document.createTextNode('monitor'));
+    const monitor = document.createElement('select');
+    for (const [value, label] of [
+      ['both', 'both'],
+      ['counterpoint', 'counterpoint'],
+      ['pulse', 'pulse'],
+    ]) {
+      const o = document.createElement('option');
+      o.value = value;
+      o.textContent = label;
+      monitor.appendChild(o);
+    }
+    monitor.value = state.monitor;
+    monitor.addEventListener('change', () => state.onMonitor(monitor.value));
+    monitorRow.appendChild(monitor);
   }
 
   setPixelRatio(dpr: number) {

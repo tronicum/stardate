@@ -18,6 +18,14 @@ fn spec() -> spex_fugue::FugueSpec {
 }
 
 /// The emitted file, read back into the same shape the rules take.
+///
+/// **Channel 10 is not a voice.** M71 put the Act IV pulse into the same file
+/// as a General MIDI drum track, which is right — one artefact, and a DAW
+/// shows the layer — and which means a reader that takes every channel hands
+/// the counterpoint rules a kick drum. Note 36 against note 39 is a minor
+/// third that never moves, so the range rule and the parallel rule both fired
+/// on it immediately. Filtering here rather than in `read_smf` is deliberate:
+/// the reader's job is to report what is in the file.
 fn round_tripped() -> Vec<Placed> {
     let spec = spec();
     let r = spex_fugue::realise(&spec, 263_865);
@@ -26,6 +34,7 @@ fn round_tripped() -> Vec<Placed> {
     let tpb = spex_fugue::emit::TICKS_PER_BEAT as f64;
     notes
         .into_iter()
+        .filter(|(voice, _, _, _)| *voice < 4)
         .map(|(voice, tick, midi, dur)| Placed {
             voice,
             at_beat: tick as f64 / tpb,

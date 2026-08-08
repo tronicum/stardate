@@ -32,6 +32,10 @@ import { SSAOPass } from 'three/addons/postprocessing/SSAOPass.js';
 
 export type QualityTier = 'low' | 'medium' | 'high';
 
+/** The bloom pass's resting strength. A constant rather than a literal
+ * because M71's accents add to it and have to know what to add back down to. */
+export const BLOOM_STRENGTH = 0.45;
+
 export interface TierSettings {
   ssao: boolean;
   shadowMapSize: number;
@@ -256,7 +260,7 @@ export class PostChain {
 
     this.bloom = new UnrealBloomPass(
       new THREE.Vector2(width * settings.bloomResolutionScale, height * settings.bloomResolutionScale),
-      0.45, // strength
+      BLOOM_STRENGTH,
       0.5, // radius
       1.0, // threshold, in LINEAR scene radiance — M62 ramps this
     );

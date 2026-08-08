@@ -89,6 +89,10 @@ export function applyDissolveChunks(material: THREE.Material, rimColor: THREE.Co
     uRimWidth: { value: RIM_WIDTH },
     uNoiseScale: { value: 0.35 },
     uFlash: { value: 0 },
+    // The entry lift's colour. Warmer than the dissolve rim on purpose: the
+    // rim is the object coming apart and the lift is a line of music arriving,
+    // and if the two read as the same event the binding has said nothing.
+    uLiftColor: { value: new THREE.Color(1.0, 0.86, 0.62) },
   };
   (material as unknown as { userData: Record<string, unknown> }).userData.dissolve = uniforms;
 
@@ -100,13 +104,16 @@ export function applyDissolveChunks(material: THREE.Material, rimColor: THREE.Co
         '#include <common>',
         `#include <common>
         attribute float aDissolve;
+        attribute float aLift;
         varying float vDissolve;
+        varying float vLift;
         varying vec3 vDissolvePos;`,
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
         vDissolve = aDissolve;
+        vLift = aLift;
         vDissolvePos = position;`,
       );
 
@@ -118,7 +125,10 @@ export function applyDissolveChunks(material: THREE.Material, rimColor: THREE.Co
         uniform float uRimWidth;
         uniform float uNoiseScale;
         uniform float uFlash;
+        uniform vec3 uLiftColor;
+        #define LIFT_SCALE 0.18
         varying float vDissolve;
+        varying float vLift;
         varying vec3 vDissolvePos;
 
         ${NOISE_GLSL}`,
@@ -146,10 +156,26 @@ export function applyDissolveChunks(material: THREE.Material, rimColor: THREE.Co
         // an emissive rim below 1.0 would never reach bloom.
         float dRim = 1.0 - smoothstep(0.0, uRimWidth, dNoise - dThreshold);
         gl_FragColor.rgb += uRimColor * dRim * step(0.001, vDissolve) * 2.5;
-        gl_FragColor.rgb += uRimColor * uFlash;`,
+        gl_FragColor.rgb += uRimColor * uFlash;
+        // M71's entry lift, per instance. Added in the same place and for the
+        // same reason as the rim: this is the linear-HDR path, and an emissive
+        // addition below 1.0 would never reach the bloom pass.
+        //
+        // **The scale is 0.18 and the first version was 1.6.** That number was
+        // chosen by analogy with the rim above, which is wrong by a factor of
+        // the object: the rim multiplies a dRim that is non-zero on a thin
+        // (no backticks in here — this is inside a JS template literal, and
+        // one would end the string; the same trap M66 hit in edges.ts)
+        // band of fragments that only just survived the erosion, while this
+        // multiplies every fragment of the brick. The screenshot pair measured
+        // the difference at **89 luma out of 255** on a white monolith — not a
+        // voice announcing itself, an object replaced by a light source. An
+        // entry is an accent inside a texture, and it has to still be a brick
+        // afterwards.
+        gl_FragColor.rgb += uLiftColor * vLift * LIFT_SCALE;`,
       );
   };
-  material.customProgramCacheKey = () => 'spex-dissolve';
+  material.customProgramCacheKey = () => 'spex-dissolve-lift';
 }
 
 /** Anything with a per-instance dissolve channel. `InstanceWriter` satisfies
@@ -227,13 +253,16 @@ export function makeDissolveDepthMaterial(): THREE.MeshDepthMaterial {
         '#include <common>',
         `#include <common>
         attribute float aDissolve;
+        attribute float aLift;
         varying float vDissolve;
+        varying float vLift;
         varying vec3 vDissolvePos;`,
       )
       .replace(
         '#include <begin_vertex>',
         `#include <begin_vertex>
         vDissolve = aDissolve;
+        vLift = aLift;
         vDissolvePos = position;`,
       );
     shader.fragmentShader = shader.fragmentShader

@@ -38,6 +38,12 @@ const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
 await page.goto(`${url}?duration=${cut}&quality=medium`, { waitUntil: 'networkidle' });
 await page.waitForFunction(() => !!window.__spexShow, null, { timeout: 120000 });
+// M71 put a gate in front of the piece — no browser will start an
+// `AudioContext` without a gesture, and the piece is four voices. `begin()`
+// is exactly what the button calls, so a harness that uses it is screening
+// through the same door rather than around it. Without this line every frame
+// below would be a photograph of the title card.
+await page.evaluate(() => window.__spexShow.begin());
 await page.waitForTimeout(3000);
 
 const durationSec = await page.evaluate(() => {

@@ -36,7 +36,7 @@
  */
 
 import type { AudioEngine } from './engine';
-import type { ScoredNote, Score } from './midi';
+import { GM, KICK_MARKER, PULSE_CHANNEL, type Score, type ScoredNote } from './midi';
 
 /** How often the scheduler wakes. */
 export const TICK_MS = 25;
@@ -52,6 +52,8 @@ export interface Cue {
   atSec: number;
   label: string;
   voice?: number;
+  /** True for the one accent the whole piece ends on. */
+  kick?: boolean;
 }
 
 export interface SchedulerOptions {
@@ -59,7 +61,14 @@ export interface SchedulerOptions {
    * until the brick is legible — the fugue starts at bar 5, not at 0. */
   scoreOffsetSec?: number;
   cues?: Cue[];
-  onCue?: (cue: Cue) => void;
+  /** Fired when a cue is *scheduled*, with the absolute `AudioContext` time it
+   * will sound at — which is up to `LOOKAHEAD_SEC` in the future.
+   *
+   * The second argument is not a convenience. A visual bound to the arrival of
+   * this callback fires up to 150 ms early, every time, and M71's AC2 asks for
+   * the Kick's picture and its sound within one frame of each other. The
+   * consumer holds the cue until that time has come; see `show/binding.ts`. */
+  onCue?: (cue: Cue, atAudioSec: number) => void;
 }
 
 /** A clock the scheduler can read. Structural rather than a concrete import,
@@ -76,7 +85,7 @@ export class Scheduler {
   private readonly clock: ReadableClock;
   private readonly notes: ScoredNote[];
   private readonly cues: Cue[];
-  private readonly onCue?: (cue: Cue) => void;
+  private readonly onCue?: (cue: Cue, atAudioSec: number) => void;
   private readonly scoreOffsetSec: number;
 
   /** Index of the first note not yet scheduled. Monotonic during playback;
@@ -158,7 +167,7 @@ export class Scheduler {
     while (this.cueCursor < this.cues.length && this.cues[this.cueCursor].atSec < until) {
       const c = this.cues[this.cueCursor++];
       if (c.atSec < from - 1e-6) continue;
-      this.onCue?.(c);
+      this.onCue?.(c, audioForScore(c.atSec));
     }
   }
 
@@ -257,6 +266,16 @@ export function cuesFromScore(score: Score, minRestSec = 1.0): Cue[] {
   const out: Cue[] = [];
   const lastEnd = new Map<number, number>();
   for (const n of score.notes) {
+    // A drum is not a voice, and a kick after a bar's rest is not an entry.
+    if (n.voice === PULSE_CHANNEL) {
+      // Only the kick becomes an accent. The hats are the grid, not events:
+      // 453 percussion notes would be 453 cues, and a bloom pulse eight times
+      // a bar is not an accent, it is a strobe.
+      if (n.midi === GM.kick) {
+        out.push({ kind: 'accent', atSec: n.atSec, label: 'pulse', voice: n.voice });
+      }
+      continue;
+    }
     const prev = lastEnd.get(n.voice);
     if (prev === undefined || n.atSec - prev >= minRestSec) {
       out.push({
@@ -267,6 +286,17 @@ export function cuesFromScore(score: Score, minRestSec = 1.0): Cue[] {
       });
     }
     lastEnd.set(n.voice, Math.max(prev ?? 0, n.atSec + n.durationSec));
+  }
+
+  // Sections come from the score's own markers, which M71 put there for
+  // exactly this: the form is in the file, so the HUD cannot caption a
+  // stretto the music is not playing.
+  for (const m of score.markers) {
+    if (m.text === KICK_MARKER) {
+      out.push({ kind: 'accent', atSec: m.atSec, label: 'DER KICK', kick: true });
+    } else {
+      out.push({ kind: 'section', atSec: m.atSec, label: m.text });
+    }
   }
   return out.sort((a, b) => a.atSec - b.atSec);
 }

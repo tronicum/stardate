@@ -50,7 +50,7 @@
 //! not, and `splitmix64_matches_the_shared_fixture` pins this one to the same
 //! recorded values the other is pinned to.
 
-use crate::model::{CadenceType, FugueSpec, MotifSource, Section, Transposition};
+use crate::model::{CadenceType, FugueSpec, MotifSource, PulseSpec, Section, Transposition};
 use crate::theory::{answer, invert, line_beats, scale_durations, transpose_steps, Key, Line};
 
 /// The golden-ratio odd constant splitmix64 is defined with.
@@ -139,10 +139,24 @@ pub struct Realisation {
     /// Where each subject or answer statement begins, for the tests and for
     /// anyone reading the score.
     pub entries: Vec<EntryMark>,
+    /// Where each section of the plan begins, with a human label. M71 writes
+    /// these into the file as MIDI markers: the form belongs *in* the score,
+    /// so a DAW shows it and the runtime does not carry a second list that
+    /// could disagree with the notes.
+    pub sections: Vec<SectionMark>,
+    /// The Act IV percussive layer, carried through so `to_smf` can realise
+    /// it as a channel-10 track rather than leaving it to the runtime.
+    pub pulse: PulseSpec,
     pub key: Key,
     pub bpm: f64,
     pub beats_per_bar: f64,
     pub seed: u64,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct SectionMark {
+    pub at_beat: f64,
+    pub label: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -337,11 +351,22 @@ pub fn realise(spec: &FugueSpec, seed: u64) -> Realisation {
         notes: Vec::new(),
         relaxations: Vec::new(),
         entries: Vec::new(),
+        sections: Vec::new(),
+        pulse: spec.pulse,
         key,
         bpm: spec.bpm,
         beats_per_bar: bpb,
         seed,
     };
+
+    // The form, before any note is placed. Sorted by bar rather than taken in
+    // document order: the plan is written in reading order, which for an
+    // exposition with entries at bars 5..14 and the episodes between them is
+    // not the order a listener hears.
+    for section in &spec.plan {
+        r.sections.push(SectionMark { at_beat: section.at_bar() * bpb, label: section.label() });
+    }
+    r.sections.sort_by(|a, b| a.at_beat.partial_cmp(&b.at_beat).unwrap_or(std::cmp::Ordering::Equal));
 
     // Pass 1: place every entry, and the countersubject that accompanies it.
     // Entries first and all of them, because they are the fixed material and

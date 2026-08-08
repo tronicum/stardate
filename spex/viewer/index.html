@@ -76,6 +76,41 @@
       position: absolute; left: 0; right: 0; top: 0; text-align: center; white-space: pre-line;
       font-size: clamp(12px, 1.4vw, 18px); line-height: 2.1; letter-spacing: 0.14em;
     }
+    /* M71 — the gate, the section card and the mixer. Three islands of
+       `pointer-events: auto` in a HUD that is otherwise transparent to the
+       mouse, because a screening should not be catching clicks meant for the
+       orbit controls. */
+    #show-gate {
+      position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center;
+      gap: 18px; background: rgba(6,8,11,0.92); pointer-events: auto; text-align: center;
+    }
+    #show-gate-title { font-size: clamp(22px, 3.4vw, 44px); font-weight: 200; letter-spacing: 0.2em; opacity: 0.9; }
+    #show-gate-sub { font-size: clamp(11px, 1.2vw, 15px); letter-spacing: 0.3em; text-transform: uppercase; opacity: 0.55; }
+    .show-gate-button {
+      margin-top: 10px; background: transparent; color: #e6e6e6; border: 1px solid rgba(230,230,230,0.45);
+      border-radius: 2px; padding: 12px 30px; font-size: 14px; letter-spacing: 0.28em; text-transform: uppercase;
+      cursor: pointer; font-family: inherit;
+    }
+    .show-gate-button:hover { border-color: rgba(230,230,230,0.9); }
+    #show-gate-note { font-size: 11px; letter-spacing: 0.12em; opacity: 0.45; max-width: 46ch; line-height: 1.7; }
+    #show-section {
+      position: absolute; left: 5vw; top: 8vh; opacity: 0; font-size: clamp(11px, 1.2vw, 15px);
+      letter-spacing: 0.24em; text-transform: uppercase; font-weight: 300;
+    }
+    #show-mixer {
+      position: absolute; right: 12px; top: 12px; display: none; flex-direction: column; gap: 6px;
+      background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 6px; font-size: 11px;
+      letter-spacing: 0.08em; pointer-events: auto; opacity: 0.12; transition: opacity 0.25s;
+    }
+    /* Nearly invisible until someone reaches for it. A screening is not an
+       application, and a mixer sitting at half opacity over the frame is
+       chrome across the picture for four minutes to be used for four seconds.
+       This is the one place a CSS transition is right: it is on a control, not
+       on anything the show's clock drives. */
+    #show-mixer:hover { opacity: 1; }
+    .show-mixer-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .show-mixer-row input[type=range] { width: 90px; }
+
     #show-director {
       display: none; position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.72); color: #8fe38f;
       padding: 10px 14px; border-radius: 6px; font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;

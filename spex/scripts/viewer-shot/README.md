@@ -345,3 +345,39 @@ listener would arrive with. One of the five positions is inside the piece's
 ten-second caesura, and it is kept deliberately: seeking into a silence must
 produce silence, and comparing that against a reverb tail the seek cannot have
 is what made the correct result read as a failure the first time.
+
+## M71 — the binding
+
+**`bindprobe.mjs <url> <out> [minutes]`** plays the 240 s cut on a loop for an
+hour and asks the three questions M71's criteria ask.
+
+**It begins through the gate.** `__spexShow.begin()` is exactly what the "▶
+begin" button calls, so the harness screens through the same door rather than
+around it — and every other show harness here now calls it too, because
+without it each of them would photograph the title card.
+
+**The latency counters live in `CueBinder`, not in the harness.** The first
+version wrapped `binder.update` from outside and measured the pending queue
+before and after; it reported a flat **0 ms for four minutes**. With a 250 ms
+frame and a 150 ms lookahead the queue is empty at *every* frame boundary —
+everything the scheduler adds between two frames is already due by the next
+one — so the thing being watched was never non-empty when it was looked at.
+The measurement has to be taken where the cue is applied.
+
+**And the frame interval is taken from the audio clock**, not from the frame's
+own `dtSec`. The player clamps `dtSec` to 0.25 s so a backgrounded tab cannot
+produce a quarter-hour of envelope decay in one frame, and zeroes it on a seek;
+both are right for an envelope and wrong for a measurement. A frame that really
+took 460 ms reported 250, and a lateness of one frame came out as 1.8.
+
+**The 20 ms in AC1 is a 60 Hz number.** One frame at 60 Hz is 16.7 ms; this
+container renders the show at about 4 fps, so a latency bounded by one frame is
+bounded by 250 ms here and by 16.7 ms on the premiere hardware. What the probe
+asserts is therefore **≤ 1 frame**, which is a property of the code, and it
+prints the milliseconds beside it, which are a property of the rasteriser.
+
+It also runs the **endless** question by accident and answers it: the loop
+count in each sample is how many times the 240 s cut has come round, and a
+scheduler that did not re-seek on the loop would show cues applied dropping to
+zero after the first cycle.
+

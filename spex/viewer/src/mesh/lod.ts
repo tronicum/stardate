@@ -22,7 +22,7 @@ import * as THREE from 'three';
 import { makeDissolveDepthMaterial } from '../show/dissolve';
 import type { MeshBundle, PartBuffers } from './bundle';
 import type { MaterialLibrary } from './materials';
-import type { InstanceGroup, InstanceWriter } from './instanced';
+import { addScalarAttributes, type InstanceGroup, type InstanceWriter } from './instanced';
 
 /** Projected height in device pixels. Demote below the first number, promote
  * back above the second — the gap is the hysteresis band. */
@@ -69,6 +69,11 @@ export function attachLodMeshes(
       );
       geometry.boundingSphere = geometry.boundingBox.getBoundingSphere(new THREE.Sphere());
       geometry.name = `${part.partFile}#${group.material}@lod${lod.level}`;
+      // M71: every level carries the two per-instance scalars, packed in this
+      // level's own row order by `repack`. Before that they lived only on the
+      // level-0 mesh and were indexed by instance while its matrix buffer was
+      // indexed by row — see `InstanceGroup.dissolve`.
+      addScalarAttributes(geometry, group.ids.length);
 
       const mesh = new THREE.InstancedMesh(
         geometry,
@@ -143,7 +148,8 @@ export class LodSelector {
     const key = `${camera.position.x.toFixed(3)},${camera.position.y.toFixed(3)},${camera.position.z.toFixed(3)},${viewportHeightPx}`;
     const cameraMoved = key !== this.lastCameraKey;
     const moved = this.writer.touched;
-    if (!cameraMoved && moved.size === 0) return;
+    const scalars = this.writer.scalarsTouched;
+    if (!cameraMoved && moved.size === 0 && scalars.size === 0) return;
     this.lastCameraKey = key;
 
     const k = viewportHeightPx / (2 * Math.tan((camera.fov * Math.PI) / 180 / 2));
@@ -151,7 +157,7 @@ export class LodSelector {
     this.stats.triangles = 0;
 
     for (const g of this.groups) {
-      let changed = moved.has(g);
+      let changed = moved.has(g) || scalars.has(g);
       const levels = g.levels;
       const maxLevel = g.lodMeshes.length - 1;
       if (cameraMoved && maxLevel > 0) {
@@ -185,6 +191,7 @@ export class LodSelector {
       }
     }
     moved.clear();
+    scalars.clear();
   }
 
   /** Copies each instance's authoritative matrix into whichever level's mesh
@@ -199,6 +206,10 @@ export class LodSelector {
       if (!mesh) continue;
       const dst = mesh.instanceMatrix.array as Float32Array;
       dst.set(g.matrices.subarray(i * 16, i * 16 + 16), cursor[level] * 16);
+      const d = mesh.geometry.getAttribute('aDissolve') as THREE.InstancedBufferAttribute | undefined;
+      const l = mesh.geometry.getAttribute('aLift') as THREE.InstancedBufferAttribute | undefined;
+      if (d) (d.array as Float32Array)[cursor[level]] = g.dissolve[i];
+      if (l) (l.array as Float32Array)[cursor[level]] = g.lift[i];
       cursor[level]++;
     }
     for (let l = 0; l <= maxLevel; l++) {
@@ -206,6 +217,10 @@ export class LodSelector {
       if (!mesh) continue;
       mesh.count = cursor[l];
       mesh.instanceMatrix.needsUpdate = true;
+      const d = mesh.geometry.getAttribute('aDissolve') as THREE.InstancedBufferAttribute | undefined;
+      const l2 = mesh.geometry.getAttribute('aLift') as THREE.InstancedBufferAttribute | undefined;
+      if (d) d.needsUpdate = true;
+      if (l2) l2.needsUpdate = true;
     }
   }
 }

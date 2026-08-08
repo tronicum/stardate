@@ -554,7 +554,9 @@ export class EdgeRenderer {
    * `dissolve.mjs` photographed. */
   syncDissolve() {
     for (const g of this.groups) {
-      (g.dissolveTexture.image.data as Float32Array).set(g.source.dissolve.array as Float32Array);
+      // Straight from the authoritative array — the edge pass is indexed by
+      // instance, never by a level's packed row order.
+      (g.dissolveTexture.image.data as Float32Array).set(g.source.dissolve);
       g.dissolveTexture.needsUpdate = true;
     }
   }

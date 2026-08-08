@@ -42,14 +42,43 @@ export interface TempoPoint {
   atSec: number;
 }
 
+/** A marker meta event (0x06), which for this score is the musical form.
+ *
+ * M71 put the section plan into the file rather than into a table beside it:
+ * a DAW shows the markers in its marker lane, the runtime reads the same
+ * bytes, and there is no second list that can drift out of step with the
+ * notes. `KICK` is one of them — the final accent has exactly one definition
+ * in the whole work, and it is a string in the score. */
+export interface ScoreMarker {
+  tick: number;
+  atSec: number;
+  text: string;
+}
+
 export interface Score {
   ticksPerBeat: number;
   tempoMap: TempoPoint[];
   notes: ScoredNote[];
+  markers: ScoreMarker[];
   /** Track names, in file order. Track 0 is the tempo map. */
   trackNames: string[];
   durationSec: number;
 }
+
+/** MIDI channel 10 (index 9): General MIDI percussion. Not a voice.
+ *
+ * The pulse lives in the score file as a real drum track, so every reader of
+ * the file — this one, a DAW, the counterpoint tests — has to know that
+ * channel 10 is not a fifth contrapuntal part. Note 36 against note 39 is a
+ * minor third that never moves, and a rule checker handed those alongside the
+ * fugue reports parallel thirds in a kick drum. */
+export const PULSE_CHANNEL = 9;
+
+/** General MIDI percussion numbers this project writes and reads. */
+export const GM = { kick: 36, clap: 39, hatClosed: 42, hatOpen: 46 } as const;
+
+/** The marker text the camera Kick binds to. */
+export const KICK_MARKER = 'KICK';
 
 class Reader {
   constructor(
@@ -115,6 +144,7 @@ export function parseSmf(data: ArrayBuffer): Score {
   // conventionally in track 0, but "conventionally" is not "always" and a
   // tempo event anywhere changes the time of every note after it.
   const tempoEvents: { tick: number; usPerBeat: number }[] = [];
+  const rawMarkers: { tick: number; text: string }[] = [];
   const trackChunks: { start: number; end: number }[] = [];
   let scan = r.pos;
   for (let t = 0; t < trackCount; t++) {
@@ -152,6 +182,8 @@ export function parseSmf(data: ArrayBuffer): Score {
           tempoEvents.push({ tick, usPerBeat: (payload[0] << 16) | (payload[1] << 8) | payload[2] });
         } else if (type === 0x03) {
           name = String.fromCharCode(...payload);
+        } else if (type === 0x06) {
+          rawMarkers.push({ tick, text: String.fromCharCode(...payload) });
         }
       } else if (status === 0xf0 || status === 0xf7) {
         // `tr.pos += tr.vlq()` is WRONG here and was, for a while. JavaScript
@@ -181,6 +213,10 @@ export function parseSmf(data: ArrayBuffer): Score {
     }
     tempoMap.push({ tick: tempoEvents[i].tick, usPerBeat: tempoEvents[i].usPerBeat, atSec: seconds });
   }
+
+  const markers: ScoreMarker[] = rawMarkers
+    .map((m) => ({ ...m, atSec: tickToSeconds(m.tick, ticksPerBeat, tempoMap) }))
+    .sort((a, b) => a.atSec - b.atSec);
 
   // Pass 2: the notes.
   const notes: ScoredNote[] = [];
@@ -269,7 +305,7 @@ export function parseSmf(data: ArrayBuffer): Score {
   if (format !== 0 && format !== 1) {
     throw new Error(`MIDI format ${format} is not supported`);
   }
-  return { ticksPerBeat, tempoMap, notes, trackNames, durationSec };
+  return { ticksPerBeat, tempoMap, notes, markers, trackNames, durationSec };
 }
 
 /** Tick to seconds, through the tempo map. */

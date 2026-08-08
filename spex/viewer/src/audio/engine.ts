@@ -39,6 +39,7 @@
  */
 
 import { ReverbRack } from './reverb';
+import { GM, PULSE_CHANNEL } from './midi';
 import { midiToFrequency, PULSE, SynthVoice, VOICE_ENVELOPE } from './synth';
 
 export interface EngineOptions {
@@ -49,8 +50,32 @@ export interface EngineOptions {
   seed?: number;
 }
 
+/** What the mixer's monitor switch can select.
+ *
+ * Useful for review and harmless to ship, which is the spec's own reason for
+ * it — but it is also how anyone checks that the pulse and the counterpoint
+ * are two layers rather than one mix that happens to sound busy. */
+export type Monitor = 'both' | 'counterpoint' | 'pulse';
+
+/** Every gain change ramps over this. A gain set by assignment is a step, a
+ * step is a discontinuity, and a discontinuity is a click — including on a
+ * mute, which is the one control a listener uses while something is playing. */
+export const MIXER_RAMP_SEC = 0.03;
+
 /** How hard the pulse bus is driven into the waveshaper. */
 export const SATURATION_DRIVE = 2.2;
+
+/** The pulse bus's own level, kept as a constant because the monitor switch
+ * has to be able to put it back. */
+export const PULSE_BUS_GAIN = 0.55;
+
+/** Ramp an `AudioParam` to a value rather than assigning it. */
+function ramp(param: AudioParam, to: number, at: number, seconds = MIXER_RAMP_SEC) {
+  const t = Math.max(at, 0);
+  param.cancelScheduledValues(t);
+  param.setValueAtTime(param.value, t);
+  param.linearRampToValueAtTime(to, t + seconds);
+}
 
 /** The compressor. A high ratio and a fast attack: this rides the level so
  * the ceiling below is rarely reached. It is not the thing that guarantees
@@ -78,6 +103,10 @@ export class AudioEngine {
 
   private readonly dry: GainNode;
   private readonly sendGain: GainNode;
+  private readonly sendLevel: number;
+  private masterLevel: number;
+  private muted = false;
+  private monitor: Monitor = 'both';
   /** Sounding voices, keyed by `${voice}:${midi}` — a fugue re-articulates
    * the same pitch in the same voice constantly, and a key that is only the
    * pitch would have the second note stop the first. */
@@ -97,10 +126,12 @@ export class AudioEngine {
     // compressor with headroom to work in sounds like a compressor rather than
     // like a ceiling being hit.
     this.voiceBus.gain.value = 0.42;
-    this.pulseBus.gain.value = 0.55;
+    this.pulseBus.gain.value = PULSE_BUS_GAIN;
     this.dry.gain.value = 1;
-    this.sendGain.gain.value = opts.send ?? 0.28;
-    this.master.gain.value = opts.master ?? 0.9;
+    this.sendLevel = opts.send ?? 0.28;
+    this.sendGain.gain.value = this.sendLevel;
+    this.masterLevel = opts.master ?? 0.9;
+    this.master.gain.value = this.masterLevel;
 
     // Voices: dry and send in parallel.
     this.reverb = new ReverbRack(ctx, opts.seed ?? 263865);
@@ -172,6 +203,14 @@ export class AudioEngine {
    * fast-attack envelope so the thing being measured is the *scheduling*, and
    * says so. Nothing in the piece passes it. */
   noteOn(voice: number, midi: number, at: number, velocity = 0.8, env = VOICE_ENVELOPE) {
+    // Channel 10 is percussion, by the same General MIDI convention the score
+    // is written with. Not a fifth voice with a strange timbre: a drum has no
+    // pitch, no envelope to release and no voice-stealing policy, and running
+    // it through `SynthVoice` would give it all three.
+    if (voice === PULSE_CHANNEL) {
+      this.percussion(midi, at, velocity);
+      return;
+    }
     const key = `${voice}:${midi}`;
     // A re-articulation of a pitch that is still sounding: release the old
     // one rather than leaving it running for ever. This is the stuck-note
@@ -194,6 +233,10 @@ export class AudioEngine {
   }
 
   noteOff(voice: number, midi: number, at: number) {
+    // A percussion note-off is a formality the score carries so a DAW draws
+    // notes of a sensible length; the sound is a one-shot and has already
+    // scheduled its own end.
+    if (voice === PULSE_CHANNEL) return;
     const key = `${voice}:${midi}`;
     const v = this.active.get(key);
     if (!v) return;
@@ -215,6 +258,51 @@ export class AudioEngine {
     return this.active.size;
   }
 
+  // ------------------------------------------------------------------ mixer
+
+  /** Master level, 0..1, ramped. Sits before the ceiling — see the header. */
+  setMasterLevel(value: number, at = this.ctx.currentTime) {
+    this.masterLevel = Math.min(Math.max(value, 0), 1);
+    this.applyMaster(at);
+  }
+
+  get masterLevelValue(): number {
+    return this.masterLevel;
+  }
+
+  /** Mute is a mixer control and **not** the same thing as `?mute=1`.
+   *
+   * `?mute=1` decides which clock the show reads (M66): no `AudioContext`, so
+   * show time comes from `performance.now()`. This turns the output down on a
+   * context that is running and still ticking. Confusing the two is how a
+   * muted session ends up with a clock that does not move — which M66 already
+   * watched happen once. */
+  setMuted(muted: boolean, at = this.ctx.currentTime) {
+    this.muted = muted;
+    this.applyMaster(at);
+  }
+
+  get isMuted(): boolean {
+    return this.muted;
+  }
+
+  /** Which layer is audible. The buses are separate all the way to the mix
+   * bus precisely so this is a gain and not a re-route. */
+  setMonitor(monitor: Monitor, at = this.ctx.currentTime) {
+    this.monitor = monitor;
+    ramp(this.dry.gain, monitor === 'pulse' ? 0 : 1, at);
+    ramp(this.sendGain.gain, monitor === 'pulse' ? 0 : this.sendLevel, at);
+    ramp(this.pulseBus.gain, monitor === 'counterpoint' ? 0 : PULSE_BUS_GAIN, at);
+  }
+
+  get monitorValue(): Monitor {
+    return this.monitor;
+  }
+
+  private applyMaster(at: number) {
+    ramp(this.master.gain, this.muted ? 0 : this.masterLevel, at);
+  }
+
   kick(at: number, gain = 1.0) {
     PULSE.kick(this.ctx, this.pulseBus, at, gain);
   }
@@ -230,6 +318,24 @@ export class AudioEngine {
    * a louder `kick()`: it is the single accent the whole piece ends on, and
    * it gets its own name so that binding it to the camera (M71) is one call
    * rather than a magic velocity. */
+  /** One General MIDI drum hit. */
+  private percussion(midi: number, at: number, velocity: number) {
+    switch (midi) {
+      case GM.kick:
+        PULSE.kick(this.ctx, this.pulseBus, at, velocity);
+        return;
+      case GM.clap:
+        PULSE.clap(this.ctx, this.pulseBus, at, velocity * 0.7);
+        return;
+      case GM.hatOpen:
+        PULSE.hat(this.ctx, this.pulseBus, at, velocity * 0.5, true);
+        return;
+      case GM.hatClosed:
+      default:
+        PULSE.hat(this.ctx, this.pulseBus, at, velocity * 0.45, false);
+    }
+  }
+
   finalAccent(at: number) {
     PULSE.kick(this.ctx, this.pulseBus, at, 1.0);
     PULSE.clap(this.ctx, this.pulseBus, at, 0.7);

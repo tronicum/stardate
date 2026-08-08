@@ -137,6 +137,60 @@ pub struct Entry {
     pub at_bar: f64,
 }
 
+impl Section {
+    /// The bar a section begins at.
+    ///
+    /// An exposition has no `atBar` of its own — it begins where its first
+    /// entry does, which is a fact about the music rather than a field that
+    /// could be set to something else and disagree with it.
+    pub fn at_bar(&self) -> f64 {
+        match self {
+            Section::Exposition { entries } => {
+                entries.iter().map(|e| e.at_bar).fold(f64::INFINITY, f64::min)
+            }
+            Section::Episode { at_bar, .. }
+            | Section::Entry { at_bar, .. }
+            | Section::Stretto { at_bar, .. }
+            | Section::Pedal { at_bar, .. }
+            | Section::Cadence { at_bar, .. } => *at_bar,
+        }
+    }
+
+    /// A short human label, written into the score as a MIDI marker so a DAW
+    /// shows the form and the runtime does not need a second list beside it.
+    pub fn label(&self) -> String {
+        match self {
+            Section::Exposition { entries } => format!("exposition ({} entries)", entries.len()),
+            Section::Episode { motif_from, .. } => match motif_from {
+                MotifSource::SubjectHead => "episode (subject head)".to_string(),
+                MotifSource::CountersubjectTail => "episode (countersubject tail)".to_string(),
+            },
+            Section::Entry { voice, inversion, augmentation, .. } => {
+                let mut s = format!("entry {}", VOICE_LABELS[(*voice as usize).min(3)]);
+                if *inversion {
+                    s.push_str(" inverted");
+                }
+                if let Some(a) = augmentation {
+                    if (*a - 1.0).abs() > f64::EPSILON {
+                        s.push_str(if *a > 1.0 { " augmented" } else { " diminished" });
+                    }
+                }
+                s
+            }
+            Section::Stretto { voices, .. } => format!("stretto ({} voices)", voices.len()),
+            Section::Pedal { bars, .. } => format!("pedal ({bars} bars)"),
+            Section::Cadence { cadence_type, .. } => match cadence_type {
+                CadenceType::Authentic => "cadence (authentic)".to_string(),
+                CadenceType::Plagal => "cadence (plagal)".to_string(),
+                CadenceType::Phrygian => "cadence (phrygian)".to_string(),
+            },
+        }
+    }
+}
+
+/// Voice labels for section markers. Soprano first, matching channel order.
+pub const VOICE_LABELS: [&str; 4] = ["soprano", "alto", "tenor", "bass"];
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Transposition {

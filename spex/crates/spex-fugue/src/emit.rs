@@ -27,6 +27,19 @@
 
 use crate::counterpoint::{Realisation, VOICE_NAMES};
 
+/// General MIDI percussion, on channel 10 (index 9). Not invented numbers: a
+/// drum track that opens in a DAW as a drum track is the whole reason the
+/// pulse lives in the score file at all.
+pub const GM_KICK: u8 = 36;
+pub const GM_CLAP: u8 = 39;
+pub const GM_HAT_CLOSED: u8 = 42;
+pub const GM_HAT_OPEN: u8 = 46;
+/// MIDI channel index for percussion. 9 is channel 10 in one-based counting.
+pub const PULSE_CHANNEL: u8 = 9;
+/// The marker written at the final accent. The camera binds to this text and
+/// to nothing else, so the Kick has exactly one definition in the whole work.
+pub const KICK_MARKER: &str = "KICK";
+
 /// Ticks per quarter note. See the module header.
 pub const TICKS_PER_BEAT: u32 = 960;
 
@@ -74,6 +87,84 @@ struct Event {
     data2: u8,
 }
 
+/// The Act IV percussive layer, as a channel-10 track.
+///
+/// # Why the pulse is in the score and not in the runtime
+///
+/// M69 synthesises the kick, the hat and the clap, so a runtime generator
+/// reading `PulseSpec` would have worked. It would also have meant that the
+/// file a person opens in a DAW is missing an entire layer of the piece — and
+/// rev 4's whole point is that there is one artefact. A General MIDI drum
+/// track costs nothing extra: the numbers are standard, every DAW names them,
+/// and the browser needs one branch on the channel.
+///
+/// # The pattern
+///
+/// `bpm_multiplier` is 2, so the grid is eighth notes against the fugue's 84
+/// and quarter notes against the pulse's own 168 — a half-time feel, which is
+/// what makes a techno layer sit *under* counterpoint rather than fight it.
+/// One pulse bar is therefore two score beats: kick on its 1 and 3, clap on
+/// the backbeats, closed hat on every eighth of the doubled grid with the last
+/// one opened.
+fn pulse_track(r: &Realisation) -> Vec<u8> {
+    let mut events: Vec<Event> = Vec::new();
+    let beats_per_sec = r.bpm / 60.0;
+    let start_beat = r.pulse.enter_at_sec * beats_per_sec;
+    let end_beat = r.pulse.final_accent_at_sec * beats_per_sec;
+    // One pulse bar in score beats. At bpm_multiplier 2 that is two beats.
+    let bar = 4.0 / r.pulse.bpm_multiplier;
+    let step = bar / 8.0; // an eighth of the doubled grid
+
+    let mut hit = |events: &mut Vec<Event>, beat: f64, note: u8, velocity: u8| {
+        let on = (beat * TICKS_PER_BEAT as f64).round() as u32;
+        events.push(Event { tick: on, order: 1, status: 0x90 | PULSE_CHANNEL, data1: note, data2: velocity });
+        // A percussion note-off is a formality — the sound is a one-shot and
+        // its length is in the synthesis, not in the score. It is written
+        // anyway, one tick later, because a DAW that never sees a note-off
+        // draws a note that lasts to the end of the piece.
+        events.push(Event { tick: on + 1, order: 0, status: 0x80 | PULSE_CHANNEL, data1: note, data2: 0 });
+    };
+
+    let mut b = start_beat;
+    while b < end_beat - 1e-9 {
+        for i in 0..8 {
+            let at = b + i as f64 * step;
+            if at >= end_beat - 1e-9 {
+                break;
+            }
+            match i {
+                0 => hit(&mut events, at, GM_KICK, 110),
+                4 => hit(&mut events, at, GM_KICK, 96),
+                2 | 6 => hit(&mut events, at, GM_CLAP, 88),
+                7 => hit(&mut events, at, GM_HAT_OPEN, 70),
+                _ => hit(&mut events, at, GM_HAT_CLOSED, 64),
+            }
+            if i % 2 == 1 && i != 7 {
+                hit(&mut events, at, GM_HAT_CLOSED, 52);
+            }
+        }
+        b += bar;
+    }
+    // The Kick. Kick and clap together at full velocity, at the one moment the
+    // whole piece ends on.
+    hit(&mut events, end_beat, GM_KICK, 127);
+    hit(&mut events, end_beat, GM_CLAP, 127);
+
+    events.sort_by_key(|e| (e.tick, e.order, e.data1));
+    let mut body = Vec::new();
+    meta(&mut body, 0, 0x03, b"Pulse");
+    let mut last = 0u32;
+    for e in &events {
+        write_vlq(&mut body, e.tick - last);
+        last = e.tick;
+        body.push(e.status);
+        body.push(e.data1);
+        body.push(e.data2);
+    }
+    meta(&mut body, 0, 0x2F, &[]);
+    body
+}
+
 /// Writes a realised score as a type-1 standard MIDI file.
 pub fn to_smf(r: &Realisation) -> Vec<u8> {
     let mut tracks: Vec<Vec<u8>> = Vec::new();
@@ -88,6 +179,25 @@ pub fn to_smf(r: &Realisation) -> Vec<u8> {
     let denom_pow = (r.beats_per_bar as u32).trailing_zeros().max(2).min(2); // 4/4
     let _ = denom_pow;
     meta(&mut t0, 0, 0x58, &[r.beats_per_bar as u8, 2, 24, 8]);
+
+    // The form, as MIDI markers (meta 0x06) on the conductor track.
+    //
+    // **This is not documentation, it is the runtime's section list.** M71
+    // binds a HUD card to each section boundary, and the alternative — a
+    // second table of bar numbers beside the score — is two things that have
+    // to be kept in step and eventually are not. Writing them here means a DAW
+    // shows the form in its marker lane *and* the browser reads the same
+    // bytes: one artefact, as rev 4 asked for.
+    let mut marker_last = 0u32;
+    let mut markers: Vec<(u32, String)> =
+        r.sections.iter().map(|m| ((m.at_beat * TICKS_PER_BEAT as f64).round() as u32, m.label.clone())).collect();
+    let kick_tick = (r.pulse.final_accent_at_sec * r.bpm / 60.0 * TICKS_PER_BEAT as f64).round() as u32;
+    markers.push((kick_tick, KICK_MARKER.to_string()));
+    markers.sort_by_key(|(t, _)| *t);
+    for (tick, label) in &markers {
+        meta(&mut t0, tick - marker_last, 0x06, label.as_bytes());
+        marker_last = *tick;
+    }
     meta(&mut t0, 0, 0x2F, &[]);
     tracks.push(chunk(b"MTrk", &t0));
 
@@ -127,6 +237,8 @@ pub fn to_smf(r: &Realisation) -> Vec<u8> {
         meta(&mut body, 0, 0x2F, &[]);
         tracks.push(chunk(b"MTrk", &body));
     }
+
+    tracks.push(chunk(b"MTrk", &pulse_track(r)));
 
     let mut header = Vec::new();
     header.extend_from_slice(&1u16.to_be_bytes()); // format 1

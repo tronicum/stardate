@@ -46,10 +46,37 @@ export interface InstanceGroup {
   /** Instance slot -> the bundle's own stable id, so a show's choreography
    * can resolve its target globs to slots once, at load time. */
   ids: string[];
-  /** Per-instance 0..1 scalar, uploaded as `aDissolve`. Nothing reads it
-   * until M65's dissolve shader; it exists now so that milestone is a
-   * shader change and not a buffer-layout change. */
-  dissolve: THREE.InstancedBufferAttribute;
+  /** **The authoritative per-instance channels**, indexed by instance, on
+   * exactly the same footing as `matrices` — and for exactly the same reason.
+   *
+   * `dissolve` (M65) is the erosion; `lift` (M71) is the emissive flash a
+   * fugue entry gives the bricks of *its* voice, which a scene-wide uniform
+   * could not express.
+   *
+   * They were attributes on the level-0 mesh until M71, and that was **wrong
+   * in a way nothing had noticed**: since M59 the LOD selector re-packs each
+   * level's matrix buffer, so mesh row *j* holds instance *i* only while every
+   * instance is at level 0. An attribute indexed by *i* against a matrix
+   * buffer indexed by *j* is silently misaligned the moment one brick drops a
+   * level — the dissolve would then erode a different brick from the one the
+   * timeline named. It had never bitten because M65's probe shoots the brick
+   * close up, where nothing demotes. Authoritative array plus a per-level
+   * packed copy is the rule the matrices already follow; now the scalars
+   * follow it too. */
+  dissolve: Float32Array;
+  lift: Float32Array;
+}
+
+/** The two per-instance scalar channels, on one geometry. Every level's mesh
+ * gets its own pair, sized to the group; `LodSelector.repack` fills them in
+ * the same order it fills that level's matrices, and `InstanceWriter.flush`
+ * fills level 0 when no selector has attached. */
+export function addScalarAttributes(geometry: THREE.BufferGeometry, count: number) {
+  for (const name of ['aDissolve', 'aLift']) {
+    const a = new THREE.InstancedBufferAttribute(new Float32Array(count), 1);
+    a.setUsage(THREE.DynamicDrawUsage);
+    geometry.setAttribute(name, a);
+  }
 }
 
 /** Where one stable instance id lives after grouping. */
@@ -110,9 +137,7 @@ export function buildInstanceGroups(
     geometry.boundingSphere = geometry.boundingBox.getBoundingSphere(new THREE.Sphere());
     geometry.name = `${part.partFile}#${materialIdx}`;
 
-    const dissolve = new THREE.InstancedBufferAttribute(new Float32Array(bucket.length), 1);
-    dissolve.setUsage(THREE.DynamicDrawUsage);
-    geometry.setAttribute('aDissolve', dissolve);
+    addScalarAttributes(geometry, bucket.length);
 
     const mesh = new THREE.InstancedMesh(
       geometry,
@@ -158,7 +183,8 @@ export function buildInstanceGroups(
       levels: new Uint8Array(bucket.length),
       radius: geometry.boundingSphere?.radius ?? 1,
       ids,
-      dissolve,
+      dissolve: new Float32Array(bucket.length),
+      lift: new Float32Array(bucket.length),
     });
   }
 
@@ -176,7 +202,7 @@ export function buildInstanceGroups(
 export class InstanceWriter {
   private readonly slots = new Map<string, Slot>();
   private readonly dirtyMatrix = new Set<InstanceGroup>();
-  private readonly dirtyDissolve = new Set<InstanceGroup>();
+  private readonly dirtyScalars = new Set<InstanceGroup>();
   private readonly m = new THREE.Matrix4();
   private readonly zero = new THREE.Matrix4().makeScale(0, 0, 0);
   /** Reused, not allocated per call. `setTransform` runs once per instance
@@ -263,13 +289,27 @@ export class InstanceWriter {
   setDissolve(id: string, amount: number): void {
     const slot = this.slots.get(id);
     if (!slot) return;
-    slot.group.dissolve.setX(slot.index, amount);
-    this.dirtyDissolve.add(slot.group);
+    slot.group.dissolve[slot.index] = amount;
+    this.dirtyScalars.add(slot.group);
+  }
+
+  /** M71's entry lift: 0 is untouched, 1 is the full emissive flash. */
+  setLift(id: string, amount: number): void {
+    const slot = this.slots.get(id);
+    if (!slot) return;
+    slot.group.lift[slot.index] = amount;
+    this.dirtyScalars.add(slot.group);
   }
 
   /** Groups whose authoritative matrices changed since the last flush —
    * read by the LOD selector, which has to re-pack them. */
   readonly touched = new Set<InstanceGroup>();
+
+  /** Groups whose per-instance scalars changed since the last flush. The LOD
+   * selector consumes this exactly as it consumes `touched`: a dissolve that
+   * changes while the camera is still would otherwise never be packed, because
+   * the selector's early-out is "nothing moved". */
+  readonly scalarsTouched = new Set<InstanceGroup>();
 
   /** Set by `LodSelector` when it attaches. It re-packs `group.matrices` into
    * whichever level's mesh each instance currently belongs to, which includes
@@ -295,8 +335,35 @@ export class InstanceWriter {
         group.mesh.instanceMatrix.needsUpdate = true;
       }
     }
-    for (const group of this.dirtyDissolve) group.dissolve.needsUpdate = true;
+    for (const group of this.dirtyScalars) {
+      // Same division of labour as the matrices above: when a selector owns
+      // the packing it also owns these, because they have to be packed in the
+      // order it chose. `scalarsTouched` is how it is told.
+      this.scalarsTouched.add(group);
+      if (!this.lodManaged) {
+        copyScalars(group.mesh, group.dissolve, group.lift);
+      }
+    }
     this.dirtyMatrix.clear();
-    this.dirtyDissolve.clear();
+    this.dirtyScalars.clear();
+  }
+}
+
+/** Straight copy of the authoritative scalars into a mesh's attributes, for
+ * the identity case (no LOD selector, so mesh row = instance index). */
+export function copyScalars(
+  mesh: THREE.InstancedMesh,
+  dissolve: Float32Array,
+  lift: Float32Array,
+) {
+  const d = mesh.geometry.getAttribute('aDissolve') as THREE.InstancedBufferAttribute | undefined;
+  const l = mesh.geometry.getAttribute('aLift') as THREE.InstancedBufferAttribute | undefined;
+  if (d) {
+    (d.array as Float32Array).set(dissolve);
+    d.needsUpdate = true;
+  }
+  if (l) {
+    (l.array as Float32Array).set(lift);
+    l.needsUpdate = true;
   }
 }

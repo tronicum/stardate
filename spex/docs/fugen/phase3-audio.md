@@ -687,4 +687,128 @@ pre-existing.
 3. Muting mid-run and unmuting does not desync anything.
 
 **Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture), plus a human listen. (6 runs at the end of the phase.)
+
+**Status: ✅ done, AC1–AC3 measured; the human listen is still M68's AC4.**
+`viewer/src/show/{binding.ts, hud.ts, player.ts}`, `viewer/src/audio/engine.ts`,
+`viewer/index.html`, `crates/spex-fugue/src/emit.rs`, and
+`scripts/viewer-shot/{bindprobe.mjs, bindframes.mjs}`.
+
+**The pulse went into the score, and so did the form.** `spex fugue-build` now
+writes a General MIDI **channel-10** drum track and **22 marker events**
+alongside the four voices: 928 notes in six tracks, 9,025 bytes. A runtime
+generator reading `PulseSpec` would have worked and would have meant that the
+file a person opens in a DAW is missing an entire layer of the piece — against
+rev 4's one-artefact rule, which is the rule this whole phase turns on. The
+markers are not documentation either: they *are* the section list M71 binds the
+HUD card to, so the caption cannot name a stretto the music is not playing.
+**The 475 contrapuntal notes are byte-identical to M68's file**, checked rather
+than assumed.
+
+**And channel 10 is not a voice.** Two of M68's tests failed the moment the
+drums existed, both correctly: note 36 against note 39 is a minor third that
+never moves, so a rule checker handed the kit alongside the fugue reports
+parallel thirds in a kick drum. The filter is in the *tests*, not in the
+reader — a reader's job is to report what is in the file.
+
+**A cue is bound to when its note sounds, not to when its callback arrives.**
+M70's scheduler hands a cue over up to **150 ms** before it is audible, which
+is the entire point of a lookahead scheduler; a visual bound to the arrival
+would fire a tenth of a second before its own note, every time, for ever.
+`Scheduler.onCue` therefore carries the absolute `AudioContext` time the cue
+will sound at, `CueBinder` holds it until that time has come, and the frame
+loop asks "what is due?" against the same clock the sound is on. The binding is
+accurate to one frame **by construction** rather than by tuning.
+
+**AC1 passes: 60 minutes, sampled every 10, worst binding latency 0.999
+frames** — and the criterion had to be restated to mean anything.
+
+*What "in sync" cannot be.* Show time already **is** audio time: `ShowClock`
+reads `currentTime` when there is an `AudioContext` (M62), so a drift between
+them is a drift between a number and itself. It measures **0.000 ms at every
+one of the six samples**, and reporting that as an achievement would be the
+emptiest possible pass. What can move is the *binding's* latency, and it is
+bounded below by the frame interval and by nothing else.
+
+*So the assertion is ≤ 1 frame, and the 20 ms is a 60 Hz number.* One frame at
+60 Hz is 16.7 ms. This container renders the show at **4.6 fps**, so the same
+code that will be within 16.7 ms on the premiere hardware measures within
+**772 ms** here — the milliseconds are the rasteriser's and the frame count is
+the code's. Same doctrine as M69's AC3, and the same reason.
+
+*And the run produced a number worth more than the criterion.* Over the hour,
+**`performance.now()` and `AudioContext.currentTime` drifted 1.014 seconds
+apart** — 793 ms of it in the first ten minutes. M62 chose the audio clock on
+the argument that "a browser's audio clock and its high-resolution timer
+routinely differ by tens of milliseconds"; on this container they differ by a
+**second an hour**, and the piece stayed in sync with its own music throughout
+because it reads the one the music is on. That argument is now a measurement.
+(Headless Chromium has no audio device, so its context runs on a null sink —
+the figure bounds the effect rather than characterising real hardware, and says
+which.)
+
+**AC2 passes: the Kick's binding applied 147.8 ms — 0.684 of a frame — after
+its audio onset.** One honest limitation, recorded rather than worked around:
+the camera half of the Kick is an `exponentialZoom` shot **authored in Act IV**,
+which is not built. What M71 adds is the binding, and the binding's own latency
+is what is measured; the camera is already on show time and cannot be late
+against it.
+
+**AC3 passes: 0.000 ms of drift while muted and 0.000 ms after unmuting**, the
+clock still on `audio`, still playing. That is not a foregone conclusion —
+**`?mute=1` and the mixer's mute are different things** and the difference is
+exactly the sort that gets collapsed: the parameter decides *which clock the
+show reads* (no `AudioContext`, so `performance.now()`), while the mixer ramps
+a gain on a context that is still ticking. M66 already watched a suspended
+context hold the opening frame for two minutes; a mute that took the clock with
+it would do the same thing on demand.
+
+**Two seams, both found by building this and neither in a component.**
+
+*The per-instance scalars were indexed against the wrong thing, and had been
+since M59.* `aDissolve` lived as an attribute on the level-0 mesh, indexed by
+**instance** — while since M59 the LOD selector re-packs each level's matrix
+buffer, so mesh row *j* holds instance *i* only as long as every brick is at
+level 0. One demotion and the dissolve erodes a different brick from the one
+the timeline named. It had never bitten because M65's probe shoots the brick
+close up, where nothing demotes. `dissolve` and the new `lift` are now
+authoritative arrays with a per-level packed copy — **the rule `matrices` has
+followed since M59**, now followed by the scalars too, and `LodSelector.repack`
+packs all three in one pass.
+
+*The endless edition would have played the fugue once and then looped in
+silence.* The scheduler's cursor is monotonic by design (M70), so a show time
+that jumps back to zero leaves it past every note in the file, for ever, with
+no error anywhere. `clock.onLoop` re-seeks the score. The 60-minute run went
+round **15 times** and applied cues in every one of them, which is how this is
+known and not asserted.
+
+**Rung 5 was mandatory here and earned it.** The first version of the entry
+lift used a scale of **1.6**, chosen by analogy with the dissolve rim's 2.5 —
+and that analogy is wrong by a whole object: the rim multiplies a term that is
+non-zero on a thin band of fragments which only just survived the erosion,
+while the lift multiplies **every fragment of the brick**. The screenshot pair
+measured the difference at **89 luma out of 255** on a white monolith. Not a
+voice announcing itself: an object replaced by a light source. At **0.18** it
+measures **5.05 luma** and the monolith is still a monolith.
+
+The frames are shot in pairs — identical camera, identical show time, lift held
+at 1 and then at 0 — because an emissive addition is easy to claim and easy to
+not actually make. The first version of *that* shot the two frames a second
+apart with the piece still playing, and reported the lift as **−1.2 luma**: it
+was measuring a dolly. A pair of frames that differ in one thing has to differ
+in one thing.
+
+**Also measured.** 142 cues derived from the score (36 entries, 22 sections, 84
+accents); the gate shown before `begin()` and gone after; the mixer's three
+rows reachable and the monitor switch moving `both → pulse → counterpoint →
+both`; **zero console warnings or errors** across the hour and across the
+frames. `cargo test --workspace --no-fail-fast`: **273 pass**, the one failure
+being `sqlite3` missing from this container's PATH, unrelated and pre-existing.
+
+**One small thing the probe found about the DOM.** The mixer's three rows were
+built with the HUD's `el()` helper, which sets an **id** — three elements
+sharing an id is a document no selector and no stylesheet can talk about, and
+the probe counted zero rows on a mixer that was plainly there. They are a class
+now.
+
 ---

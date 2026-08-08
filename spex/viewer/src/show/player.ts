@@ -67,6 +67,10 @@ import { AssemblyChoreography, assemblyFromCue } from './choreography';
 import { DissolveController } from './dissolve';
 import { buildPointClouds, fetchPartPoints, PointCloudRenderer } from './points';
 import { ShowHud, linearToCss } from './hud';
+import { CueBinder, type VoiceBinding } from './binding';
+import { loadFugueAudio, type FugueAudio } from '../audio/fugue';
+import { BLOOM_STRENGTH } from '../mesh/post';
+import type { Monitor } from '../audio/engine';
 import type { ShowParams } from './params';
 import type {
   MaterialProperty,
@@ -517,6 +521,84 @@ export async function runShowViewer(
   }
   const timeline = new Timeline(show);
 
+  // ------------------------------------------------------------- M71 bindings
+  //
+  // Which voice lights which scene element is **authored** — the show
+  // document's `voiceEntry` cues carry a `target`, and the screenplay's whole
+  // structure is four voices entering against four things in the frame. A rule
+  // like "the nth scene of the shot" would be a coin flip that landed right
+  // once. Voices are 1-based in the document and 0-based on a MIDI channel,
+  // which is one subtraction and exactly the sort of thing to do in one place.
+  const voiceBindings: VoiceBinding[] = [];
+  for (const shot of show.shots ?? []) {
+    for (const cue of shot.cues ?? []) {
+      if (cue.kind !== 'audio') continue;
+      const p = cue.payload ?? {};
+      if (p.event !== 'voiceEntry' || typeof p.voice !== 'number') continue;
+      const target = (p.target ?? {}) as { scene?: string; glob?: string };
+      const scene = typeof target.scene === 'string' ? target.scene : (shot.scenes ?? [])[0];
+      if (!scene) continue;
+      const v = (p.voice as number) - 1;
+      if (voiceBindings.some((b) => b.voice === v)) continue;
+      voiceBindings.push({ voice: v, scene, glob: target.glob });
+    }
+  }
+  /** Resolved once at load: which instance ids each voice lifts. */
+  const liftTargets = new Map<number, { scene: SceneRuntime; ids: readonly string[] }>();
+
+  /** Set on the frame the Kick is applied, for the harness. */
+  let kickFrameAudioSec: number | null = null;
+  const binder = new CueBinder({
+    onSection: (label) => hud.showSection(label),
+    onKick: () => {
+      // DER KICK. §7 of the screenplay is explicit that the drum and the
+      // camera are one event — and the camera half of it is an
+      // `exponentialZoom` shot, which is *authored in the document* and
+      // therefore already on show time. There is nothing to trigger here: what
+      // this records is when the binding fired, which is the part M71 adds and
+      // the part AC2 can actually measure.
+      kickFrameAudioSec = fugue?.engine.ctx.currentTime ?? null;
+    },
+  });
+  let fugue: FugueAudio | null = null;
+  /** Voices whose lift is non-zero, so the frame loop can write a final 0 once
+   * and then stop touching an untouched scene every frame. */
+  const liftedVoices = new Set<number>();
+
+  for (const b of voiceBindings) {
+    const s = scenes.get(b.scene);
+    if (!s) {
+      warnings.push(`voice ${b.voice + 1} is bound to scene ${b.scene}, which this show has not loaded`);
+      continue;
+    }
+    if (b.glob) {
+      // A cue payload carries a glob, not an index list — `show-build` resolves
+      // globs on *tracks* and has no reason to resolve one here. Rather than
+      // lift the wrong bricks, lift the whole scene and say so.
+      warnings.push(`voice ${b.voice + 1}: glob "${b.glob}" is not resolved; lifting all of ${b.scene}`);
+    }
+    liftTargets.set(b.voice, { scene: s, ids: s.instanceIds });
+  }
+
+  // The score, if there is one. `null` for every point-cloud tileset, every
+  // bundle built before the audio existed, and every `?mute=1` session — the
+  // same absence-is-a-fact pattern the three render modes already use.
+  if (audio) {
+    fugue = await loadFugueAudio(audio, baseUrl, clock, {
+      onCue: (cue, atAudioSec) => binder.schedule(cue, atAudioSec),
+    });
+    if (fugue) {
+      hud.buildMixer({
+        master: fugue.engine.masterLevelValue,
+        muted: fugue.engine.isMuted,
+        monitor: fugue.engine.monitorValue,
+        onMaster: (v) => fugue?.engine.setMasterLevel(v),
+        onMuted: (v) => fugue?.engine.setMuted(v),
+        onMonitor: (v) => fugue?.engine.setMonitor(v as Monitor),
+      });
+    }
+  }
+
   const scratchPos = new THREE.Vector3();
   const scratchQuat = new THREE.Quaternion();
   const scratchEuler = new THREE.Euler();
@@ -724,6 +806,13 @@ export async function runShowViewer(
   clock.onLoop(() => {
     resetSharedState();
     voices.length = 0;
+    // The score has to come round with the picture. Without this the endless
+    // edition plays the fugue once and then loops in silence: the scheduler's
+    // cursor is monotonic by design (M70), so a show time that jumps back to
+    // zero leaves it past every note in the file, for ever, with no error
+    // anywhere. The seam is the same one M62's own header is about.
+    fugue?.seek(0);
+    binder.reset();
     suppressBlurNextFrame = true;
   });
   let suppressBlurNextFrame = false;
@@ -827,6 +916,8 @@ export async function runShowViewer(
   const seekTo = (sec: number) => {
     resetSharedState();
     voices.length = 0;
+    binder.reset();
+    fugue?.seek(sec);
     clock.seek(sec);
     timeline.resetCueCursor(clock.time);
     prevShowTime = clock.time;
@@ -840,7 +931,48 @@ export async function runShowViewer(
     suppressBlurNextFrame = true;
   };
   if (params.seekSec !== null) seekTo(params.seekSec);
-  clock.play();
+
+  /** Start the piece.
+   *
+   * # The gate is the correct behaviour, not a workaround
+   *
+   * No browser will start an `AudioContext` without a user gesture, so a
+   * screening has to begin on one. That constraint and the piece agree: an
+   * installation that begins when someone chooses to begin it is what an
+   * installation *is*, and the title card was already in the screenplay. What
+   * this adds is that the same gesture is the thing that starts the clock —
+   * so the picture cannot run ahead of a fugue that has not been allowed to
+   * start.
+   *
+   * `?mute=1` skips it entirely, which is the parameter's whole meaning
+   * (M66): no `AudioContext`, show time from `performance.now()`, visuals
+   * immediately, for embedding.
+   */
+  let begun = false;
+  const begin = () => {
+    if (begun) return;
+    begun = true;
+    hud.hideGate();
+    void audio?.resume?.().catch(() => {});
+    clock.useAudioContext(audio);
+    clock.play();
+    fugue?.start();
+  };
+
+  if (params.muted || !audio) {
+    begin();
+  } else if (audio.state === 'running') {
+    // Already allowed — a kiosk with the autoplay policy relaxed, or a page
+    // the user has already interacted with. Waiting for a click there would
+    // be ceremony rather than consent.
+    begin();
+  } else {
+    hud.showGate(
+      begin,
+      'The browser will not start audio without a gesture, and this piece is ' +
+        'four voices. Beginning also starts the clock.',
+    );
+  }
 
   function frame() {
     requestAnimationFrame(frame);
@@ -905,6 +1037,26 @@ export async function runShowViewer(
     touched.clear();
 
     post.setMotionBlur(director.blur, director.focus.x, director.focus.y);
+
+    // M71 — the bindings, on audio time.
+    //
+    // `binder.update` is handed the *audio* clock, not the show clock and not
+    // frame time, because the thing it is deciding is "has this note sounded
+    // yet". Frame time drives the decays, which are properties of the picture.
+    if (fugue) {
+      binder.update(fugue.engine.ctx.currentTime, dtSec);
+      for (const [voice, target] of liftTargets) {
+        const amount = binder.lift.get(voice) ?? 0;
+        if (amount === 0 && !liftedVoices.has(voice)) continue;
+        if (amount === 0) liftedVoices.delete(voice);
+        else liftedVoices.add(voice);
+        for (const id of target.ids) target.scene.writer.setLift(id, amount);
+        target.scene.writer.flush();
+        touched.add(target.scene);
+      }
+      post.bloom.strength = BLOOM_STRENGTH + binder.bloom;
+    }
+    hud.updateSection(dtSec);
 
     const viewportPx = window.innerHeight * Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
     for (const s of loaded) {
@@ -972,6 +1124,13 @@ export async function runShowViewer(
     activeShotId: () => timeline.activeShots(clock.time)[0]?.shot.id ?? null,
     visibleScenes: () => loaded.filter((s) => s.root.visible).map((s) => s.id),
     seek: seekTo,
+    begin,
+    fugue: () => fugue,
+    binder,
+    kickFrameAudioSec: () => kickFrameAudioSec,
+    liftOf: (voice: number) => binder.lift.get(voice) ?? 0,
+    section: () => binder.section,
+    bloom: () => binder.bloom,
     resetSharedState,
     setPlaying: (playing: boolean) => {
       if (playing) clock.play();

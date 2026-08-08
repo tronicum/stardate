@@ -224,7 +224,7 @@
             {
               "t": 0.66,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 1, "range": "alto", "subject": "subject" }
+              "payload": { "event": "voiceEntry", "voice": 1, "range": "alto", "subject": "subject", "target": { "scene": "brick" } }
             }
           ],
           "note": "The crossfade, and the centre of the piece. The swarm collapses onto the real mesh of a single 1x1 brick, Black. The edge lines arrive in ONE frame — hence easing 'step' on edgeOpacity, not a fade: legibility is a threshold event, a statistical cloud becoming a thing that can be counted. Then hold silence for one bar; voice 1 enters with the subject AFTER the image has landed, alone. Then the brick makes one full revolution at constant angular velocity — 'linear' is the direction, not laziness."
@@ -272,7 +272,7 @@
             {
               "t": 0,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 2, "range": "sopran", "subject": "answer" }
+              "payload": { "event": "voiceEntry", "voice": 2, "range": "sopran", "subject": "answer", "target": { "scene": "monolith" } }
             },
             {
               "t": 0,
@@ -328,7 +328,7 @@
             {
               "t": 0.2,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 3, "range": "tenor", "subject": "subject" }
+              "payload": { "event": "voiceEntry", "voice": 3, "range": "tenor", "subject": "subject", "target": { "scene": "monolith" } }
             }
           ],
           "note": "The monolith stands. Camera orbits 180 degrees from low, the object filling ~80% of frame height. Hairline HUD, lower right. The key light rakes across the studs so the module count is countable — the HUD says nine, and the picture has to be able to say it too. maxBars 32: this is one of the shots the 60:00 cut lives in."
@@ -371,7 +371,7 @@
             {
               "t": 0.1,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "answer" }
+              "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "answer", "target": { "scene": "monolith" } }
             },
             { "t": 0.3, "kind": "hud", "payload": { "element": "caption", "text": "c. 2500 BCE" } }
           ],

@@ -14,7 +14,7 @@ export interface FugueOptions extends EngineOptions {
   /** Show time at which score position zero falls. The piece is silent until
    * the brick is legible: the fugue's first entry is at bar 5. */
   scoreOffsetSec?: number;
-  onCue?: (cue: Cue) => void;
+  onCue?: (cue: Cue, atAudioSec: number) => void;
 }
 
 export interface FugueAudio {
