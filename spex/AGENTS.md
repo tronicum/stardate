@@ -4,6 +4,13 @@ Entry point for any agent — a Claude Code subagent, a fork, or another AI
 tool entirely — picking up work in this repository. This file is short on
 purpose; it's a map, not the content.
 
+**When something goes wrong in an instructive way, write it down.** `docs/diary/`
+carries one entry per milestone that had a defect worth the telling — not what
+was built (the phase docs have that) but what went wrong, in the order it went
+wrong, and what it turned out to mean. The rule: a defect earns an entry when
+*the way it was found* is more instructive than the defect itself. A milestone
+that went to plan gets no entry.
+
 ## What this is, in one paragraph
 
 `spex` is a point-cloud explorer: it turns LiDAR/scan files (PLY/XYZ/CSV/LAS/

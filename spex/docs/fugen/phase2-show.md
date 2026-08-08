@@ -922,6 +922,10 @@ object. Everything finer is the finite sample, and is reported rather than
 judged. Tuning the point size or the density until a number came out under 1 %
 would have been fitting the instrument to the answer.
 
+The narrative version, and what it changed about how this project measures
+things, is in the development diary:
+[`docs/diary/2026-08-08-m65-dissolve-and-crossfade.md`](../diary/2026-08-08-m65-dissolve-and-crossfade.md).
+
 **Four measurement defects, and the first one was worth all the rest.** The
 initial run had the cloud **36 % narrower and 30 % shorter** than the mesh and
 offset by a third of the object's width — a systematic mismatch that looked
