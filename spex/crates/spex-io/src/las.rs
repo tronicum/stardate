@@ -16,14 +16,36 @@ use std::path::Path;
 /// `intensity` value (normalized `u16` -> `u8`) rather than a flat fabricated
 /// gray, keeping every visible value tied to something the scanner actually
 /// measured.
+///
+/// The ASPRS spec's RGB fields are 16-bit per channel, and compliant
+/// producers scale an 8-bit source up (`value * 256`) before writing it —
+/// see [`color_channels_look_8bit`] for why real-world producers don't
+/// always do that, and why this reader detects and corrects for it rather
+/// than trusting the spec blindly.
 pub fn read(path: &Path) -> Result<Vec<Point>> {
     let mut reader = las::Reader::from_path(path).with_context(|| format!("opening {} as LAS/LAZ", path.display()))?;
     let point_data = reader.read_all().with_context(|| format!("reading points from {}", path.display()))?;
+
+    // Scanning every point's raw color once, up front, to answer one
+    // whole-file question ("is this producer's RGB actually 8-bit despite
+    // the 16-bit field width?") is cheap next to the per-point Point
+    // materialization below, and `PointData::points()` is a cheap
+    // non-consuming iterator over data already fully resident in memory
+    // (see `las::PointData`), so a second pass costs no extra I/O.
+    let max_channel = point_data
+        .points()
+        .filter_map(|w| w.ok())
+        .filter_map(|p| p.color)
+        .flat_map(|c| [c.red, c.green, c.blue])
+        .max()
+        .unwrap_or(0);
+    let color_is_8bit_range = color_channels_look_8bit(max_channel);
 
     let mut points = Vec::new();
     for wrapped in point_data.points() {
         let p = wrapped.with_context(|| format!("reading a point from {}", path.display()))?;
         let color = match p.color {
+            Some(c) if color_is_8bit_range => [c.red as u8, c.green as u8, c.blue as u8],
             Some(c) => [(c.red >> 8) as u8, (c.green >> 8) as u8, (c.blue >> 8) as u8],
             None => {
                 let gray = (p.intensity >> 8) as u8;
@@ -38,6 +60,43 @@ pub fn read(path: &Path) -> Result<Vec<Point>> {
     Ok(points)
 }
 
+/// Whether a file's real RGB data — despite living in the LAS spec's 16-bit
+/// fields — is actually already 8-bit-range (`0..=255`) and would be wiped
+/// out to pure black by a blind `>> 8`.
+///
+/// The ASPRS LAS spec says an 8-bit source channel should be scaled up by
+/// 256 before being stored in the 16-bit field (so pixel value 255 becomes
+/// 65280, not 255) — precisely so a `>> 8` on read recovers the original
+/// 8-bit value. Plenty of real-world LAS producers don't do that scale-up
+/// and just write the raw 8-bit value into the low byte of the 16-bit
+/// field instead. Reading that non-compliant-but-real data with a blind
+/// `>> 8` doesn't get a slightly-wrong color — for any channel value under
+/// 256 it becomes exactly `0`, so *every* point in such a file renders
+/// pure black. That's what a real committed fixture
+/// (`scripts/point-cloud-data/autzen-trim.las`, real Autzen Stadium
+/// airborne LiDAR) turned out to hit: every one of its 6,002 points has
+/// real, distinct RGB (confirmed by inspecting the raw values, e.g. a real
+/// `Color { red: 84, green: 102, blue: 93 }`), but every value is under
+/// 256, so the naive path decoded all 6,002 to `[0, 0, 0]` — which is what
+/// made `spex ascii` (whose darkest glyph is a space) look completely
+/// blank; issue #34 originally suspected the ASCII camera/FOV math, but
+/// tracing real `(sx, sy)` values for this fixture found every point
+/// correctly inside the camera's field of view — the points were being
+/// projected just fine, they just had no visible color once decoded.
+///
+/// The detection heuristic: if the *whole file's* maximum real channel
+/// value never exceeds 255, the data can't be legitimate spec-compliant
+/// 16-bit color (which would only stay under 256 by having every channel
+/// of every point sit in the bottom 0.4% of the 16-bit range — implausible
+/// for real captured imagery with any color variation at all) — so treat
+/// it as already-8-bit and use it directly instead of shifting it away.
+/// `max_channel == 0` (a file with no real color, or all real color
+/// legitimately black) is left on the spec-compliant `>> 8` path, since
+/// there's nothing to lose either way.
+fn color_channels_look_8bit(max_channel: u16) -> bool {
+    (1..=255).contains(&max_channel)
+}
+
 /// Real ASPRS LAS/LAZ data (a projected/geographic CRS, e.g. UTM or a state
 /// plane system) is conventionally X=easting, Y=northing, Z=elevation — a
 /// right-handed, **Z-up** coordinate system. spex's renderers (the WebGL
@@ -47,10 +106,12 @@ pub fn read(path: &Path) -> Result<Vec<Point>> {
 /// real scan's northing (large, horizontal in reality) on spex's vertical
 /// axis while real elevation (small) ends up on spex's depth axis — a real
 /// geographic scan renders tipped over on its side (found via a real
-/// committed fixture, `scripts/point-cloud-data/autzen-trim.las`, whose
-/// `spex ascii` render was blank before this fix — the camera framing
-/// logic breaks down for that resulting extreme, wrongly-oriented aspect
-/// ratio).
+/// committed fixture, `scripts/point-cloud-data/autzen-trim.las`). That
+/// fixture's `spex ascii` render was *also* blank before this fix, which
+/// this rotation alone doesn't explain — see [`color_channels_look_8bit`]
+/// for the actual (separate, since-fixed) cause: every point in that file
+/// decoded to pure black due to an unrelated RGB bit-depth bug, not
+/// anything about camera framing or axis orientation.
 ///
 /// The standard Z-up -> Y-up conversion — `(x, y, z) -> (x, z, -y)`, a real
 /// -90-degree rotation about the X axis — is used here rather than a plain
@@ -116,6 +177,54 @@ mod tests {
 
         assert_eq!(points.len(), 1);
         assert_eq!(points[0].color, [255, 255, 255]);
+    }
+
+    #[test]
+    #[allow(clippy::field_reassign_with_default)]
+    fn recovers_real_8bit_range_color_instead_of_zeroing_it_out() {
+        // The real-world quirk this guards against: a producer writes an
+        // already-8-bit channel value (0..=255) directly into LAS's 16-bit
+        // RGB field instead of scaling it up by 256 as the spec expects.
+        // A blind `>> 8` on a value like 84 (as seen in the real
+        // autzen-trim.las fixture) yields exactly 0 for every such point.
+        let mut points_in = Vec::new();
+        for (r, g, b) in [(84u16, 102u16, 93u16), (58, 72, 70), (164, 153, 126)] {
+            let mut p = LasPoint::default();
+            p.x = 0.0;
+            p.y = 0.0;
+            p.z = 0.0;
+            p.color = Some(LasColor::new(r, g, b));
+            points_in.push(p);
+        }
+
+        let tmp = std::env::temp_dir().join("spex-las-test-8bit-color.las");
+        write_las(&tmp, points_in, true);
+        let points = read(&tmp).unwrap();
+        std::fs::remove_file(&tmp).ok();
+
+        assert_eq!(points.len(), 3);
+        assert_eq!(points[0].color, [84, 102, 93]);
+        assert_eq!(points[1].color, [58, 72, 70]);
+        assert_eq!(points[2].color, [164, 153, 126]);
+        assert!(points.iter().all(|p| p.color != [0, 0, 0]), "real distinct color should never decode to pure black");
+    }
+
+    #[test]
+    fn real_committed_geographic_fixture_has_real_non_black_color() {
+        // The actual root cause traced for issue #34 ("spex ascii renders
+        // blank for this fixture"): every point in this real file has real,
+        // distinct RGB, but the naive 16-bit `>> 8` decode zeroed all of it
+        // out because the file's real values are 8-bit-range. Confirm the
+        // fix recovers real color on the real fixture, not just a
+        // synthetic one.
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../scripts/point-cloud-data/autzen-trim.las");
+        let points = read(&fixture).expect("reading the real committed autzen-trim.las fixture");
+        assert!(!points.is_empty());
+        assert!(points.iter().any(|p| p.color != [0, 0, 0]), "at least some real points should have non-black color");
+        // Every real point in this fixture carries real color (confirmed by
+        // direct inspection) -- this used to be 100% [0,0,0] before the fix.
+        let black_count = points.iter().filter(|p| p.color == [0, 0, 0]).count();
+        assert!(black_count < points.len() / 2, "most real points should now decode to non-black color, got {black_count}/{} black", points.len());
     }
 
     #[test]

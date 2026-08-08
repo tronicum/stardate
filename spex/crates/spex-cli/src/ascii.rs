@@ -160,11 +160,23 @@ fn project_point(position: [f64; 3], camera: &Camera, width: usize, height: usiz
     Some((row, col))
 }
 
+/// Maps a *real, projected* point's color to a glyph. `RAMP[0]` (a plain
+/// space) is reserved for "no point landed in this cell" — drawn directly
+/// by `grid_slice_to_ansi`/`grid_slice_to_html_body` for `None` cells — so
+/// a real point that happens to be near-black (a real dark material, a
+/// shadow, or previously, real LAS RGB decoded to pure black by a since-
+/// fixed bit-depth bug — see `spex-io`'s `las.rs`) still shows up as a
+/// distinct, non-space glyph rather than reading as empty. That distinction
+/// is what makes "how much of the grid is actually blank" a meaningful,
+/// checkable question for callers like `content_bounds`/tests, instead of
+/// "blank" being ambiguous between "no data here" and "real, very dark
+/// data here".
 fn luminance_to_char(color: [u8; 3]) -> char {
     let lum = 0.2126 * color[0] as f64 + 0.7152 * color[1] as f64 + 0.0722 * color[2] as f64;
     let t = (lum / 255.0).clamp(0.0, 1.0);
-    let idx = (t * (RAMP.len() - 1) as f64).round() as usize;
-    RAMP[idx.min(RAMP.len() - 1)]
+    let lit_ramp = &RAMP[1..];
+    let idx = (t * (lit_ramp.len() - 1) as f64).round() as usize;
+    lit_ramp[idx.min(lit_ramp.len() - 1)]
 }
 
 /// The bounding box (inclusive) of every lit cell in `grid`, or `None` if
@@ -547,8 +559,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn luminance_maps_black_to_lightest_and_darkest_ramp_ends() {
-        assert_eq!(luminance_to_char([0, 0, 0]), RAMP[0]);
+    fn luminance_maps_black_to_the_darkest_visible_glyph_never_a_space() {
+        // RAMP[0] (a plain space) is reserved for "nothing projected here"
+        // (see `luminance_to_char`'s doc comment) — a real, projected point
+        // that happens to be pure black must still render as *something*,
+        // or it's visually indistinguishable from an empty cell (the exact
+        // failure mode that made the real autzen-trim.las fixture's render
+        // look completely blank before the actual root cause — an LAS RGB
+        // bit-depth decoding bug in spex-io producing all-black points —
+        // was fixed).
+        assert_ne!(luminance_to_char([0, 0, 0]), RAMP[0]);
+        assert_eq!(luminance_to_char([0, 0, 0]), RAMP[1]);
         assert_eq!(luminance_to_char([255, 255, 255]), RAMP[RAMP.len() - 1]);
     }
 
@@ -602,6 +623,70 @@ mod tests {
         let lines: Vec<&str> = text.lines().collect();
         assert!(lines.len() <= 5, "expected a tight crop around one point, got {} lines:\n{text}", lines.len());
         assert!(lines.iter().any(|l| !l.trim().is_empty()), "cropped output should still contain the point");
+    }
+
+    #[test]
+    fn default_camera_keeps_a_real_extremely_flat_wide_bounding_box_fully_in_view() {
+        // The real bounding box (post-offset) of the real committed
+        // scripts/point-cloud-data/autzen-trim.las fixture — real airborne
+        // LiDAR over Autzen Stadium — an aspect ratio around 19:1 between
+        // its horizontal footprint and its vertical (elevation) extent.
+        // Issue #34 originally suspected `orbit_camera`/`default_camera`'s
+        // isotropic-diagonal radius/height formula would push points
+        // outside the fixed-FOV clip range (`sx`/`sy` outside `-1.0..=1.0`
+        // in `project`) for a shape this skewed. Tracing real `(sx, sy)`
+        // values for every one of this fixture's 6,002 real points found
+        // every single one already inside the camera's field of view — the
+        // camera framing was never actually broken; the real bug (fixed in
+        // spex-io's `las.rs`) was an LAS RGB bit-depth decode producing
+        // pure-black color for every point, which a space-for-black glyph
+        // then rendered as indistinguishable from "nothing here". This
+        // test locks in the camera math's real (if previously unverified)
+        // correctness as a regression guard against a future change to the
+        // radius/height formula reintroducing real FOV clipping.
+        let bounds = Aabb { min: [0.0, 0.0, 0.0], max: [3407.46, 180.9, 4622.9] };
+        let camera = default_camera(&bounds);
+        for i in 0..8u8 {
+            let corner = [
+                if i & 1 == 0 { bounds.min[0] } else { bounds.max[0] },
+                if i & 2 == 0 { bounds.min[1] } else { bounds.max[1] },
+                if i & 4 == 0 { bounds.min[2] } else { bounds.max[2] },
+            ];
+            let rel = sub(corner, camera.position);
+            let cz = dot(rel, camera.forward);
+            assert!(cz > 1e-6, "corner {corner:?} landed behind the camera (cz={cz})");
+            let sx = dot(rel, camera.right) / (cz * camera.tan_half_fov);
+            let sy = dot(rel, camera.up) / (cz * camera.tan_half_fov);
+            assert!((-1.0..=1.0).contains(&sx), "corner {corner:?} sx={sx} outside the FOV");
+            assert!((-1.0..=1.0).contains(&sy), "corner {corner:?} sy={sy} outside the FOV");
+        }
+    }
+
+    #[test]
+    fn default_camera_keeps_a_synthetic_hundred_to_one_flat_box_fully_in_view() {
+        // A more extreme aspect ratio than any real fixture currently
+        // committed (100:1 between the horizontal footprint and the
+        // vertical extent), to confirm the camera framing's correctness
+        // isn't a coincidence specific to autzen-trim.las's real ~19:1
+        // ratio — it holds because `orbit_camera`'s radius and height are
+        // both derived from the same whole-box diagonal, which scales with
+        // the largest axis regardless of how thin the others are.
+        let bounds = Aabb { min: [-5000.0, -50.0, -5000.0], max: [5000.0, 50.0, 5000.0] };
+        let camera = default_camera(&bounds);
+        for i in 0..8u8 {
+            let corner = [
+                if i & 1 == 0 { bounds.min[0] } else { bounds.max[0] },
+                if i & 2 == 0 { bounds.min[1] } else { bounds.max[1] },
+                if i & 4 == 0 { bounds.min[2] } else { bounds.max[2] },
+            ];
+            let rel = sub(corner, camera.position);
+            let cz = dot(rel, camera.forward);
+            assert!(cz > 1e-6, "corner {corner:?} landed behind the camera (cz={cz})");
+            let sx = dot(rel, camera.right) / (cz * camera.tan_half_fov);
+            let sy = dot(rel, camera.up) / (cz * camera.tan_half_fov);
+            assert!((-1.0..=1.0).contains(&sx), "corner {corner:?} sx={sx} outside the FOV");
+            assert!((-1.0..=1.0).contains(&sy), "corner {corner:?} sy={sy} outside the FOV");
+        }
     }
 
     #[test]
