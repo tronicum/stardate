@@ -38,6 +38,11 @@
           "type": ["string", "null"],
           "description": "id of the parent node, or null for a root. Multiple roots form a forest. This key must be present (possibly null) even though it may hold no value."
         },
+        "extraParents": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Real *additional* parent ids for a node genuinely shared by more than one branch (e.g. a package that's a transitive dependency of two formulas). `parent` above is still the single edge driving this node's one real 3D position -- Graph/layout::place remain tree-only for position; this records the rest of the real structure alongside it, without a second node. May be entirely absent (defaults to empty)."
+        },
         "metric": {
           "type": ["number", "null"],
           "description": "Generic numeric weight driving color/size in the layout; unit described by the graph's metric_label. May be entirely absent (defaults to null)."

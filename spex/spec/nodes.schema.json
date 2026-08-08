@@ -12,6 +12,11 @@
       "id": { "type": "string" },
       "label": { "type": "string" },
       "parent": { "type": ["string", "null"] },
+      "extraParents": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Real additional parent ids for a node genuinely shared by more than one branch, carried through from the source GraphNode. May be entirely absent (defaults to empty)."
+      },
       "center": {
         "type": "array",
         "items": { "type": "number" },

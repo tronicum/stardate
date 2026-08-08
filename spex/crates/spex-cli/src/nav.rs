@@ -463,6 +463,7 @@ mod tests {
                 parent: None,
                 metric: None,
                 metadata: Map::new(),
+                ..Default::default()
             }],
         };
         // No real tty in a test process, so `format_tree()`'s own color

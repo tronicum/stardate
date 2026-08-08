@@ -67,6 +67,11 @@ export interface NodeLabel {
   id: string;
   label: string;
   parent: string | null;
+  /** Real *additional* parent ids for a node genuinely shared by more than
+   * one branch (e.g. a package that's a transitive dependency of two
+   * formulas) — `parent` above is still the one edge that drove this node's
+   * single real 3D position. Absent/empty for the common case. */
+  extraParents?: string[];
   center: [number, number, number];
   metric: number | null;
   metadata: Record<string, unknown>;

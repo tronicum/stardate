@@ -86,7 +86,14 @@ pub fn merge_for_viz(old: &Graph, new: &Graph) -> Graph {
                 metadata.insert("diff_status".to_string(), Value::from("unchanged"));
             }
         }
-        nodes.push(GraphNode { id: n.id.clone(), label: n.label.clone(), parent: n.parent.clone(), metric: n.metric, metadata });
+        nodes.push(GraphNode {
+            id: n.id.clone(),
+            label: n.label.clone(),
+            parent: n.parent.clone(),
+            extra_parents: n.extra_parents.clone(),
+            metric: n.metric,
+            metadata,
+        });
     }
     for n in &old.nodes {
         if new_by_id.contains_key(n.id.as_str()) {
@@ -94,7 +101,14 @@ pub fn merge_for_viz(old: &Graph, new: &Graph) -> Graph {
         }
         let mut metadata = n.metadata.clone();
         metadata.insert("diff_status".to_string(), Value::from("removed"));
-        nodes.push(GraphNode { id: n.id.clone(), label: n.label.clone(), parent: n.parent.clone(), metric: n.metric, metadata });
+        nodes.push(GraphNode {
+            id: n.id.clone(),
+            label: n.label.clone(),
+            parent: n.parent.clone(),
+            extra_parents: n.extra_parents.clone(),
+            metric: n.metric,
+            metadata,
+        });
     }
 
     Graph {
@@ -115,7 +129,7 @@ mod tests {
     use spex_graph::GraphNode;
 
     fn node(id: &str, label: &str, metric: Option<f64>) -> GraphNode {
-        GraphNode { id: id.to_string(), label: label.to_string(), parent: None, metric, metadata: Map::new() }
+        GraphNode { id: id.to_string(), label: label.to_string(), parent: None, metric, metadata: Map::new(), ..Default::default() }
     }
 
     #[test]

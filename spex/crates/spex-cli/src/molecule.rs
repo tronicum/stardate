@@ -196,6 +196,7 @@ pub fn parse_smiles(smiles: &str) -> Result<Graph> {
                 parent: parent_of[idx].map(|(p, _)| format!("a{p}")),
                 metric: Some(atomic_number(&atom.symbol) as f64),
                 metadata,
+                ..Default::default()
             }
         })
         .collect();

@@ -167,6 +167,7 @@ mod tests {
             parent: parent.map(str::to_string),
             metric: Some(metric),
             metadata: Default::default(),
+            ..Default::default()
         }
     }
 

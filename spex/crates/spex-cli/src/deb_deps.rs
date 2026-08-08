@@ -22,6 +22,7 @@ pub fn run(package: &str) -> Result<Graph> {
         parent: None,
         metric: root.installed_size_kb,
         metadata,
+        ..Default::default()
     });
 
     for dep in &root.depends {
@@ -35,6 +36,7 @@ pub fn run(package: &str) -> Result<Graph> {
             parent: Some(package.to_string()),
             metric: info.installed_size_kb,
             metadata: Map::new(),
+            ..Default::default()
         });
     }
 
