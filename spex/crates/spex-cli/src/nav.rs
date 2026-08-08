@@ -19,10 +19,27 @@ use std::hash::{Hash, Hasher};
 use std::io;
 use std::path::Path;
 use std::process::{Command, Stdio};
+use std::time::Duration;
+
+/// Mirrors `spex ascii --animate`'s own defaults (`main.rs`'s `Ascii` clap
+/// command) so the live preview looks the same as running that command
+/// directly against the same tileset.
+const ANIMATION_WIDTH: usize = 100;
+const ANIMATION_FRAME_COUNT: usize = 24;
+/// Redraw cadence for the live preview loop — matches `spex ascii --animate`'s
+/// default `--fps 10`, and doubles as the `event::poll` timeout that lets
+/// `run_app` redraw on a timer instead of only on a keypress.
+const ANIMATION_FRAME_INTERVAL: Duration = Duration::from_millis(100);
 
 enum Mode {
     List,
     Detail { text: String, scroll: u16 },
+    /// A live turntable-orbit ASCII animation (same technique as `spex ascii
+    /// --animate`, see `build_animation_frames`), redrawn on a timer inside
+    /// the detail pane. Keeps the underlying static view's text/scroll so
+    /// toggling animation off returns to exactly where the user left it,
+    /// rather than recomputing `format_tree()`'s output a second time.
+    Animate { frames: Vec<String>, frame: usize, detail_text: String, detail_scroll: u16 },
 }
 
 struct App {
@@ -121,14 +138,50 @@ fn run_app(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, mut app: App) 
     loop {
         terminal.draw(|f| render(f, &app))?;
 
+        // Every other mode is fine blocking on event::read() like before —
+        // Mode::Animate is the one case that needs to redraw with no
+        // keypress at all. event::poll's bounded timeout doubles as the
+        // animation's frame clock: no event within one frame interval means
+        // "advance and redraw", not "nothing happened".
+        if let Mode::Animate { frames, frame, .. } = &mut app.mode {
+            if !event::poll(ANIMATION_FRAME_INTERVAL)? {
+                *frame = (*frame + 1) % frames.len();
+                continue;
+            }
+        }
+
         let Event::Key(key) = event::read()? else { continue };
         if key.kind != KeyEventKind::Press {
             continue;
         }
 
-        if matches!(app.mode, Mode::Detail { .. }) {
+        if matches!(app.mode, Mode::Animate { .. }) {
+            match key.code {
+                KeyCode::Esc | KeyCode::Char('a') | KeyCode::Char('q') => {
+                    if let Mode::Animate { detail_text, detail_scroll, .. } = &app.mode {
+                        let (text, scroll) = (detail_text.clone(), *detail_scroll);
+                        app.mode = Mode::Detail { text, scroll };
+                    }
+                }
+                _ => {}
+            }
+        } else if matches!(app.mode, Mode::Detail { .. }) {
             match key.code {
                 KeyCode::Esc | KeyCode::Char('q') => app.mode = Mode::List,
+                KeyCode::Char('a') => {
+                    if let Mode::Detail { text, scroll } = &app.mode {
+                        let (text, scroll) = (text.clone(), *scroll);
+                        if let Some(demo) = app.selected_demo() {
+                            match build_animation_frames(demo) {
+                                Ok(frames) => {
+                                    app.status = None;
+                                    app.mode = Mode::Animate { frames, frame: 0, detail_text: text, detail_scroll: scroll };
+                                }
+                                Err(e) => app.status = Some(e),
+                            }
+                        }
+                    }
+                }
                 KeyCode::Up | KeyCode::Char('k') => {
                     if let Mode::Detail { scroll, .. } = &mut app.mode {
                         *scroll = scroll.saturating_sub(1);
@@ -244,6 +297,25 @@ fn open_web_view(demo: &DemoEntry) -> String {
     }
 }
 
+/// Loads `demo`'s real tileset points and projects them into a turntable
+/// orbit of ANSI-colored frames — the exact same `ascii::render_frames`
+/// `spex ascii --animate` uses to build its own animation, just consumed
+/// live inside the TUI instead of printed to stdout. Returns a status
+/// message on failure instead of an error type, matching `open_web_view`'s
+/// convention for surfacing a problem in the footer rather than crashing the
+/// navigator.
+fn build_animation_frames(demo: &DemoEntry) -> Result<Vec<String>, String> {
+    if !demo.web_ready {
+        return Err(format!("{} has no tileset yet — nothing to animate", demo.name));
+    }
+    let points = spex_tiler::read_points(&demo.tileset_dir).map_err(|e| format!("failed to read {}: {e}", demo.tileset_dir.display()))?;
+    let frames = crate::ascii::render_frames(&points, ANIMATION_WIDTH, ANIMATION_FRAME_COUNT);
+    if frames.is_empty() {
+        return Err(format!("{} has no visible points to animate", demo.name));
+    }
+    Ok(frames)
+}
+
 fn render(f: &mut Frame, app: &App) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -253,6 +325,7 @@ fn render(f: &mut Frame, app: &App) {
     match &app.mode {
         Mode::List => render_list(f, chunks[0], app),
         Mode::Detail { text, scroll } => render_detail(f, chunks[0], app, text, *scroll),
+        Mode::Animate { frames, frame, .. } => render_animate(f, chunks[0], app, &frames[*frame]),
     }
     render_footer(f, chunks[1], app);
 }
@@ -302,13 +375,23 @@ fn render_detail(f: &mut Frame, area: Rect, app: &App, text: &str, scroll: u16) 
     f.render_widget(paragraph, area);
 }
 
+fn render_animate(f: &mut Frame, area: Rect, app: &App, frame_text: &str) {
+    let name = app.selected_demo().map(|d| d.name.as_str()).unwrap_or("");
+    // Same ANSI-to-ratatui-styling path as render_detail — ascii::render_frames
+    // produces real ANSI truecolor codes just like format_tree() does.
+    let content = frame_text.into_text().unwrap_or_else(|_| ratatui::text::Text::raw(frame_text));
+    let paragraph = Paragraph::new(content).block(Block::default().borders(Borders::ALL).title(format!(" {name} — turntable preview ")));
+    f.render_widget(paragraph, area);
+}
+
 fn render_footer(f: &mut Frame, area: Rect, app: &App) {
     let text = if app.filtering {
         format!("/{}\u{2588}   (enter/esc: done filtering)", app.filter)
     } else {
         let help = match app.mode {
             Mode::List => "\u{2191}/k \u{2193}/j: move   enter/v: view tree   w: open web view   /: filter   q: quit",
-            Mode::Detail { .. } => "\u{2191}/k \u{2193}/j: scroll   esc/q: back",
+            Mode::Detail { .. } => "\u{2191}/k \u{2193}/j: scroll   a: animate   esc/q: back",
+            Mode::Animate { .. } => "a/esc: stop animation",
         };
         match &app.status {
             Some(s) => format!("{help}   |   {s}"),
@@ -479,5 +562,87 @@ mod tests {
         let text = buffer_text(&terminal);
         assert!(text.contains("/dec"), "{text}");
         assert!(text.contains("done filtering"), "{text}");
+    }
+
+    #[test]
+    fn animate_view_shows_only_the_current_frame_and_demo_name() {
+        let mut app = App::new(vec![demo("my-demo", "a title", 1, true)]);
+        app.mode = Mode::Animate {
+            frames: vec!["FRAME-ONE".to_string(), "FRAME-TWO".to_string()],
+            frame: 1,
+            detail_text: "tree text".to_string(),
+            detail_scroll: 0,
+        };
+        let mut terminal = Terminal::new(TestBackend::new(90, 10)).unwrap();
+        terminal.draw(|f| render(f, &app)).unwrap();
+
+        let rendered = buffer_text(&terminal);
+        assert!(rendered.contains("my-demo"), "{rendered}");
+        assert!(rendered.contains("FRAME-TWO"), "{rendered}");
+        assert!(!rendered.contains("FRAME-ONE"), "{rendered}"); // only the current frame index is drawn
+        assert!(rendered.contains("stop animation"), "{rendered}"); // footer help
+    }
+
+    #[test]
+    fn detail_view_footer_advertises_the_animate_key() {
+        let mut app = App::new(vec![demo("my-demo", "a title", 1, true)]);
+        app.mode = Mode::Detail { text: "tree text".to_string(), scroll: 0 };
+        let mut terminal = Terminal::new(TestBackend::new(90, 10)).unwrap();
+        terminal.draw(|f| render(f, &app)).unwrap();
+
+        let rendered = buffer_text(&terminal);
+        assert!(rendered.contains("a: animate"), "{rendered}");
+    }
+
+    #[test]
+    fn build_animation_frames_reports_a_status_message_when_not_web_ready() {
+        let d = demo("fresh-capture", "just captured", 3, false);
+        let err = build_animation_frames(&d).unwrap_err();
+        assert!(err.contains("no tileset yet"), "{err}");
+    }
+
+    #[test]
+    fn build_animation_frames_produces_a_full_orbit_of_real_frames() {
+        // Same code path the 'a' keybinding drives: a real tileset on disk,
+        // read back through spex_tiler::read_points and projected through
+        // ascii::render_frames, exactly like `spex ascii --animate` does.
+        let dir = tempfile::tempdir().unwrap();
+        let tileset_dir = dir.path().join("tileset");
+        let points = vec![
+            spex_core::Point { position: [2.0, 0.0, 0.0], color: [200, 50, 50] },
+            spex_core::Point { position: [-2.0, 1.0, 0.5], color: [50, 200, 50] },
+        ];
+        spex_tiler::build(points, &tileset_dir, &spex_tiler::TilerConfig::default()).unwrap();
+
+        let d = DemoEntry {
+            name: "real-tileset".to_string(),
+            title: None,
+            kind: DemoKind::PointCloud,
+            graph_path: None,
+            tileset_dir,
+            node_count: 2,
+            web_ready: true,
+        };
+
+        let frames = build_animation_frames(&d).unwrap();
+        assert_eq!(frames.len(), ANIMATION_FRAME_COUNT);
+        assert!(frames.iter().all(|f| !f.is_empty()), "every frame should render real content");
+        // The camera really orbits between frames, so they shouldn't all be
+        // byte-identical (mirrors ascii.rs's own render_frames_* tests).
+        assert!(frames.windows(2).any(|w| w[0] != w[1]), "frames should differ as the camera orbits");
+    }
+
+    #[test]
+    fn build_animation_frames_errors_when_tileset_dir_is_missing() {
+        let d = DemoEntry {
+            name: "phantom".to_string(),
+            title: None,
+            kind: DemoKind::PointCloud,
+            graph_path: None,
+            tileset_dir: Path::new("/tmp/definitely-does-not-exist-spex-nav-test").to_path_buf(),
+            node_count: 0,
+            web_ready: true,
+        };
+        assert!(build_animation_frames(&d).is_err());
     }
 }
