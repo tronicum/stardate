@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tronicum/stardate/spex/spec/fugue.schema.json",
+  "title": "FugueSpec",
+  "description": "The audio PLAN, carried in show.json's `audio` field — not the score. Rev 4 of docs/fugen/phase3-audio.md deleted the runtime `fugue.json`: M68 emits a standard MIDI file, the browser loads that file, and a person opens the same file in a DAW, so review and runtime cannot disagree. What is described here is the input to that generator: the mode, the tempo, the two authored lines, and the bar-by-bar plan of where entries and episodes fall. Mirrored in Rust by crates/spex-fugue/src/model.rs.",
+  "type": "object",
+  "additionalProperties": false,
+  "patternProperties": {
+    "^_": {
+      "type": "string",
+      "description": "JSON has no comments and this document is meant to be read by a musician. A key beginning with an underscore is prose about the key beside it, ignored by every reader."
+    }
+  },
+  "required": ["version", "bpm", "meter", "mode", "voices", "subject", "countersubject", "plan", "pulse"],
+  "properties": {
+    "version": { "const": 1 },
+    "bpm": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Beats per minute of the canonical cut. A longer cut does NOT slow the tempo — it adds episodes and entries. The music is the same music, which is the same argument resolve.rs makes about the film."
+    },
+    "meter": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 1 },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tonic", "name"],
+      "properties": {
+        "tonic": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 127,
+          "description": "A full MIDI note number, not a pitch class — D4 is 62. A pitch class would need a second octave reference from somewhere else, and somewhere else is where octave errors live."
+        },
+        "name": {
+          "enum": ["ionian", "dorian", "phrygian", "lydian", "mixolydian", "aeolian", "locrian"]
+        },
+        "tonicLetter": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6,
+          "description": "Which letter the tonic is called, 0 = C .. 6 = B. Optional, and only needed for a black-key tonic: E-flat major and D-sharp major are the same pitches and different keys, and a pitch class cannot say which one is meant. Absent means the flat spelling, which is unambiguous for every white-key tonic including this piece's D."
+        }
+      }
+    },
+    "voices": { "type": "integer", "minimum": 2, "maximum": 8 },
+    "subject": {
+      "$ref": "#/$defs/line",
+      "description": "Authored, not generated — the one musical decision the piece does not delegate to an algorithm."
+    },
+    "countersubject": {
+      "$ref": "#/$defs/line",
+      "description": "REQUIRED as of rev 4, and required to be invertible counterpoint at the octave: a fugue exchanges its voices, and a countersubject that only works above the subject collapses the moment the parts swap. crates/spex-fugue/src/theory.rs::invertibility_faults is the check."
+    },
+    "plan": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/section" },
+      "description": "Where entries, episodes and cadences fall, in bars. The generator fills in the notes and may NOT move a section off its bar: if a section cannot be realised within the contrapuntal rules it relaxes a rule and records the relaxation. The bars belong to the film."
+    },
+    "pulse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enterAtSec", "bpmMultiplier", "finalAccentAtSec"],
+      "properties": {
+        "enterAtSec": { "type": "number", "minimum": 0 },
+        "bpmMultiplier": { "type": "number", "exclusiveMinimum": 0 },
+        "finalAccentAtSec": { "type": "number", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "note": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["beats"],
+      "properties": {
+        "degree": {
+          "type": "integer",
+          "description": "Zero-based scale step within the mode. Not a pitch: the whole point of a fugue is that one shape appears at different pitches, and every operation on it — transposition, inversion, the tonal answer — is diatonic."
+        },
+        "octave": { "type": "integer", "description": "Whole octaves from the tonic reference. May be negative." },
+        "beats": { "type": "number", "exclusiveMinimum": 0 },
+        "rest": {
+          "type": "boolean",
+          "description": "A silence. Needed because a countersubject cannot cover the subject's head — the head is precisely the part that is not the same in the answer."
+        }
+      }
+    },
+    "line": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/note" }
+    },
+    "section": {
+      "type": "object",
+      "required": ["kind"],
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "required": ["kind", "entries"],
+          "properties": {
+            "kind": { "const": "exposition" },
+            "entries": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["voice", "transposition", "atBar"],
+                "properties": {
+                  "voice": { "type": "integer", "minimum": 0 },
+                  "transposition": { "enum": ["tonic", "dominant"] },
+                  "atBar": { "type": "number", "minimum": 0 }
+                }
+              }
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind", "bars", "atBar", "sequenceInterval", "motifFrom", "targetDegree"],
+          "properties": {
+            "kind": { "const": "episode" },
+            "bars": { "type": "number", "exclusiveMinimum": 0 },
+            "atBar": { "type": "number", "minimum": 0 },
+            "sequenceInterval": { "type": "integer" },
+            "motifFrom": { "enum": ["subjectHead", "countersubjectTail"] },
+            "targetDegree": {
+              "type": "integer",
+              "description": "Where the episode LANDS: the key of the entry that follows it. Rev 1 had no such field, so an episode could modulate anywhere or nowhere. An episode that invents new material is an interlude, and that is the single easiest way for a generated fugue to stop sounding like one."
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind", "voice", "degree", "atBar"],
+          "properties": {
+            "kind": { "const": "entry" },
+            "voice": { "type": "integer", "minimum": 0 },
+            "degree": { "type": "integer" },
+            "atBar": { "type": "number", "minimum": 0 },
+            "inversion": { "type": "boolean" },
+            "augmentation": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind", "bars", "atBar", "overlapBeats", "voices"],
+          "properties": {
+            "kind": { "const": "stretto" },
+            "bars": { "type": "number", "exclusiveMinimum": 0 },
+            "atBar": { "type": "number", "minimum": 0 },
+            "overlapBeats": { "type": "number", "exclusiveMinimum": 0 },
+            "voices": { "type": "array", "minItems": 2, "items": { "type": "integer", "minimum": 0 } }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind", "bars", "atBar", "voice", "degree"],
+          "properties": {
+            "kind": { "const": "pedal" },
+            "bars": { "type": "number", "exclusiveMinimum": 0 },
+            "atBar": { "type": "number", "minimum": 0 },
+            "voice": { "type": "integer", "minimum": 0 },
+            "degree": { "type": "integer" }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "required": ["kind", "bars", "atBar", "type"],
+          "properties": {
+            "kind": { "const": "cadence" },
+            "bars": { "type": "number", "exclusiveMinimum": 0 },
+            "atBar": { "type": "number", "minimum": 0 },
+            "type": { "enum": ["authentic", "plagal", "phrygian"] }
+          }
+        }
+      ]
+    }
+  }
+}

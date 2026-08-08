@@ -18,6 +18,65 @@
     "grundOben": [0.004025, 0.006049, 0.009721],
     "grundUnten": [0.001518, 0.002125, 0.003035]
   },
+  "audio": {
+    "version": 1,
+    "bpm": 84,
+    "meter": [4, 4],
+    "mode": { "tonic": 62, "name": "dorian" },
+    "voices": 4,
+    "_subject": "A3 D4 G4 F4 E4 B4 A4 D4 — two bars, D Dorian. Opens on the dominant so the answer must be tonal; carries 1:4:9 as tonic, opening fourth, and a compass of a ninth; holds the Dorian sixth on the downbeat of bar 2.",
+    "subject": [
+      { "degree": 4, "octave": -1, "beats": 1 },
+      { "degree": 0, "octave": 0, "beats": 1 },
+      { "degree": 3, "octave": 0, "beats": 0.5 },
+      { "degree": 2, "octave": 0, "beats": 0.5 },
+      { "degree": 1, "octave": 0, "beats": 1 },
+      { "degree": 5, "octave": 0, "beats": 2 },
+      { "degree": 4, "octave": 0, "beats": 1 },
+      { "degree": 0, "octave": 0, "beats": 1 }
+    ],
+    "_countersubject": "(two beats rest) E4 C4 D4 G4 F4 B3. The rests are structural: a countersubject cannot cover the subject head, because the head is the one part that differs in the answer. Invertible at the octave against both — checked by spex-fugue, not asserted.",
+    "countersubject": [
+      { "beats": 1, "rest": true },
+      { "beats": 1, "rest": true },
+      { "degree": 1, "octave": 0, "beats": 1 },
+      { "degree": 6, "octave": -1, "beats": 1 },
+      { "degree": 0, "octave": 0, "beats": 1 },
+      { "degree": 3, "octave": 0, "beats": 1 },
+      { "degree": 2, "octave": 0, "beats": 1 },
+      { "degree": 5, "octave": -1, "beats": 1 }
+    ],
+    "plan": [
+      { "kind": "exposition", "entries": [
+        { "voice": 1, "transposition": "tonic",    "atBar": 5 },
+        { "voice": 0, "transposition": "dominant", "atBar": 7 },
+        { "voice": 2, "transposition": "tonic",    "atBar": 11 },
+        { "voice": 3, "transposition": "dominant", "atBar": 14 }
+      ] },
+      { "kind": "episode", "atBar": 9,  "bars": 2, "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 0 },
+      { "kind": "episode", "atBar": 13, "bars": 1, "sequenceInterval": -1, "motifFrom": "countersubjectTail", "targetDegree": 4 },
+      { "kind": "entry", "voice": 2, "degree": 3, "atBar": 17 },
+      { "kind": "episode", "atBar": 19, "bars": 2, "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 5 },
+      { "kind": "entry", "voice": 0, "degree": 5, "atBar": 21 },
+      { "kind": "episode", "atBar": 23, "bars": 2, "sequenceInterval": 1,  "motifFrom": "countersubjectTail", "targetDegree": 1 },
+      { "kind": "entry", "voice": 3, "degree": 1, "atBar": 25 },
+      { "kind": "episode", "atBar": 27, "bars": 3, "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 0 },
+      { "kind": "cadence", "atBar": 30, "bars": 1, "type": "authentic" },
+      { "kind": "episode", "atBar": 31, "bars": 3, "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 0 },
+      { "kind": "cadence", "atBar": 34, "bars": 3, "type": "authentic" },
+      { "kind": "entry", "voice": 1, "degree": 0, "atBar": 37, "inversion": true },
+      { "kind": "episode", "atBar": 39, "bars": 4, "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 3 },
+      { "kind": "entry", "voice": 3, "degree": 3, "atBar": 43, "augmentation": 2 },
+      { "kind": "episode", "atBar": 47, "bars": 5, "sequenceInterval": 1,  "motifFrom": "countersubjectTail", "targetDegree": 0 },
+      { "kind": "stretto", "atBar": 53, "bars": 4, "overlapBeats": 4, "voices": [3, 2, 1, 0] },
+      { "kind": "episode", "atBar": 57, "bars": 6,  "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 0 },
+      { "kind": "episode", "atBar": 63, "bars": 13, "sequenceInterval": -1, "motifFrom": "countersubjectTail", "targetDegree": 0 },
+      { "kind": "entry", "voice": 3, "degree": 0, "atBar": 76, "augmentation": 0.25 },
+      { "kind": "pedal", "atBar": 80, "bars": 3.5, "voice": 3, "degree": 0 },
+      { "kind": "cadence", "atBar": 83.5, "bars": 0.5, "type": "authentic" }
+    ],
+    "pulse": { "enterAtSec": 180, "bpmMultiplier": 2, "finalAccentAtSec": 238.571 }
+  },
   "scenes": [
     {
       "id": "brick",

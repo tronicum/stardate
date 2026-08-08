@@ -179,6 +179,94 @@ tonal/real-answer distinction and test it).
    in both scale-degree notation and letter names, so it is human-checkable.
 
 **Verification ladder.** 1, 2, 3. (6 runs at the end of the phase.)
+
+**Status: ✅ done.** `crates/spex-fugue/src/{theory.rs, model.rs}`,
+`spec/fugue.schema.json`, the `audio` block in
+`shows/die-geschichtliche-matrix.show.json`, and `audio: Option<FugueSpec>` on
+`spex_show::Show`. **42 tests** — 27 theory, 11 on the authored music, 4 on the
+document.
+
+**One correction to the milestone's own title.** It is called
+"`fugue.json`: the score format", and rev 4 deleted that format two sections
+above: the score is a standard MIDI file emitted by M68, and `fugue.schema.json`
+describes the **plan**, which is the input. So AC1 reads "the schema validates
+the real `audio` block", and that is what is tested. Nothing here emits a score.
+
+**AC1 passes**, and against the real document rather than a fixture: the Act I
+`audio` block validates, and `show.schema.json` now `$ref`s the fugue schema —
+which needed a `Retrieve` implementation in the test, because a validator with
+no retriever tries to fetch a sibling file over HTTP. Loosening `audio` to
+"any object" would have dodged that and validated nothing where the music is.
+
+**AC2 passes with 27 assertions where 20 were asked for**, and three of them
+were wrong the first time — which is the point of writing them as checkable
+claims rather than as confidence. Dorian's semitones, every mode's fifth,
+`degree_semitones(7)` an octave above `degree_semitones(0)` in all seven modes,
+diatonic transposition changing interval *quality* while the step count stays
+put, inversion being its own inverse, and the tonal/real answer distinction
+tested against the classical example rather than against the implementation.
+
+**AC3 passes: the subject is in the spec file, in `TODOs.md`, and in the
+document**, in scale degrees and in letter names, and a test asserts the three
+agree. It is:
+
+> **A3 – D4 – G4 – F4 – E4 – B4 – A4 – D4**, two bars, D Dorian.
+> Degrees `4/-1, 0/0, 3/0, 2/0, 1/0, 5/0, 4/0, 0/0`;
+> durations `1, 1, ½, ½, 1, 2, 1, 1`.
+
+Three decisions, each of them asserted rather than described:
+
+- **It opens on the dominant**, so the answer *must* be tonal — the head's A is
+  answered by D, up a fourth, not up a fifth. A subject that never touches the
+  dominant in its head would never exercise the one rule that separates a fugue
+  from a canon.
+- **It carries 1 : 4 : 9.** The monolith's proportions, three times over: it
+  rests on the **tonic**, it opens with a leap of a **fourth**, and its compass
+  is a **ninth**. `the_subject_carries_the_monoliths_proportions` asserts all
+  three, so the subject cannot be edited into disagreeing with the object it is
+  about.
+- **It holds the sixth.** B natural is the one note that separates D Dorian from
+  D minor, and it is the longest note in the subject, on the downbeat of bar 2,
+  at its highest point. A mode nobody hears is a mode that was not chosen.
+
+**The countersubject is: (two beats rest) – E4 – C4 – D4 – G4 – F4 – B3**, and
+the rests are the interesting part.
+
+The first draft covered all eight beats and passed every check against the
+subject. It failed against the **answer** — an unprepared second on beat 1, a
+perfect fifth on beat 3 — and the reason is structural, not a slip:
+
+> **A countersubject cannot cover the subject's head, because the head is
+> precisely the part that is not the same in the answer.**
+
+That is what a tonal answer *is*. Any countersubject written to fit the
+subject's first two notes is guaranteed to fight the answer's. The classical
+solution is the obvious one once seen — the voice that has just finished the
+subject takes a breath — and it needs a rest, which is why `Note` gained one.
+It also thins the texture to a single voice exactly where the second entry
+arrives, which is what makes an entry audible as an entry.
+
+Invertibility is **checked, not claimed**: `theory::invertibility_faults`
+returns the beat of every violation, the countersubject was written against it
+rather than verified after the fact, and there are three tests — against the
+subject, against the answer, and with the two parts actually swapped an octave.
+
+**Two design decisions the spec left open, settled here.**
+
+- **`mode.tonic` is a MIDI note number, not a pitch class.** A pitch class
+  would need a second octave reference from somewhere else, and somewhere else
+  is where octave errors live.
+- **A key needs a letter, and a pitch does not supply one.** E-flat major and
+  D-sharp major are the same keys on a piano and different keys in a score. The
+  first version derived the tonic's letter from its pitch class by nearest
+  distance, which for a black key is a tie broken by array order; it spelled a
+  key that had asked for E-flat as D-sharp, and the test caught it. `Key` now
+  carries an optional `tonicLetter`, and absent means the flat reading — which
+  is unambiguous for every white-key tonic, including this piece's D.
+
+**Not done here, deliberately:** no notes are generated, nothing is emitted,
+nothing makes a sound. M68 realises the plan and writes the SMF; M69 gives the
+browser something that can play it.
 ---
 
 ### M68 — the counterpoint generator

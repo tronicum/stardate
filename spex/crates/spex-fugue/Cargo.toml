@@ -1,11 +1,10 @@
 [package]
-name = "spex-show"
+name = "spex-fugue"
 version.workspace = true
 edition.workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-spex-fugue = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 

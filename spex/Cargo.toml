@@ -9,6 +9,7 @@ members = [
     "crates/spex-ldraw",
     "crates/spex-mesh",
     "crates/spex-show",
+    "crates/spex-fugue",
     "crates/spex-cli",
 ]
 
@@ -25,6 +26,7 @@ spex-graph = { path = "crates/spex-graph" }
 spex-ldraw = { path = "crates/spex-ldraw" }
 spex-mesh = { path = "crates/spex-mesh" }
 spex-show = { path = "crates/spex-show" }
+spex-fugue = { path = "crates/spex-fugue" }
 anyhow = "1"
 thiserror = "1"
 serde = { version = "1", features = ["derive"] }

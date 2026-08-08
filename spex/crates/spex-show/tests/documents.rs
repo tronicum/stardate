@@ -9,6 +9,25 @@
 
 use std::path::{Path, PathBuf};
 
+/// Resolves the one cross-file `$ref` this format has, from disk rather than
+/// from the network. Anything else is an error rather than a silent skip.
+struct SiblingSchemas {
+    fugue: serde_json::Value,
+}
+
+impl jsonschema::Retrieve for SiblingSchemas {
+    fn retrieve(
+        &self,
+        uri: &jsonschema::Uri<String>,
+    ) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> {
+        if uri.as_str().ends_with("fugue.schema.json") {
+            Ok(self.fugue.clone())
+        } else {
+            Err(format!("no local copy of {uri}").into())
+        }
+    }
+}
+
 fn repo_root() -> PathBuf {
     // crates/spex-show -> repo root
     Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -20,8 +39,22 @@ fn schema() -> serde_json::Value {
         .expect("show.schema.json is not valid JSON")
 }
 
+/// `show.schema.json` refers to `fugue.schema.json` by `$ref`, and a validator
+/// with no retriever tries to fetch that over HTTP and fails. Registering the
+/// sibling file as a resource is the honest fix: the two schemas really are one
+/// format described in two files, and a test that dodged the reference by
+/// loosening `audio` to "any object" would be validating nothing where the
+/// music is.
 fn assert_valid(schema: &serde_json::Value, doc: &serde_json::Value, what: &str) {
-    let compiled = jsonschema::validator_for(schema).expect("compiling show.schema.json");
+    let fugue: serde_json::Value = serde_json::from_str(
+        &std::fs::read_to_string(repo_root().join("spec/fugue.schema.json"))
+            .expect("reading fugue.schema.json"),
+    )
+    .expect("fugue.schema.json is not valid JSON");
+    let compiled = jsonschema::options()
+        .with_retriever(SiblingSchemas { fugue })
+        .build(schema)
+        .expect("compiling show.schema.json");
     let errors: Vec<String> = compiled.iter_errors(doc).map(|e| format!("{} at {}", e, e.instance_path())).collect();
     assert!(errors.is_empty(), "{what} does not satisfy show.schema.json:\n  {}", errors.join("\n  "));
 }

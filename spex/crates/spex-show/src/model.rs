@@ -81,6 +81,10 @@ pub struct Show {
     /// for the same reason: three.js reads raw components as linear.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub palette: BTreeMap<String, [f32; 3]>,
+    /// The fugue plan (M67). Optional: a show that is only about pictures is
+    /// still a valid show, and until M68 nothing reads this but the schema.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub audio: Option<spex_fugue::FugueSpec>,
     pub scenes: Vec<SceneRef>,
     pub movements: Vec<Movement>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -555,6 +559,7 @@ mod tests {
 
     fn show_of(shots: Vec<Shot>) -> Show {
         Show {
+            audio: None,
             version: FORMAT_VERSION,
             id: "t".into(),
             title: "t".into(),

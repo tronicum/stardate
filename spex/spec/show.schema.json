@@ -57,6 +57,10 @@
         "items": { "type": "number", "minimum": 0 }
       }
     },
+    "audio": {
+      "$ref": "fugue.schema.json",
+      "description": "The fugue plan (M67). Optional in the schema and present in the real Act I document: a show that is only about pictures is still a valid show, and the point-cloud and graph pipelines share this loader."
+    },
     "scenes": {
       "type": "array",
       "items": { "$ref": "#/$defs/sceneRef" },

@@ -2514,6 +2514,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "spex-fugue"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "jsonschema",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "spex-graph"
 version = "0.1.0"
 dependencies = [
@@ -2580,6 +2590,7 @@ dependencies = [
  "jsonschema",
  "serde",
  "serde_json",
+ "spex-fugue",
 ]
 
 [[package]]

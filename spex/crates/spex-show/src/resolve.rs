@@ -694,6 +694,7 @@ mod tests {
 
     fn show_of(shots: Vec<Shot>) -> Show {
         Show {
+            audio: None,
             version: FORMAT_VERSION,
             id: "t".into(),
             title: "T".into(),
