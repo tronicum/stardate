@@ -309,7 +309,12 @@ fn build_animation_frames(demo: &DemoEntry) -> Result<Vec<String>, String> {
         return Err(format!("{} has no tileset yet — nothing to animate", demo.name));
     }
     let points = spex_tiler::read_points(&demo.tileset_dir).map_err(|e| format!("failed to read {}: {e}", demo.tileset_dir.display()))?;
-    let frames = crate::ascii::render_frames(&points, ANIMATION_WIDTH, ANIMATION_FRAME_COUNT);
+    // `None`: no packet-path overlay in the nav preview (yet) — this just
+    // needs to restore the plain turntable-orbit animation `render_frames`
+    // already supported before issue #9 added the optional 4th parameter;
+    // a real follow-up could pass this demo's own nodes.json path data
+    // through, same as `spex ascii --animate` now can.
+    let frames = crate::ascii::render_frames(&points, ANIMATION_WIDTH, ANIMATION_FRAME_COUNT, None);
     if frames.is_empty() {
         return Err(format!("{} has no visible points to animate", demo.name));
     }
