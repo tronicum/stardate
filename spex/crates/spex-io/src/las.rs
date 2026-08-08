@@ -31,11 +31,35 @@ pub fn read(path: &Path) -> Result<Vec<Point>> {
             }
         };
         points.push(Point {
-            position: [p.x, p.y, p.z],
+            position: las_to_spex(p.x, p.y, p.z),
             color,
         });
     }
     Ok(points)
+}
+
+/// Real ASPRS LAS/LAZ data (a projected/geographic CRS, e.g. UTM or a state
+/// plane system) is conventionally X=easting, Y=northing, Z=elevation — a
+/// right-handed, **Z-up** coordinate system. spex's renderers (the WebGL
+/// viewer and `spex ascii`) both assume **Y-up** world space (three.js/
+/// OrbitControls' `(0,1,0)`, see `ascii.rs`'s `default_camera` doc
+/// comment). Passing LAS's raw axes straight through un-remapped puts a
+/// real scan's northing (large, horizontal in reality) on spex's vertical
+/// axis while real elevation (small) ends up on spex's depth axis — a real
+/// geographic scan renders tipped over on its side (found via a real
+/// committed fixture, `scripts/point-cloud-data/autzen-trim.las`, whose
+/// `spex ascii` render was blank before this fix — the camera framing
+/// logic breaks down for that resulting extreme, wrongly-oriented aspect
+/// ratio).
+///
+/// The standard Z-up -> Y-up conversion — `(x, y, z) -> (x, z, -y)`, a real
+/// -90-degree rotation about the X axis — is used here rather than a plain
+/// Y/Z swap specifically because a swap alone is a *reflection* (mirrors
+/// the scene, flips handedness); a rotation preserves it, so real
+/// structures (e.g. text, asymmetric buildings) don't come out
+/// mirror-imaged.
+fn las_to_spex(x: f64, y: f64, z: f64) -> [f64; 3] {
+    [x, z, -y]
 }
 
 #[cfg(test)]
@@ -71,7 +95,8 @@ mod tests {
         std::fs::remove_file(&tmp).ok();
 
         assert_eq!(points.len(), 1);
-        assert_eq!(points[0].position, [1.0, 2.0, 3.0]);
+        // Z-up -> Y-up: (x, y, z) -> (x, z, -y).
+        assert_eq!(points[0].position, [1.0, 3.0, -2.0]);
         assert_eq!(points[0].color, [255, 0, 128]);
     }
 
@@ -91,5 +116,46 @@ mod tests {
 
         assert_eq!(points.len(), 1);
         assert_eq!(points[0].color, [255, 255, 255]);
+    }
+
+    #[test]
+    fn las_to_spex_rotates_z_up_to_y_up_without_mirroring() {
+        // A real -90-degree rotation about X, not a Y/Z swap (which would
+        // be a reflection): a positive-Z (real "up") input must land on
+        // spex's positive-Y (also "up"), and a positive-Y (real "north")
+        // input must land on spex's *negative* Z, not positive — that's
+        // the part a naive swap would get backwards/mirrored.
+        assert_eq!(las_to_spex(1.0, 0.0, 0.0), [1.0, 0.0, 0.0]);
+        assert_eq!(las_to_spex(0.0, 1.0, 0.0), [0.0, 0.0, -1.0]);
+        assert_eq!(las_to_spex(0.0, 0.0, 1.0), [0.0, 1.0, 0.0]);
+    }
+
+    #[test]
+    fn real_committed_geographic_fixture_ends_up_with_elevation_as_the_smallest_extent() {
+        // scripts/point-cloud-data/autzen-trim.las is real airborne LiDAR
+        // (see its own README.md) — real terrain, so its real elevation
+        // range is genuinely tiny next to its real horizontal footprint.
+        // Before the Z-up -> Y-up fix, this fixture's real northing (huge)
+        // landed on spex's Y (vertical) axis instead — this is the exact
+        // real bug (issue #18) this fix resolves, checked against the
+        // real committed file, not a synthetic one.
+        let fixture = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../scripts/point-cloud-data/autzen-trim.las");
+        let points = read(&fixture).expect("reading the real committed autzen-trim.las fixture");
+        assert!(!points.is_empty());
+
+        let mut min = [f64::INFINITY; 3];
+        let mut max = [f64::NEG_INFINITY; 3];
+        for p in &points {
+            for axis in 0..3 {
+                min[axis] = min[axis].min(p.position[axis]);
+                max[axis] = max[axis].max(p.position[axis]);
+            }
+        }
+        let extent: Vec<f64> = (0..3).map(|axis| max[axis] - min[axis]).collect();
+
+        assert!(
+            extent[1] < extent[0] && extent[1] < extent[2],
+            "real elevation (Y after remap) should be the smallest extent: {extent:?}"
+        );
     }
 }
