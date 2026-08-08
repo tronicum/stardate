@@ -23,6 +23,8 @@ isn't just aspirational prose, it's enforced against real output.
 | `nodes.json` | [`nodes.schema.json`](nodes.schema.json) | `graph-layout` only | viewer (hover labels) |
 | `meta.json` | [`meta.schema.json`](meta.schema.json) | `graph-layout` only | viewer (header/legend) |
 | `sequence.json` | [`sequence.schema.json`](sequence.schema.json) | `spex frame-sequence` (`crates/spex-cli/src/frame_sequence.rs`) | viewer (`fetchSequence`, real frame-advance playback) |
+| `wikidata-whs-<date>.json` | [`heritage.schema.json`](heritage.schema.json) (`siteList` shape) | `spex heritage-index` (`crates/spex-heritage`, a real live Wikidata SPARQL fetch — not run routinely, see `docs/FUGEN-ENGINE.md` M73) | `spex heritage-list` |
+| `curation.json` | [`heritage.schema.json`](heritage.schema.json) (`curationFile` shape) | hand-curated (see `docs/FUGEN-ENGINE.md` M73) | `spex heritage-list --buildable` (`spex_heritage::is_buildable`) |
 
 `octree/<node-id>.bin` (the point data itself) is a small binary format, not
 JSON — see the "Tileset format" section of `CLAUDE.md`: `u32` LE point

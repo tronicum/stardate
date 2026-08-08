@@ -2510,6 +2510,7 @@ dependencies = [
  "socket2",
  "spex-core",
  "spex-graph",
+ "spex-heritage",
  "spex-io",
  "spex-ldraw",
  "spex-server",
@@ -2533,6 +2534,17 @@ dependencies = [
  "serde",
  "serde_json",
  "spex-core",
+]
+
+[[package]]
+name = "spex-heritage"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "ureq",
 ]
 
 [[package]]
