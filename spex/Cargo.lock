@@ -2495,6 +2495,7 @@ dependencies = [
  "ratatui",
  "serde",
  "serde_json",
+ "socket2",
  "spex-core",
  "spex-graph",
  "spex-io",

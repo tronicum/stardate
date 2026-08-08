@@ -236,6 +236,14 @@ enum Command {
         /// Output graph JSON path.
         #[arg(short, long)]
         out: PathBuf,
+
+        /// Probe with real ICMP echo requests over a raw socket (closer to
+        /// classic `traceroute`) instead of shelling out to the system
+        /// `traceroute` (UDP-based). Needs elevated privileges to open a
+        /// raw socket — run with `sudo`, or grant this binary CAP_NET_RAW
+        /// once via `sudo setcap cap_net_raw+ep <path-to-spex>`.
+        #[arg(long)]
+        icmp: bool,
     },
 
     /// Lay out a spex-graph JSON file in 3D and build an octree tileset from it
@@ -524,7 +532,7 @@ fn main() -> Result<()> {
             port,
             no_open,
         } => cmd_serve(&tileset_dir, port, !no_open),
-        Command::Trace { host, out } => cmd_trace(&host, &out),
+        Command::Trace { host, out, icmp } => cmd_trace(&host, &out, icmp),
         Command::GraphLayout { graph, out } => cmd_graph_layout(&graph, &out),
         Command::GraphPrint { graph } => cmd_graph_print(&graph),
         Command::GraphDiff { old, new, merge, out } => cmd_graph_diff(&old, &new, merge, out),
@@ -828,9 +836,13 @@ fn cmd_serve(tileset_dir: &Path, port: u16, open_browser: bool) -> Result<()> {
     spex_server::serve_blocking(config)
 }
 
-fn cmd_trace(host: &str, out: &Path) -> Result<()> {
-    println!("running traceroute to {host}...");
-    let graph = trace::run(host)?;
+fn cmd_trace(host: &str, out: &Path, icmp: bool) -> Result<()> {
+    if icmp {
+        println!("running ICMP raw-socket traceroute to {host}...");
+    } else {
+        println!("running traceroute to {host}...");
+    }
+    let graph = trace::run(host, icmp)?;
     println!("captured {} hops", graph.nodes.len() - 1);
     if let Some(parent) = out.parent() {
         if !parent.as_os_str().is_empty() {

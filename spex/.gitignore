@@ -26,3 +26,7 @@ __pycache__/
 # (if ever wanted) would be a separate, explicit git-lfs step instead,
 # see BRICKs.md.
 /.ldraw-cache/
+
+# Ad-hoc local scratch space for manual verification runs (e.g. `spex trace`
+# output while testing) — never committed.
+/.scratch/
