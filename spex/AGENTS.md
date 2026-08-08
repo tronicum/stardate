@@ -45,6 +45,15 @@ See `docs/ARCHITECTURE.md` for the full reasoning and a worked example.
 
 ## The short version of how we work here
 
+- **Scratch/verification files go in `spex/.tmp/` (gitignored), never
+  system-wide `/tmp`.** This repo is routinely worked on by multiple
+  parallel agents/sessions on the same shared machine — system `/tmp` is
+  outside this project's scope and not yours to write into. If you're
+  running as an isolated worktree agent, prefer a worktree-local
+  `spex/.tmp/` over anything shared. Never reach outside the repo (or your
+  own designated scratch dir) to read from another checkout/worktree
+  either — build your own artifacts (e.g. `viewer/dist`) rather than
+  copying someone else's.
 - **Real data only.** Every demo uses something actually captured or
   downloaded — real `ps`/`brew`/`npm`/`sqlite3`/`cargo tree` output, a real
   public dataset, a real API response, a real SMILES string for a real
