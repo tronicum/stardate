@@ -990,4 +990,139 @@ get typographically right.
 3. Every URL parameter above verified individually in the headless session.
 
 **Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
+
+**Status: ✅ done.** `viewer/src/show/{player.ts, hud.ts, params.ts}`, the
+`show`/`show-export` commands in `crates/spex-cli/src/main.rs`, multi-cut
+output and `cuts.json` in `crates/spex-cli/src/show.rs`, `serve_show_blocking`
+and `write_viewer_assets_with_base` in `crates/spex-server/src/lib.rs`, and
+three harnesses: `scripts/viewer-shot/{showrun,showframes,showexport}.mjs`.
+How to run a screening, and what every parameter does:
+[`screening.md`](screening.md). What went wrong on the way:
+[the diary](../diary/2026-08-08-m66-the-first-screening.md). Screenshots:
+[`m66-s01-point.png`](screenshots/m66-s01-point.png),
+[`m66-s02-swarm.png`](screenshots/m66-s02-swarm.png),
+[`m66-s04-assembly.png`](screenshots/m66-s04-assembly.png),
+[`m66-s05-monolith.png`](screenshots/m66-s05-monolith.png),
+[`m66-director.png`](screenshots/m66-director.png).
+
+**AC1 passes, in two halves that cost three orders of magnitude apart.**
+
+*The arithmetic*, asked of the evaluator with no frames at all: the canonical
+cut is **240.000 s**, its six shots sum to 240.000 s, the last ends at
+240.000 s, every boundary is beat-aligned and contiguous, and 121 sample points
+through the cut leave **no instant uncovered** and reach all six shots in
+order.
+
+*The playback*, which nothing but playing can answer: the endless cut —
+48.571 s — ran **once through in 49.1 s of real time**, 104 frames at 2.1 fps
+on this container's software rasteriser, reaching
+`A1-S01 → S02 → S03 → S04 → S05 → S06 → A1-S01`, firing all four voice entries
+**in order** (`1 alto | 2 sopran | 3 tenor | 4 bass`), and wrapping cleanly.
+**Zero console errors** across every run in this milestone.
+
+**AC2 is passed in the form that can be, and rewritten in the form that
+cannot.** The export plays identically from a domain root and from a deep
+subpath (`/a/b/c/`) — measured, both with zero console errors and both having
+really fetched their bundles (`brick:1, monolith:9`, 18 draw calls). **`file://`
+does not work and cannot**, and the browser says why:
+
+> Access to script at `file:///…/assets/index-*.js` from origin `null` has been
+> blocked by CORS policy.
+
+That is a property of **ES module scripts**, not of this export: it has been
+true of every build of this viewer since M01, and the only way to change it is
+to ship a second, classic-script bundle. So the criterion now reads *"from a
+subpath-hosted static server"* and the `file://` clause is recorded as what it
+is — a thing that needs a separate decision, not a bug. Same rewrite-rather-
+than-fudge as M65's AC2.
+
+**AC3 passes: all eight parameters, one page load each**, plus two controls and
+a deliberately wrong value. Sharing one page between checks would let a
+parameter pass because of what a previous one left behind. `?seed=99` is the
+only one that cannot be read off a field, so it is measured on the thing a seed
+is *for*: the same instance of A1-S04's assembly starts **28.10 mm** away from
+where the document's own seed puts it. `?duration=250` — a cut this directory
+does not contain — plays the default **and says so in the warnings**, which is
+the whole point.
+
+**The clean-loop test, and the criterion it had to rewrite.** "A clean loop"
+was going to be checked by eye until it was written down properly: render the
+frame at t=0, let the clock really wrap, render t=0 again, require the two to
+match. That is a strong test — it catches every shot-scoped track that leaves
+shared state behind — and it cannot be a test for *bit*-equality, because
+`post.ts`'s grade pass dithers and grains from wall-clock time **on purpose**.
+Two renders of identical state differ by ±1 everywhere by design. So the
+criterion is the amplitude: the dither floor is 2, a state leak is tens of
+levels, and **the measured maximum is 2**. Before the fixes below it was
+**76**.
+
+**Six defects, and the way each was found is the interesting part.**
+
+- **The screenplay's dissolve tracks were inverted — all three of them.** The
+  document was authored before the dissolve had a sign; M65 fixed 0 = solid,
+  1 = gone. So A1-S04 dissolved the monolith it was supposed to be assembling,
+  and A1-S06's Stonehenge "rose" by disappearing. Every number passed either
+  way. Only a picture of the wrong object says which way round it goes.
+- **A `Material[]` has no `userData`.** `InstanceGroup.mesh.material` is an
+  *array* — one entry per submesh, because a part can carry a moulded accent
+  colour beside the instance's own — and `DissolveController` was handed the
+  array. It threw on the first frame in which any scene was visible, and on no
+  frame before that: the act opens with no scene on screen at all, so the
+  opening frame rendered perfectly and the crash arrived six seconds later.
+- **A seek fired no generator.** `Timeline.fireCues` deliberately does not
+  replay what a jump skipped — right for an accent, wrong for a declaration.
+  A1-S04's `seed` cue is not an event at the shot's first frame; it is the
+  statement that this shot has an assembly in it. Seeking 0.2 s into that shot
+  moved the cursor past it and the nine parts never flew. The rule now goes by
+  kind: `seed` and `hud` are state and are re-applied; `audio` and `marker` are
+  events and are not.
+- **A seek smeared.** `CameraDirector` already documented that "a seek passes 0
+  so a jump does not smear"; the player never passed it. Jumping from the end
+  of the act to the opening frame produced a camera velocity of three metres in
+  one frame and rendered A1-S01 under a full radial blur. This is the 76 in the
+  loop test.
+- **Pausing stopped the camera following the timeline.** M63 gated the camera
+  on `playing`, so a paused player seeked to t=0 showed the *second* shot's
+  framing while the HUD read `A1-S01, 0.00 s`. Every number agreed and the
+  picture was of a different shot. The rule that works is not "is it playing"
+  but **"is show time moving"** — playback or a seek — with the mouse winning
+  only when time stands still.
+- **`SEEK_THRESHOLD_SEC` was 0.5, and this container renders at 2.1 fps.** Its
+  own comment said half a second is "well past any real frame". It is not: at
+  0.45 s a frame, *every frame looked like a seek*, the cue cursor advanced past
+  every accent without firing it, and a four-voice fugue reported zero voices.
+  Raised to 2.0 — and the deeper point recorded beside it, that a player which
+  seeks calls `resetCueCursor` explicitly and this heuristic only ever needed to
+  catch a backgrounded tab, which jumps by minutes.
+
+**And two things about the picture that only the picture could say.**
+
+- **The opening frame was not black.** The screenplay's first direction is the
+  word *Black*, and A1-S01 rendered a mid-grey slab across half the screen.
+  The albedo was not the cause — `grundUnten` is linear 0.0015 — and neither was
+  `envMapIntensity = 0`, which with `scene.environment` did not switch the
+  contribution off at all. Hiding the ground dropped that region from sRGB 70 to
+  15, and removing the environment with the ground still there did the same:
+  **it was Fresnel**. A1-S01 looks along a plane eight scene-diagonals wide from
+  4.8 mm above it, and a dielectric's F0 of 0.04 goes to nearly 1.0 at grazing
+  incidence, so most of those pixels were a near-total mirror of M56's synthetic
+  environment and the albedo never entered the arithmetic. The ground is now a
+  `ShadowMaterial` — which is what it was always for. Measured after: with the
+  ground and without it, the same pixel, (16,24,36) both ways.
+- **The swarm was black points on a black background.** A1-S02 rendered
+  perfectly and showed nothing: a point is not lit, so it draws at its own
+  colour, and LDraw Black is linear 0.011. The cloud now takes the material's
+  **`EDGE`** value — the number LDConfig already publishes for "how this colour
+  reads as a line rather than a surface", which is exactly a one-pixel point's
+  problem, and the same value M57's outline pass uses. And the point-size floor
+  went from 1 px to 2: at A1-S02's viewing distance the physical size works out
+  to 0.95 px, so 1 261 single pixels clamped to the floor and a two-bar dolly
+  had nothing visible in it.
+
+**Left open, deliberately.** At full spread the swarm reproduces the brick's
+own faces as separated slabs, because M65 pushes each point along its own
+normal and a box's normals point six ways. It reads as an exploded shell rather
+than as the formless cloud A1-S02's direction asks for. Changing it means
+changing M65's verified crossfade geometry, so it is recorded rather than
+patched at the end of a different milestone.
 ---

@@ -66,6 +66,16 @@ export const POINT_RADIUS_MM = 0.08;
 /** Ceiling, in device pixels. A point the camera is almost inside would
  * otherwise become a full-screen quad. */
 export const MAX_POINT_PX = 14;
+/** Floor, in device pixels.
+ *
+ * Two, not one, and M66's A1-S02 is why. The physical size is right and at a
+ * viewing distance of 200 mm it works out to 0.95 px — so every point clamped
+ * to the old floor of 1, and a swarm of 1 261 single pixels at the far end of
+ * a two-bar dolly is a shot in which nothing visibly happens. A point that
+ * exists has to be seen to exist; below about two pixels it is indistinguishable
+ * from sensor noise, and the piece's whole opening gesture is *one point*
+ * becoming *many*. Above this floor the size is physical again. */
+export const MIN_POINT_PX = 2;
 
 const VERTEX_SHADER = /* glsl */ `
 precision highp float;
@@ -78,6 +88,8 @@ uniform float uSpread;      // millimetres along the normal
 uniform float uRadius;      // millimetres
 uniform float uProjScale;   // viewportHeightPx / (2 tan(fov/2)) — the same
                             // projection constant M57 and M59 gate on
+
+out float vSize;            // device pixels, for the round mask below
 
 mat4 brickMatrix(float index) {
   int i = int(index) * ${TEXELS_PER_MATRIX};
@@ -103,7 +115,8 @@ void main() {
   // Real projected size: a sphere of radius uRadius at distance -mv.z
   // subtends 2*r*k/d device pixels. Same arithmetic as the edge gate and the
   // LOD selector, so "how big is this on screen" means one thing everywhere.
-  gl_PointSize = clamp(2.0 * uRadius * uProjScale / max(-mv.z, 0.001), 1.0, ${MAX_POINT_PX}.0);
+  vSize = clamp(2.0 * uRadius * uProjScale / max(-mv.z, 0.001), ${MIN_POINT_PX}.0, ${MAX_POINT_PX}.0);
+  gl_PointSize = vSize;
 }
 `;
 
@@ -113,16 +126,28 @@ precision highp float;
 uniform vec3 uColor;
 uniform float uOpacity;
 
+in float vSize;
+
 layout(location = 0) out vec4 pc_fragColor;
 
 void main() {
   // Round, and soft at the edge. A square point reads as a pixel artefact;
   // this reads as a particle, which is what it is standing in for.
-  vec2 d = gl_PointCoord - vec2(0.5);
-  float r = dot(d, d);
-  if (r > 0.25) discard;
-  float falloff = 1.0 - smoothstep(0.10, 0.25, r);
-  pc_fragColor = vec4(uColor, uOpacity * falloff);
+  //
+  // But only above a few pixels. A two-pixel sprite has no shape to round off,
+  // and gl_PointCoord for a point that small is one or two samples whose exact
+  // values are not something the spec pins down — round it and a driver that
+  // reports the corner rather than the centre discards the whole swarm. Below
+  // the threshold the point is its own antialiasing.
+  // (No backticks in here: this comment lives inside a JS template literal.)
+  float a = uOpacity;
+  if (vSize > 3.0) {
+    vec2 d = gl_PointCoord - vec2(0.5);
+    float r = dot(d, d);
+    if (r > 0.25) discard;
+    a *= 1.0 - smoothstep(0.10, 0.25, r);
+  }
+  pc_fragColor = vec4(uColor, a);
 }
 `;
 
@@ -208,10 +233,24 @@ export function buildPointClouds(
         uRadius: { value: POINT_RADIUS_MM },
         uProjScale: { value: 500 },
         uOpacity: { value: 0 },
-        // The instance's own material colour, so a Terrakotta brick pours
+        // The instance's own **edge** colour, so a Terrakotta brick pours
         // Terrakotta. This is why the buffer is colour-neutral: one cloud,
         // every colour.
-        uColor: { value: new THREE.Color().copy(materials.get(group.material).color) },
+        //
+        // The edge value and not the base colour, and that took a black brick
+        // to notice. A point is not lit — it has no normal that matters at one
+        // pixel and no shading model behind it — so it draws at its own
+        // colour, and LDraw Black is linear 0.011, which against this piece's
+        // background is nothing at all. M66's A1-S02 is two bars of a swarm
+        // that was rendering perfectly and could not be seen.
+        //
+        // `EDGE` is the value LDConfig already publishes for exactly this
+        // question: how a colour should read when it is a line rather than a
+        // surface. Black's is a mid grey. It is a real number from the
+        // library rather than a fudge factor, it is the same one M57's outline
+        // pass uses, and it keeps the cloud recognisably the object's own
+        // colour for every colour that has one.
+        uColor: { value: new THREE.Color().copy(materials.edgeColor(group.material)) },
       },
     });
 

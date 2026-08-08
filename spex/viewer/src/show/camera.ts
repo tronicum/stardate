@@ -80,6 +80,20 @@ export class CameraDirector {
    * shot that allows blur produces none. */
   blur = 0;
 
+  /** Does the timeline own the camera this frame?
+   *
+   * **Not the same as "is the show playing".** M63 gated on `playing` and
+   * M66's first screening found what that costs: pausing and then *seeking* —
+   * which is what scrubbing a show is — left the camera wherever it happened
+   * to be standing, so a paused player at t=0 showed the second shot's
+   * framing while the HUD read "A1-S01, 0.00 s". Every number agreed and the
+   * picture was of a different shot.
+   *
+   * The rule that works: the timeline owns the camera whenever *show time is
+   * moving*, whether that is playback or a seek; the mouse owns it when time
+   * is standing still. `?free=1` overrides both, permanently. */
+  follow = true;
+
   private readonly camera: THREE.PerspectiveCamera;
   private readonly controls?: DirectorControls;
   private readonly free: boolean;
@@ -111,9 +125,14 @@ export class CameraDirector {
     return this.free;
   }
 
-  /** Playback state only gates *the camera*. The timeline keeps running. */
+  /** Playback state only gates *the camera*. The timeline keeps running.
+   *
+   * Pausing enables the controls immediately — the mouse should work the
+   * instant someone pauses — but `follow` is what actually decides who wins
+   * on any given frame, and a seek turns it back on for that frame. */
   setPlaying(playing: boolean) {
     this.playing = playing;
+    this.follow = playing;
     if (this.controls) this.controls.enabled = this.free || !playing;
   }
 
@@ -191,7 +210,7 @@ export class CameraDirector {
     // `free` means the person is driving. Everything above still ran — the
     // blur, the depth range, the velocity — because the show is still
     // playing; only the transform is withheld.
-    if (this.free || (!this.playing && this.controls)) {
+    if (this.free || (!this.follow && this.controls)) {
       if (this.controls && haveLook && !this.free) this.controls.target.copy(this.look);
       return;
     }

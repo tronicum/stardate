@@ -189,12 +189,12 @@
             {
               "kind": "dissolve",
               "target": "brick/**",
-              "keys": [{ "t": 0, "value": 0, "easing": "step" }]
+              "keys": [{ "t": 0, "value": 1, "easing": "step" }]
             },
             {
               "kind": "dissolve",
               "target": "monolith/**",
-              "keys": [{ "t": 0, "value": 1, "easing": "step" }]
+              "keys": [{ "t": 0, "value": 0, "easing": "step" }]
             }
           ],
           "cues": [
@@ -203,6 +203,7 @@
               "kind": "seed",
               "payload": {
                 "generator": "assembly",
+                "scene": "monolith",
                 "floatHeightLdu": 420,
                 "scatterRadiusLdu": 260,
                 "stagger": "buildStep",
@@ -294,8 +295,8 @@
               "kind": "dissolve",
               "target": "stonehenge/**",
               "keys": [
-                { "t": 0, "value": 0, "easing": "cubicOut" },
-                { "t": 0.55, "value": 1, "easing": "cubicOut" }
+                { "t": 0, "value": 1, "easing": "cubicOut" },
+                { "t": 0.55, "value": 0, "easing": "cubicOut" }
               ]
             },
             {

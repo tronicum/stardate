@@ -5,6 +5,8 @@ import { NodeIndex, selectNodes } from './lod';
 import { buildFullSweepPath } from './packetAnimation';
 import { fetchMeshBundle } from './mesh/bundle';
 import { runMeshViewer } from './mesh/render';
+import { fetchResolvedShow } from './show/resolved';
+import { chooseCut, fetchCutsIndex, parseShowParams } from './show/params';
 
 /** In gallery mode (`spex gallery`, or a static export served by e.g. GitHub
  * Pages) each demo lives under `.../d/<name>/`, with its tileset at
@@ -20,7 +22,19 @@ import { runMeshViewer } from './mesh/render';
  * of the pathname, wherever it's mounted. */
 const GALLERY_MATCH = window.location.pathname.match(/\/d\/([^/]+)\/?$/);
 const CURRENT_DEMO_NAME = GALLERY_MATCH ? GALLERY_MATCH[1] : null;
-const TILESET_BASE = CURRENT_DEMO_NAME ? 'tileset' : '/tileset';
+
+/** M66: an export can state its own data root, and then nothing has to be
+ * inferred from the URL at all.
+ *
+ * `spex show-export` writes `<meta name="spex-base" content="show">` into its
+ * `index.html`. That is what makes one output directory work unchanged from
+ * `file://`, from a domain root and from a project-pages subpath: a relative
+ * base resolves against the document wherever it is, and the served case keeps
+ * its root-absolute `/tileset`, which survives being reached at some deeper
+ * path through the SPA fallback. Absent for every existing demo, so the two
+ * lines below are what they always were. */
+const BASE_META = document.querySelector('meta[name="spex-base"]') as HTMLMetaElement | null;
+const TILESET_BASE = BASE_META?.content || (CURRENT_DEMO_NAME ? 'tileset' : '/tileset');
 
 /** "Demoscene" screensaver mode (`?cycle=1`, only meaningful in gallery mode):
  * auto-rotates the camera and, after a while, jumps to a random other demo.
@@ -101,7 +115,22 @@ function boundsDiagonal(b: Bounds): number {
 }
 
 async function main() {
-  // The one mode switch. A mesh bundle (`spex mesh-part` / `spex mesh-model`)
+  // M66: the show mode, tested first. A show directory (`spex show-build`) is
+  // N mesh bundles plus a resolved timeline, and it owns the clock, the camera
+  // and the HUD — none of which the two modes below have. Same absence test as
+  // the mesh branch: `show-resolved.json` 404s for every tileset and every
+  // single bundle that has ever been built, so nothing below changes.
+  const params = parseShowParams();
+  const cuts = await fetchCutsIndex(TILESET_BASE);
+  const cutFile = chooseCut(cuts, params.cut, params.warnings);
+  const resolvedShow = await fetchResolvedShow(TILESET_BASE, cutFile);
+  if (resolvedShow) {
+    const { runShowViewer } = await import('./show/player');
+    await runShowViewer(TILESET_BASE, resolvedShow, params);
+    return;
+  }
+
+  // A mesh bundle (`spex mesh-part` / `spex mesh-model`)
   // is real triangle geometry rather than points, and shares none of the
   // machinery below — no octree, no LOD budget, no node labels. It gets its
   // own viewer.

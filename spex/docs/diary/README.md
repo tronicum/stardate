@@ -28,3 +28,4 @@ found is more instructive than the defect itself.**
 | Entry | Milestone | The short version |
 |---|---|---|
 | [`2026-08-08-m65-dissolve-and-crossfade.md`](2026-08-08-m65-dissolve-and-crossfade.md) | M65 | Four defects, every one found by a picture that the numbers had already passed |
+| [`2026-08-08-m66-the-first-screening.md`](2026-08-08-m66-the-first-screening.md) | M66 | Eight defects the first time the parts were run together, and not one of them in a part |

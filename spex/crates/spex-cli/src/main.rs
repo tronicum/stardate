@@ -229,12 +229,16 @@ enum Command {
         #[arg(short, long)]
         out: PathBuf,
 
-        /// Target duration in seconds. Defaults to the document's own
-        /// baseDurationBars. Tier 2 material appears from 600, tier 3 from 3600.
+        /// Target duration in seconds. Repeatable: each value is one cut of
+        /// the same document, and they share one bundles/ directory because
+        /// the geometry does not change with the length. Defaults to the
+        /// document's own baseDurationBars. Tier 2 material appears from 600,
+        /// tier 3 from 3600.
         #[arg(long)]
-        duration: Option<f64>,
+        duration: Vec<f64>,
 
-        /// Resolve like the canonical cut and mark the output for looping.
+        /// Also build an endless cut: the canonical length, marked for
+        /// looping. On its own (no --duration) it is the only cut built.
         #[arg(long)]
         endless: bool,
 
@@ -276,6 +280,48 @@ enum Command {
         /// Local cache directory for fetched real LDraw files.
         #[arg(long, default_value = ".ldraw-cache")]
         cache_dir: PathBuf,
+    },
+
+    /// Play a built show directory: serve it and open the viewer on it.
+    ///
+    /// The URL is the interface. Every parameter below is optional and every
+    /// one is also a query parameter, so a screening can be handed to someone
+    /// else as a line of text: ?t= ?duration= ?seed= ?quality= ?mute=
+    /// ?free= ?loop= ?director=
+    Show {
+        /// A directory written by `spex show-build`.
+        show_dir: PathBuf,
+
+        #[arg(long, default_value_t = 8080)]
+        port: u16,
+
+        /// Don't automatically open the default browser.
+        #[arg(long)]
+        no_open: bool,
+
+        /// Open at this show time, in seconds (?t=).
+        #[arg(long)]
+        at: Option<f64>,
+
+        /// Which cut to open: 240, 600, 3600 or endless (?duration=).
+        #[arg(long)]
+        cut: Option<String>,
+
+        /// Open with the director HUD (?director=1).
+        #[arg(long)]
+        director: bool,
+    },
+
+    /// Write a fully static, server-free copy of a show directory: index.html,
+    /// the viewer's assets, and the show's own data, all relative — so the
+    /// same output plays from file://, from a domain root and from a
+    /// project-pages subpath without being rebuilt.
+    ShowExport {
+        /// A directory written by `spex show-build`.
+        show_dir: PathBuf,
+
+        #[arg(short, long)]
+        out: PathBuf,
     },
 
     /// Serve a tileset directory and open the browser viewer.
@@ -581,6 +627,9 @@ fn main() -> Result<()> {
             &cache_dir,
             &show::BuildOptions { target_sec: duration, seed, endless, no_bundles, skip_unbuildable, crease },
         ),
+        Command::Show { show_dir, port, no_open, at, cut, director } =>
+            cmd_show(&show_dir, port, !no_open, at, cut.as_deref(), director),
+        Command::ShowExport { show_dir, out } => cmd_show_export(&show_dir, &out),
         Command::Serve {
             tileset_dir,
             port,
@@ -877,6 +926,76 @@ fn cmd_serve(tileset_dir: &Path, port: u16, open_browser: bool) -> Result<()> {
         open_browser,
     };
     spex_server::serve_blocking(config)
+}
+
+/// `spex show` — play a built show directory.
+///
+/// The validation is worth more than it looks. A show directory that is
+/// missing `show-resolved.json` still serves: the viewer's mode switch finds
+/// no show, falls through to the mesh test, finds no `mesh.json` either, and
+/// ends up asking for a tileset that is not there. The result is an error
+/// about a point cloud, three layers away from the actual mistake.
+fn cmd_show(
+    show_dir: &Path,
+    port: u16,
+    open_browser: bool,
+    at: Option<f64>,
+    cut: Option<&str>,
+    director: bool,
+) -> Result<()> {
+    if !show_dir.join("show-resolved.json").exists() {
+        bail!(
+            "{} has no show-resolved.json — did you run `spex show-build`?",
+            show_dir.display()
+        );
+    }
+    show::describe(show_dir)?;
+
+    let mut params: Vec<String> = Vec::new();
+    if let Some(t) = at {
+        params.push(format!("t={t}"));
+    }
+    if let Some(c) = cut {
+        params.push(format!("duration={c}"));
+    }
+    if director {
+        params.push("director=1".to_string());
+    }
+    let open_path = if params.is_empty() {
+        "/".to_string()
+    } else {
+        format!("/?{}", params.join("&"))
+    };
+
+    spex_server::serve_show_blocking(spex_server::ShowConfig {
+        show_dir: show_dir.to_path_buf(),
+        port,
+        open_browser,
+        open_path,
+    })
+}
+
+/// `spex show-export` — the same show as plain files.
+///
+/// Layout is `index.html`, `assets/`, `show/`. The show's own data goes into a
+/// named subdirectory rather than beside the viewer's assets so that a future
+/// export holding two shows needs no new shape, and `index.html` carries the
+/// `spex-base` meta that points at it — which is what makes the output work
+/// unchanged from `file://` and from any hosting prefix (AC2).
+fn cmd_show_export(show_dir: &Path, out: &Path) -> Result<()> {
+    if !show_dir.join("show-resolved.json").exists() {
+        bail!(
+            "{} has no show-resolved.json — did you run `spex show-build`?",
+            show_dir.display()
+        );
+    }
+    std::fs::create_dir_all(out)?;
+    export_static::copy_dir_recursive(show_dir, &out.join("show"))
+        .with_context(|| format!("copying {}", show_dir.display()))?;
+    spex_server::write_viewer_assets_with_base(out, Some("show"))?;
+    show::describe(show_dir)?;
+    println!("wrote {} — open index.html, or host the directory as it stands", out.display());
+    Ok(())
 }
 
 fn cmd_trace(host: &str, out: &Path) -> Result<()> {

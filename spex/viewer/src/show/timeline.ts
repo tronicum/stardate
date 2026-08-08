@@ -412,11 +412,20 @@ export class Timeline {
 
 /** A forward jump larger than this is a seek, not a slow frame.
  *
- * Half a second is well past any real frame (even this container's
- * software rasteriser manages ~4 fps) and well short of any seek a person
- * would make. A tab restored from the background produces jumps of minutes,
- * and replaying every cue in between is exactly what must not happen. */
-export const SEEK_THRESHOLD_SEC = 0.5;
+ * **Raised from 0.5 to 2.0 in M66, because 0.5 was measured and wrong.** The
+ * original reasoning was that half a second is "well past any real frame (even
+ * this container's software rasteriser manages ~4 fps)". The first end-to-end
+ * screening ran at **2.2 fps** — 0.45 s a frame — and the result was not a
+ * crash or a stutter: it was a piece that fired *no cue at all*. Every frame
+ * looked like a seek, so the cursor advanced past every accent without firing
+ * it, and the director HUD reported four voices as none. Nothing errored.
+ *
+ * The number is not really what makes seeks safe, and that is the deeper
+ * point. A player that seeks *knows* it seeked and calls `resetCueCursor`
+ * explicitly; this heuristic exists only for the case nobody announces — a tab
+ * restored from the background, which produces jumps of minutes, not seconds.
+ * Two seconds is far above any frame a renderer produces and far below that. */
+export const SEEK_THRESHOLD_SEC = 2.0;
 
 /** Shortest-path slerp, writing into `out`. No allocation, no THREE import —
  * the evaluator stays renderer-free. */

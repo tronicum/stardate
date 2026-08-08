@@ -39,6 +39,48 @@
       padding: 8px 12px; border-radius: 8px; font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       line-height: 1.6; white-space: pre; pointer-events: none; user-select: none; max-width: 60vw;
     }
+
+    /* M66 — the show HUD. Created by `show/hud.ts`, styled here so all of this
+       viewer's typography lives in one file. Everything is a DOM overlay and
+       nothing has a background plate: a screening is not an application, and a
+       rounded translucent box over the picture would read as chrome. */
+    #show-hud { position: absolute; inset: 0; overflow: hidden; pointer-events: none; user-select: none; }
+    #show-seed-point {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      border-radius: 50%; opacity: 0;
+    }
+    #show-title-card {
+      /* Lower third, not centre. The centre of the frame belongs to the piece
+         — A1-S01 puts a single device pixel there and a title card across it
+         is a title card across the only thing in the shot. */
+      position: absolute; left: 0; right: 0; top: 64%; text-align: center; opacity: 0;
+      /* No CSS transition: the opacity is authored per frame from show time,
+         and a transition would put a second, slower clock on top of the only
+         clock this piece has. */
+    }
+    #show-title-numeral { font-size: clamp(28px, 5vw, 64px); font-weight: 200; letter-spacing: 0.22em; opacity: 0.85; }
+    #show-title-text { margin-top: 0.5em; font-size: clamp(13px, 1.5vw, 20px); letter-spacing: 0.32em; text-transform: uppercase; opacity: 0.7; }
+    #show-caption {
+      position: absolute; left: 0; right: 0; bottom: 9%; text-align: center; opacity: 0;
+      font-size: clamp(12px, 1.3vw, 17px); letter-spacing: 0.18em; opacity: 0;
+    }
+    #show-metrics {
+      position: absolute; right: 5vw; bottom: 8vh; text-align: right; opacity: 0;
+      font-size: clamp(10px, 1vw, 13px); letter-spacing: 0.12em; font-weight: 300;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    #show-cards { position: absolute; left: 5vw; bottom: 8vh; display: flex; flex-direction: column; gap: 8px; }
+    .show-card { font-size: 12px; letter-spacing: 0.1em; opacity: 0; max-width: 34vw; }
+    #show-credits { position: absolute; inset: 0; overflow: hidden; opacity: 0; }
+    #show-credits-inner {
+      position: absolute; left: 0; right: 0; top: 0; text-align: center; white-space: pre-line;
+      font-size: clamp(12px, 1.4vw, 18px); line-height: 2.1; letter-spacing: 0.14em;
+    }
+    #show-director {
+      display: none; position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.72); color: #8fe38f;
+      padding: 10px 14px; border-radius: 6px; font-size: 11px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      line-height: 1.55; white-space: pre; pointer-events: none; user-select: none; max-width: 70vw;
+    }
   </style>
 </head>
 <body>

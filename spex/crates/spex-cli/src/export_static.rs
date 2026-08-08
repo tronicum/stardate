@@ -28,7 +28,7 @@ pub fn run(demos: &[(String, PathBuf)], output_dir: &Path) -> Result<()> {
 /// Hand-rolled recursive copy — the source trees here (a tileset directory:
 /// `tileset.json`, `octree/*.bin`, `nodes.json`, `meta.json`) are shallow
 /// enough that pulling in a crate for this isn't worth it.
-fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
+pub fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<()> {
     std::fs::create_dir_all(dst)?;
     for entry in std::fs::read_dir(src)? {
         let entry = entry?;

@@ -243,11 +243,18 @@ void main() {
 const FRAGMENT_SHADER = /* glsl */ `
 precision highp float;
 uniform vec3 uColor;
+uniform float uOpacity;
 flat in float vDiscard;
 layout(location = 0) out vec4 pc_fragColor;
 void main() {
   if (vDiscard > 0.5) discard;
-  pc_fragColor = vec4(uColor, 1.0);
+  // Fully transparent is a discard, not alpha 0. An invisible fragment that
+  // still runs the blend is still a fragment, and A1-S03 spends a third of its
+  // length with the whole outline pass at zero. See EdgeRenderer.setOpacity.
+  // (No backticks in this comment: it lives inside a JS template literal, and
+  // one would end the string. M65 found that the hard way.)
+  if (uOpacity < 0.004) discard;
+  pc_fragColor = vec4(uColor, uOpacity);
 }
 `;
 
@@ -398,7 +405,18 @@ export function buildEdgeGroups(
         // black. A black brick's edge is lighter than the brick.
         uColor: { value: materials.edgeColor(group.material) },
         uDissolve: { value: dtex },
+        // M66: the outline as an animatable quantity, for A1-S03 — the shot
+        // where the swarm becomes a countable thing and the edges arrive in
+        // one frame. `transparent` is on permanently rather than toggled with
+        // the value: three.js buckets transparent and opaque objects into
+        // different render lists, and flipping that mid-shot would move the
+        // whole edge pass relative to everything else on a single frame.
+        // `depthWrite` stays on — these quads are already biased toward the
+        // viewer and must still occlude one another.
+        uOpacity: { value: 1 },
       },
+      transparent: true,
+      depthWrite: true,
     });
 
     const mesh = new THREE.Mesh(geometry, material);
@@ -430,6 +448,7 @@ export class EdgeRenderer {
   private width = DEFAULT_EDGE_WIDTH;
   private bias = DEFAULT_DEPTH_BIAS;
   private enabled = true;
+  private opacity = 1;
 
   constructor(groups: EdgeGroup[]) {
     this.groups = groups;
@@ -488,6 +507,22 @@ export class EdgeRenderer {
   setWidth(px: number) {
     this.width = px;
     for (const g of this.groups) g.material.uniforms.uWidth.value = px;
+  }
+
+  /** M66: the whole pass's opacity, 0..1 — a `material` track's `edgeOpacity`.
+   *
+   * Whole-pass and not per instance, and that is a real limitation rather than
+   * an oversight: a per-instance value would need a second channel in the
+   * dissolve texture, and every use in the screenplay addresses a whole scene.
+   * `player.ts` warns when a target does not. */
+  setOpacity(value: number) {
+    const v = value < 0 ? 0 : value > 1 ? 1 : value;
+    this.opacity = v;
+    for (const g of this.groups) g.material.uniforms.uOpacity.value = v;
+  }
+
+  get edgeOpacity(): number {
+    return this.opacity;
   }
 
   setDepthBias(bias: number) {

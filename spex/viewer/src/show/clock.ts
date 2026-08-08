@@ -32,7 +32,14 @@
 
 export interface ShowClockOptions {
   endless: boolean;
-  audioContext?: { currentTime: number };
+  audioContext?: AudioClockSource;
+}
+
+/** The part of an `AudioContext` this clock needs. `state` is not optional
+ * decoration — see `useAudioContext`. */
+export interface AudioClockSource {
+  currentTime: number;
+  state?: string;
 }
 
 export type LoopHandler = (cycle: number) => void;
@@ -41,7 +48,7 @@ export class ShowClock {
   readonly durationSec: number;
   readonly endless: boolean;
 
-  private readonly audio?: { currentTime: number };
+  private audio?: AudioClockSource;
   /** The source's reading when the current play span began. */
   private anchor = 0;
   /** Show time (within one cycle) at that anchor. */
@@ -57,7 +64,38 @@ export class ShowClock {
     }
     this.durationSec = durationSec;
     this.endless = opts.endless;
-    this.audio = opts.audioContext;
+    if (opts.audioContext) this.useAudioContext(opts.audioContext);
+  }
+
+  /** Adopt an audio clock, or refuse it, and re-anchor either way.
+   *
+   * **A suspended `AudioContext` is a clock that does not tick**, and this is
+   * not an edge case: every browser's autoplay policy creates the context in
+   * `suspended` until a user gesture, and a headless Chromium with no audio
+   * device may never leave it. M66 built the player, handed the clock a fresh
+   * context, and watched the piece hold its opening frame for two minutes with
+   * no error anywhere — `currentTime` was simply 0, forever, and the show was
+   * behaving perfectly correctly with respect to a time that never moved.
+   *
+   * So the rule is `state === 'running'` or nothing, checked here rather than
+   * assumed by the caller. The caller's job is to try again once the context
+   * starts, and re-anchoring is what makes that switch invisible: show time is
+   * derived from an anchor (see the header), so changing which oscillator the
+   * anchor is read from is a one-line operation and not a jump. */
+  useAudioContext(ctx: AudioClockSource | undefined): boolean {
+    if (!ctx || (ctx.state !== undefined && ctx.state !== 'running')) {
+      return false;
+    }
+    if (this.audio === ctx) return true;
+    // Freeze the time we are at now, on the old source, then re-anchor on the
+    // new one. Doing it in this order is what keeps `time` continuous across
+    // the swap instead of jumping by the difference between two oscillators
+    // that were never started together.
+    if (this.running) this.tick();
+    this.audio = ctx;
+    this.offset = this.lastTime;
+    this.anchor = this.now();
+    return true;
   }
 
   /** Which clock this instance is actually reading — recorded in the HUD and

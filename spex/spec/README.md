@@ -26,6 +26,7 @@ isn't just aspirational prose, it's enforced against real output.
 | `mesh.json` | [`mesh.schema.json`](mesh.schema.json) | `spex-mesh` (`crates/spex-mesh/src/bundle.rs`) | the viewer's mesh render mode (M54) |
 | `show.json` | [`show.schema.json`](show.schema.json) | hand-authored (`shows/*.show.json`) | `spex-show` (`crates/spex-show/src/model.rs`), `spex show-build` |
 | `show-resolved.json` | [`show-resolved.schema.json`](show-resolved.schema.json) | `spex show-build` (`crates/spex-cli/src/show.rs`) | the runtime show engine (M62+) |
+| `cuts.json` | *(no schema — four fields, written and read in one place each)* | `spex show-build` (`crates/spex-cli/src/show.rs`) | the viewer's `?duration=` (M66, `viewer/src/show/params.ts`) |
 
 `octree/<node-id>.bin` (the point data itself) is a small binary format, not
 JSON — see the "Tileset format" section of `CLAUDE.md`: `u32` LE point

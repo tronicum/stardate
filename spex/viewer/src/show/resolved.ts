@@ -159,13 +159,20 @@ export interface ResolvedShow {
   credits?: { lines?: string[]; required?: string[] };
 }
 
-/** Fetches `show-resolved.json`, or `null` when there is none.
+/** Fetches a resolved show, or `null` when there is none.
  *
  * The same one-branch mode switch `fetchMeshBundle` uses: absence is how the
  * viewer decides which thing it is looking at, so a 404 here is a fact and
- * not an error. */
-export async function fetchResolvedShow(baseUrl: string): Promise<ResolvedShow | null> {
-  const res = await fetch(`${baseUrl.replace(/\/$/, '')}/show-resolved.json`);
+ * not an error.
+ *
+ * `file` is which cut to read (M66) — one show directory holds one resolved
+ * document per duration, all sharing the same `bundles/`, because the geometry
+ * does not change between a four-minute and a sixty-minute screening. */
+export async function fetchResolvedShow(
+  baseUrl: string,
+  file = 'show-resolved.json',
+): Promise<ResolvedShow | null> {
+  const res = await fetch(`${baseUrl.replace(/\/$/, '')}/${file}`);
   if (!res.ok) return null;
   const show = (await res.json()) as ResolvedShow;
   if (show.version !== RESOLVED_FORMAT_VERSION) {

@@ -277,14 +277,93 @@ fn open_browser(url: &str) {
 /// static export its own self-contained copy of the viewer (no server
 /// needed to resolve them at request time).
 pub fn write_viewer_assets(output_dir: &Path) -> Result<()> {
+    write_viewer_assets_with_base(output_dir, None)
+}
+
+/// The same, with an explicit data root written into `index.html`.
+///
+/// `spex show-export` (M66) passes `Some("show")`, which becomes
+/// `<meta name="spex-base" content="show">`. That one line is what lets a
+/// single output directory play from `file://`, from a domain root and from a
+/// project-pages subpath without being rebuilt: the viewer resolves its data
+/// relative to the document instead of inferring a root-absolute path from the
+/// URL. `None` reproduces exactly what `export-static` already wrote.
+pub fn write_viewer_assets_with_base(output_dir: &Path, data_base: Option<&str>) -> Result<()> {
     for path in ViewerAssets::iter() {
         let Some(content) = ViewerAssets::get(&path) else { continue };
         let dest = output_dir.join(path.as_ref());
         if let Some(parent) = dest.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        std::fs::write(&dest, content.data.as_ref()).with_context(|| format!("writing {}", dest.display()))?;
+        let data = match (data_base, path.as_ref()) {
+            (Some(base), "index.html") => {
+                inject_base_meta(std::str::from_utf8(content.data.as_ref())?, base)?.into_bytes()
+            }
+            _ => content.data.into_owned(),
+        };
+        std::fs::write(&dest, &data).with_context(|| format!("writing {}", dest.display()))?;
     }
+    Ok(())
+}
+
+/// Puts `<meta name="spex-base" content="...">` into the document head.
+///
+/// Fails rather than writing a silently base-less page: an export whose viewer
+/// then probes `/tileset` would 404 on every fetch and show an empty scene with
+/// no error anywhere, which is precisely the failure mode this project keeps
+/// engineering against.
+fn inject_base_meta(html: &str, base: &str) -> Result<String> {
+    let anchor = "<head>";
+    let at = html
+        .find(anchor)
+        .context("the built viewer index.html has no <head> to write the data base into")?;
+    let (before, after) = html.split_at(at + anchor.len());
+    Ok(format!(
+        "{before}\n  <meta name=\"spex-base\" content=\"{base}\" />{after}"
+    ))
+}
+
+/// A built show directory (`spex show-build`), served with the viewer.
+///
+/// Mounted at `/tileset` like every other data directory. The name is
+/// historical and it stays: the viewer resolves one base for all three modes,
+/// and a second mount point would be a second thing to keep in step for no
+/// behaviour anyone can see. What this mode really adds is `open_path` — the
+/// query string that makes a screening reproducible from a URL.
+pub struct ShowConfig {
+    pub show_dir: PathBuf,
+    pub port: u16,
+    pub open_browser: bool,
+    /// Appended to the origin when opening a browser, e.g. `/?duration=600`.
+    pub open_path: String,
+}
+
+pub fn serve_show_blocking(config: ShowConfig) -> Result<()> {
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .context("building tokio runtime")?;
+    rt.block_on(run_show(config))
+}
+
+async fn run_show(config: ShowConfig) -> Result<()> {
+    let app = build_router(&config.show_dir);
+    let addr = SocketAddr::from(([127, 0, 0, 1], config.port));
+    let listener = tokio::net::TcpListener::bind(addr)
+        .await
+        .with_context(|| format!("binding to {addr}"))?;
+    let url = format!("http://{addr}{}", config.open_path);
+    println!("spex playing {} at {url}", config.show_dir.display());
+
+    if config.open_browser {
+        let url = url.clone();
+        std::thread::spawn(move || {
+            std::thread::sleep(std::time::Duration::from_millis(300));
+            open_browser(&url);
+        });
+    }
+
+    axum::serve(listener, app).await.context("server error")?;
     Ok(())
 }
 

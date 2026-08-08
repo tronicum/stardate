@@ -243,3 +243,26 @@ that latent bug in `flush()` was found.
 Use `car` and not the monolith for AC3: `ldraw-scenes/monolith.ldr` is
 hand-authored and has no `0 STEP` lines, so there is no real build order to
 stagger by.
+
+## M66 — the show
+
+Three scripts, because one page cannot answer all three questions.
+
+- **`showrun.mjs <url> <out>`** — AC1 and AC3. The arithmetic is asked of the
+  evaluator with no frames at all; whether cues *fire* and the piece loops is
+  asked by playing the endless cut once through in real time, because a sweep
+  of seeks fires no cue by design. Each URL parameter gets its own page load —
+  sharing one would let a parameter pass because of what a previous one left
+  behind. Writes `m66-showrun.json` and, if the loop is not clean, the two
+  frames it compared.
+- **`showframes.mjs <url> <out>`** — rung 5. The pictures, shot *without*
+  `?director=1`, whose HUD covers most of the frame. One extra frame with it.
+- **`showexport.mjs <dir>`** — AC2. Serves a `spex show-export` output at a
+  domain root and again under a deep subpath from the same bytes, then tries
+  `file://`, and reports what each one did.
+
+`showprobe2.mjs` is a scratch diagnostic rather than a test: it prints the post
+chain, camera and ground state at t=0 before and after a real loop, and renders
+the same frame with and without the ground and with and without the
+environment. It is what found the Fresnel answer to "why is the opening frame
+not black".
