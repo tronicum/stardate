@@ -3,6 +3,8 @@
 //! implements.
 pub mod grid;
 pub mod primitives;
+pub mod recipe;
 
 pub use grid::{validate, FootprintTable, GridPos, Illegality, Orientation, Placement};
 pub use primitives::Primitive;
+pub use recipe::{build, build_recipe, content_hash, write_ldr, BuildOutput, Recipe};

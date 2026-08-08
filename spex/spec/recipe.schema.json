@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/recipe.schema.json",
+  "title": "spex-build recipe (recipe.json)",
+  "description": "M72 — a site as a small JSON document composing real, grid-legal parametric brick primitives. Read by `spex build <recipe.json> -o <out.ldr>` (crates/spex-cli/src/build_cmd.rs), which calls crates/spex-build's real recipe.rs pipeline. Each step names one real primitive from crates/spex-build/src/primitives.rs (Wall, Column, Arch, Stair, Ziggurat, Pyramid, Dome, Trilithon, Colonnade, Mosaic) and a `params` object matching that primitive's own fields (camelCase). `color` fields (a primitive's own `color`, or a palette entry's own colour) accept either a real LDraw colour code (integer) or a name looked up in this document's own `palette`. See docs/fugen/phase4-kit.md's M72 section for the full spec and each primitive's real field names.",
+  "type": "object",
+  "required": ["version", "id", "title", "steps"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable slug, e.g. \"stonehenge\". Carried into the emitted .ldr's own `0 Author:` provenance line."
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "scale": {
+      "type": "object",
+      "description": "Stated, not implied — every recipe declares its own real-world scale.",
+      "required": ["studsPerMetre"],
+      "additionalProperties": false,
+      "properties": {
+        "studsPerMetre": { "type": "number", "exclusiveMinimum": 0 },
+        "note": { "type": "string" }
+      }
+    },
+    "palette": {
+      "type": "object",
+      "description": "Named real LDraw colour codes, so a recipe's steps can say \"stone\" instead of repeating a bare integer.",
+      "additionalProperties": { "type": "integer", "minimum": 0 }
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/step" }
+    },
+    "knownIllegal": {
+      "type": "array",
+      "description": "Real, justified exceptions to what `validate()` finds (M72 acceptance criterion 2). Each entry names a real placement index (0-based, in the order this recipe's steps and their arranged instances emit them) and why it is intentionally off-grid, overlapping, non-axis-rotated, or floating. `spex build` prints these separately from any undeclared problem.",
+      "items": { "$ref": "#/$defs/knownIllegal" }
+    }
+  },
+  "$defs": {
+    "step": {
+      "type": "object",
+      "required": ["primitive", "params"],
+      "additionalProperties": false,
+      "properties": {
+        "primitive": {
+          "type": "string",
+          "enum": ["Wall", "Column", "Arch", "Stair", "Ziggurat", "Pyramid", "Dome", "Trilithon", "Colonnade", "Mosaic"],
+          "description": "One of the real primitives crates/spex-build/src/primitives.rs implements."
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "How many instances of this primitive to emit. count > 1 requires arrangeOn — every instance would otherwise land on the same placement, which spex-build rejects rather than silently overlapping."
+        },
+        "arrangeOn": { "$ref": "#/$defs/arrangeOn" },
+        "at": { "$ref": "#/$defs/at" },
+        "params": {
+          "type": "object",
+          "description": "The named primitive's own real fields, camelCase (e.g. Wall: widthStuds, heightPlates, depthStuds, bond, color; Column: heightPlates, diameterStuds, color). See docs/fugen/phase4-kit.md's M72 section for every primitive's real field names, and crates/spex-build/src/recipe.rs's build_primitive for the authoritative mapping."
+        }
+      }
+    },
+    "arrangeOn": {
+      "type": "object",
+      "description": "Lays `count` instances of one step's primitive around a real arc or circle, evenly spaced. Each instance's orientation is snapped to whichever of the real 24 axis-aligned orientations is closest to facing outward along the radius — see crates/spex-build/src/recipe.rs's arc_point doc comment for the exact, documented approximation (a placement's own origin is its front-bottom-left corner, not its centre, so a ring of primitives sits about half a footprint off the ideal circle).",
+      "oneOf": [
+        {
+          "required": ["kind", "radiusStuds", "startDeg", "endDeg"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "arc" },
+            "radiusStuds": { "type": "number", "exclusiveMinimum": 0 },
+            "startDeg": { "type": "number" },
+            "endDeg": { "type": "number" }
+          }
+        },
+        {
+          "required": ["kind", "radiusStuds"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "circle" },
+            "radiusStuds": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        }
+      ]
+    },
+    "at": {
+      "type": "object",
+      "description": "A fixed single placement for a step with no arrangeOn (defaults to the recipe's own origin, identity orientation, when absent). Not in phase4-kit.md's own minimal example recipe, but needed by any real recipe composing more than one differently positioned primitive — additive, every recipe that omits it behaves exactly as documented.",
+      "additionalProperties": false,
+      "properties": {
+        "xStuds": { "type": "number", "default": 0 },
+        "zStuds": { "type": "number", "default": 0 },
+        "yPlates": { "type": "integer", "default": 0 },
+        "orientationDeg": { "type": "number", "default": 0, "description": "Snapped to the nearest of the real 24 axis-aligned orientations' yaw." }
+      }
+    },
+    "knownIllegal": {
+      "type": "object",
+      "required": ["placementIndex", "reason"],
+      "additionalProperties": false,
+      "properties": {
+        "placementIndex": { "type": "integer", "minimum": 0 },
+        "reason": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

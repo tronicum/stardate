@@ -28,6 +28,7 @@ isn't just aspirational prose, it's enforced against real output.
 | `show-resolved.json` | [`show-resolved.schema.json`](show-resolved.schema.json) | `spex show-build` (`crates/spex-cli/src/show.rs`) | the runtime show engine (M62+) |
 | `fugue.schema.json` (the `audio` block of `show.json`) | [`fugue.schema.json`](fugue.schema.json) | hand-authored, mirrored by `crates/spex-fugue/src/model.rs` | M68's counterpoint generator |
 | `cuts.json` | *(no schema — four fields, written and read in one place each)* | `spex show-build` (`crates/spex-cli/src/show.rs`) | the viewer's `?duration=` (M66, `viewer/src/show/params.ts`) |
+| `recipe.json` | [`recipe.schema.json`](recipe.schema.json) | hand-authored (`recipes/**/*.json`) | `spex build` (`crates/spex-build`, `crates/spex-cli/src/build_cmd.rs`), M72 |
 
 `octree/<node-id>.bin` (the point data itself) is a small binary format, not
 JSON — see the "Tileset format" section of `CLAUDE.md`: `u32` LE point
