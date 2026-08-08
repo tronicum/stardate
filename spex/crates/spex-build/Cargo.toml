@@ -1,0 +1,9 @@
+[package]
+name = "spex-build"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+
+[dev-dependencies]
+spex-ldraw = { workspace = true }

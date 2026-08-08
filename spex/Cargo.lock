@@ -2482,6 +2482,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "spex-build"
+version = "0.1.0"
+
+[[package]]
 name = "spex-cli"
 version = "0.1.0"
 dependencies = [
@@ -2495,6 +2499,7 @@ dependencies = [
  "ratatui",
  "serde",
  "serde_json",
+ "spex-build",
  "spex-core",
  "spex-fugue",
  "spex-graph",
