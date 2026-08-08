@@ -415,6 +415,93 @@ mix bus   -> master EQ (3-band BiquadFilter) -> DynamicsCompressor (limiter)
    pulse.
 
 **Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture), plus a human listen. (6 runs at the end of the phase.)
+
+**Status: ✅ AC1–AC3 measured; the human listen is open.**
+`viewer/src/audio/{engine.ts, synth.ts, reverb.ts}` and
+`scripts/viewer-shot/audioprobe.mjs`.
+
+**Rung 5 does not apply and this is the correction the rev-2 rule exists for.**
+The ladder marks it mandatory "because this milestone changes the picture" —
+it does not. M69 adds no render pass, no material, no geometry; nothing here
+reaches a frame. What it changes is the *sound*, and the equivalent of a
+screenshot for sound is a render, which is what the probe does. The picture
+arrives in M71, where the binding is.
+
+**Everything is measured on an `OfflineAudioContext`**, which is why
+`AudioEngine` takes a `BaseAudioContext` and not an `AudioContext`. That one
+type turns "does this clip" from a thing someone listens for into arithmetic
+over samples.
+
+**AC1 passes: zero console warnings or errors**, three procedural spaces
+(cathedral 4.2 s, plate 1.4 s, gated 0.85 s), 3 EQ bands, 6 partials a voice.
+The impulse responses are **seeded and verified as such**: same seed gives
+bit-identical buffers, a different seed differs, and the two channels are
+decorrelated — an IR whose channels match is a mono reverb wearing two
+speakers.
+
+**AC2 passes, after the criterion caught two real bugs and then had to be
+split in two.**
+
+*The clipping was real and my own comment was wrong about why it could not
+happen.* The first version ended in a `DynamicsCompressor` and claimed that
+made "no cut ever clips" a property of the graph. **It measured 1.376 on the
+first render.** A compressor is not a limiter: it has an attack, so transients
+pass, and a ratio above a threshold still permits overshoot. The fix is a
+**bounded transfer function** — a `WaveShaper` whose `tanh` curve is clamped to
+±0.985, which cannot be exceeded for any input at all.
+
+*And then the ceiling itself was wrong, twice, in ways only a measurement
+finds.* Adding it took the peak **up**, to 1.44. Two mistakes:
+
+- **`WaveShaper`'s curve is indexed by input over [-1, 1], and inputs outside
+  that are clamped to its ends.** I built the table over ±8 on the theory that
+  a loud input needed somewhere to land, which is exactly backwards: an input
+  of 0.125 read the entry for 1.0 and came out at 0.75. An eightfold gain,
+  dressed as headroom. The node's own clamping *is* the headroom.
+- **`oversample` must be `'none'` on a ceiling.** Oversampling runs the signal
+  through an upsample filter, the curve, and a downsample filter, and that last
+  filter rings — on the near-square signal the first bug produced, the
+  overshoot measured **46% over the ceiling**, which is the classic Gibbs
+  figure and could not be anything else. Oversampling is right for a saturator,
+  where the goal is to avoid aliasing in something meant to be heard, and wrong
+  for a bound, because a filter after the bound can exceed it.
+
+Isolated, the ceiling now caps an 8× overdrive at **0.98496**. In the full
+60-second worst case — 24 subject entries in stretto, 79 pulses under them —
+**peak 0.7564, nothing at full scale**.
+
+*The 6 dB band needed a control, and the control is what makes the number mean
+anything.* Across the whole passage the level moves **11.67 dB**, which reads
+like a failure and is not: the passage deliberately grows from one voice to
+four plus percussion, and four voices is **+6 dB of arithmetic before any
+music**. So the probe renders a second passage with the texture held constant —
+four voices, no pulse, no entries piling in — and measures **1.00 dB across 20
+windows**. The engine's level is stable to a decibel; the 11.67 is the
+exposition's own crescendo, which is the thing the exposition *is*. Compressing
+it away to satisfy a number would be fitting the instrument to the answer.
+
+**AC3 is bounded rather than met, and says so.** The criterion is "audio thread
+under 10% on the development machine", which needs a real-time context on real
+hardware. What this container can say is that the whole passage *schedules* in
+**56.6 ms** and renders 60 seconds of four voices plus pulse in 20.9 s —
+**2.9× faster than real time** in headless software Chromium with no audio
+device. That bounds the cost loosely and honestly; the criterion as written is
+for the M92 hardware.
+
+**One design decision worth stating, because it is about the music and not
+about taste.** The four contrapuntal voices are a soft additive organ —
+partials 1, 2, 3, 4, 6, 8, with a chiff at the onset — because **it sustains**.
+Counterpoint is the perception of several lines at once, and a line audible
+only at its attack is not a line: a plucked voice decays through the bar and
+leaves the listener tracking a sequence of events instead of following four
+simultaneous melodies. Every instrument fugues were written for sustains. The
+chiff is what keeps that from turning to mud, since an entry has to be audible
+*as* an entry.
+
+The pulse bus is deliberately **not** sent to the reverb. A kick in a cathedral
+is mud; the percussion belongs at the front of the room while the voices are at
+the back of it, and that contrast is most of what will make Act IV feel like a
+different place.
 ---
 
 ### M70 — the scheduler and runtime realisation

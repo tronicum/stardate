@@ -281,3 +281,21 @@ gets stepped along with it. Assemble with ffmpeg:
 node scripts/viewer-shot/showvideo.mjs http://127.0.0.1:8120/ /tmp/vid endless 300 15
 ffmpeg -framerate 15 -i /tmp/vid/f%04d.png -c:v libx264 -pix_fmt yuv420p -crf 20 out.mp4
 ```
+
+## M69 — the audio engine
+
+**`audioprobe.mjs <out>`** renders the engine in an `OfflineAudioContext` and
+measures it: peak, RMS, the level band across one-second windows, and the
+cost. That is possible at all because `AudioEngine` takes a
+`BaseAudioContext` — the same reason `timeline.ts` takes a sinks object rather
+than a scene.
+
+It renders **two** passages. The first is the worst case the piece contains: a
+stretto, four voices piling in, with the pulse under them. The second holds the
+texture constant, and it is the one that makes the level band mean anything —
+a passage that grows from one voice to four is +6 dB of arithmetic before any
+music, so measuring only the first would report the exposition's own crescendo
+as a fault.
+
+It also writes `m69-engine.wav`, which is the first time in this project that
+anything has made a sound.
