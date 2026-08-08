@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "id": "test-wall",
+  "title": "M72 round-trip fixture: a running-bond wall",
+  "palette": { "stone": 71 },
+  "steps": [
+    { "primitive": "Wall",
+      "params": { "widthStuds": 20, "heightPlates": 9, "bond": "Running", "color": "stone" } }
+  ]
+}
