@@ -7,6 +7,7 @@ mod disk_usage;
 mod export_static;
 mod frame_sequence;
 mod graph_diff;
+mod graph_morph;
 mod molecule;
 mod nav;
 mod npm_deps;
@@ -284,6 +285,30 @@ enum Command {
         out: Option<PathBuf>,
     },
 
+    /// Generalizes `graph-diff --merge` from a single static snapshot into
+    /// a real point-cloud animation: every node present in both `old` and
+    /// `new` (matched by id) lerps from its old real layout position/color
+    /// to its new one; a node only in `old` shrinks away, a node only in
+    /// `new` grows in. Reuses `frame-sequence`'s shared-offset tiling, so
+    /// `spex serve` plays it back exactly like `brick-assembly`.
+    GraphMorph {
+        old: PathBuf,
+        new: PathBuf,
+
+        /// Number of animation frames (at least 2 — one for the old state,
+        /// one for the new).
+        #[arg(long, default_value_t = 30)]
+        frames: usize,
+
+        /// Playback rate the viewer should advance frames at.
+        #[arg(long, default_value_t = 6.0)]
+        fps: f64,
+
+        /// Output directory (gets frame-000/, frame-001/, ..., sequence.json).
+        #[arg(short, long)]
+        out: PathBuf,
+    },
+
     /// List available demos (subdirectories of `demos/` containing a
     /// graph.json), showing the terminal/web view command for each — so you
     /// can pick which demo and which representation to look at.
@@ -537,6 +562,7 @@ fn main() -> Result<()> {
         Command::GraphLayout { graph, out } => cmd_graph_layout(&graph, &out),
         Command::GraphPrint { graph } => cmd_graph_print(&graph),
         Command::GraphDiff { old, new, merge, out } => cmd_graph_diff(&old, &new, merge, out),
+        Command::GraphMorph { old, new, frames, fps, out } => graph_morph::run(&old, &new, frames, fps, &out),
         Command::Demos { dir } => cmd_demos(&dir),
         Command::Gallery { dir, port, no_open } => cmd_gallery(&dir, port, !no_open),
         Command::ExportStatic { dir, out } => cmd_export_static(&dir, &out),
