@@ -54,6 +54,24 @@ See `docs/ARCHITECTURE.md` for the full reasoning and a worked example.
   own designated scratch dir) to read from another checkout/worktree
   either — build your own artifacts (e.g. `viewer/dist`) rather than
   copying someone else's.
+- **Parallel background agents each verifying green in isolation does not
+  mean the combined result compiles.** Each agent's worktree only sees its
+  own branch — if two agents independently touch the same shared surface
+  (a shared struct's field list, a shared function's signature), each
+  compiles and tests clean *alone*, but can still break once both land on
+  `main`. GitHub's own merge-conflict check (`mergeable`/`mergeStateStatus`)
+  is purely textual, not semantic — it won't catch this either, so a PR can
+  show fully green and mergeable and still not actually build combined
+  with what merged just before it. Concrete real cases from one session:
+  `ascii::render_frames` gained a 4th parameter in one PR while another PR
+  (developed in parallel, against an older `main`) still called it with 3;
+  `GraphNode` gained a new field in one PR while other already-merged code
+  built `GraphNode` literals without `..Default::default()`. **After
+  merging a batch of independently-developed PRs, always wait for and
+  check the real CI run on the resulting `main`** — don't just trust each
+  PR's own pre-merge check — and if it fails, look first for exactly this
+  kind of drift (a struct literal or call site written against an older
+  version of a shared type/signature) rather than assuming a logic bug.
 - **Real data only.** Every demo uses something actually captured or
   downloaded — real `ps`/`brew`/`npm`/`sqlite3`/`cargo tree` output, a real
   public dataset, a real API response, a real SMILES string for a real
