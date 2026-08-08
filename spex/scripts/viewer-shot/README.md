@@ -299,3 +299,49 @@ as a fault.
 
 It also writes `m69-engine.wav`, which is the first time in this project that
 anything has made a sound.
+
+## M70 — the scheduler
+
+**`scheduleprobe.mjs <mid> <out>`** asks the three questions M70's criteria
+ask, of the audio rather than of the scheduler's own bookkeeping. Comparing
+what the scheduler says it scheduled against the score would test it against
+itself and would pass unchanged if the engine never made a sound.
+
+It renders through the **real** `Scheduler`, pumped at its real 25 ms cadence.
+`pump(nowAudio, nowShow)` is separate from `start()` for exactly this reason:
+an `OfflineAudioContext` has no wall clock and `setInterval` would never fire a
+single note in one, so the harness drives the same code the browser drives.
+
+**Three substitutions, all stated rather than hidden.** A fast attack, because
+the organ's 35 ms ramp is not an edge and an instrument that cannot resolve
+3 ms cannot measure 3 ms. One voice, because four lines attacking within a few
+milliseconds cannot be separated by any detector and the question is scheduling
+rather than polyphony. And a tap at the **voice bus**, because the mastering
+chain delays everything by 5.986 ms and its compressor pumps the level back up
+after every transient, which a rise detector reads as an onset — neither is the
+scheduler, and the latency is printed as its own number rather than quietly
+subtracted, since M71 has to spend it against a 16.7 ms frame budget.
+
+**The onset detector is a running maximum, and two earlier ones were wrong.**
+A level threshold with hysteresis found 2 onsets in four minutes: with four
+sustaining voices the envelope never falls back below the disarm level. A
+one-pole envelope's flux found 1107 in a part that has 191 notes: |sin| ripples
+at twice the fundamental, and any smoother slow enough to miss that is too slow
+to resolve 3 ms — there is no setting of that filter that works. A running
+maximum over more than one period is ripple-free by construction and rises on
+the very sample a louder signal arrives, because a maximum has no time
+constant.
+
+**The refractory period comes from the music.** The shortest interval between
+two soprano onsets is a quaver at 84 bpm — 0.357 s — so a second detection
+within 0.25 s cannot be a note. That one number turned 50 spurious detections
+and two missed onsets into 8 and none, where raising the level threshold had
+suppressed the artefacts *and* the quietest real entries.
+
+**AC2's reference plays into the moment rather than seeking to it.** A seek
+compared against another seek proves nothing; the reference is a render that
+started six seconds earlier, so it carries the releases and the reverb tail a
+listener would arrive with. One of the five positions is inside the piece's
+ten-second caesura, and it is kept deliberately: seeking into a silence must
+produce silence, and comparing that against a reverb tail the seek cannot have
+is what made the correct result read as a failure the first time.

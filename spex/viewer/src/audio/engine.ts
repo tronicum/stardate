@@ -163,8 +163,15 @@ export class AudioEngine {
 
   /** Start a note. `at` is an absolute `AudioContext` time — never a delay,
    * and never `currentTime` read inside a render loop. Sample-accurate
-   * scheduling is the entire reason WebAudio has a clock of its own. */
-  noteOn(voice: number, midi: number, at: number, velocity = 0.8) {
+   * scheduling is the entire reason WebAudio has a clock of its own.
+   *
+   * `env` exists for one reason and it is a measurement one: M70's AC1 asks
+   * that note onsets *measured from a rendered capture* land within 3 ms of
+   * their scored times, and the organ's 35 ms attack is a ramp rather than an
+   * edge — an onset detector cannot resolve 3 ms in it. The harness passes a
+   * fast-attack envelope so the thing being measured is the *scheduling*, and
+   * says so. Nothing in the piece passes it. */
+  noteOn(voice: number, midi: number, at: number, velocity = 0.8, env = VOICE_ENVELOPE) {
     const key = `${voice}:${midi}`;
     // A re-articulation of a pitch that is still sounding: release the old
     // one rather than leaving it running for ever. This is the stuck-note
@@ -181,7 +188,7 @@ export class AudioEngine {
       midiToFrequency(midi),
       velocity,
       at,
-      VOICE_ENVELOPE,
+      env,
     );
     this.active.set(key, v);
   }
@@ -231,6 +238,63 @@ export class AudioEngine {
   setSpace(name: string, at: number, seconds = 2.0) {
     this.reverb.select(name, at, seconds);
   }
+}
+
+/** How long the mastering chain delays everything, in seconds — measured,
+ * not assumed.
+ *
+ * # A compressor is a delay line, and nothing says so
+ *
+ * `DynamicsCompressorNode` looks ahead. It has to: a limiter that reacted
+ * only to samples it had already passed on could not attenuate the transient
+ * that triggered it. The lookahead is implemented as a **pre-delay on the
+ * signal path**, so every sample that goes through the compressor comes out
+ * late by a fixed amount — and the Web Audio API exposes no way to ask what
+ * that amount is. (An early draft had a `latencyTime` attribute; it was
+ * removed.)
+ *
+ * M70 found it the way anything gets found here: by measuring. Onsets taken
+ * from the master output were consistently **5.99 ms** late against the
+ * score, with a spread of well under a millisecond — a constant, which is
+ * never a scheduling error and always a delay line. An impulse through a bare
+ * compressor with this project's settings comes out **264 samples** later at
+ * 44.1 kHz. The waveshaper adds none, and neither does the EQ.
+ *
+ * # Why this matters, and it is not the music
+ *
+ * A constant delay on everything is inaudible: the whole piece is 6 ms late
+ * and no listener has a reference. It matters for **M71's AC2**, which asks
+ * that the Kick's audio onset and the first frame of the camera Kick land
+ * within one frame — 16.7 ms. Six milliseconds of unaccounted latency is over
+ * a third of that budget, spent before anyone writes a line of binding code.
+ *
+ * So it is measured rather than trusted: the number depends on the browser's
+ * implementation and on the sample rate, and hard-coding either would be
+ * exactly the kind of assertion this project keeps catching itself making.
+ */
+export async function measureOutputLatency(sampleRate = 44100): Promise<number> {
+  const ctx = new OfflineAudioContext(1, Math.ceil(sampleRate * 0.5), sampleRate);
+  const buffer = ctx.createBuffer(1, 4, sampleRate);
+  buffer.getChannelData(0)[0] = 1;
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  const c = ctx.createDynamicsCompressor();
+  c.threshold.value = LIMITER.threshold;
+  c.knee.value = LIMITER.knee;
+  c.ratio.value = LIMITER.ratio;
+  c.attack.value = LIMITER.attack;
+  c.release.value = LIMITER.release;
+  src.connect(c);
+  c.connect(ctx.destination);
+  const at = 0.1;
+  src.start(at);
+  const rendered = await ctx.startRendering();
+  const d = rendered.getChannelData(0);
+  const from = Math.floor(at * sampleRate * 0.5);
+  for (let i = from; i < d.length; i++) {
+    if (Math.abs(d[i]) > 1e-7) return i / sampleRate - at;
+  }
+  return 0;
 }
 
 /** The output ceiling, as a curve.

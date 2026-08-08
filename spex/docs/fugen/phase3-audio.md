@@ -533,6 +533,125 @@ different place.
 3. No stuck notes after 100 randomised seek/pause/play operations.
 
 **Verification ladder.** 1, 2, 3, 5 (**mandatory** — this milestone changes the picture). (6 runs at the end of the phase.)
+
+**Status: ✅ done.** `viewer/src/audio/{midi.ts, scheduler.ts, fugue.ts}` and
+`scripts/viewer-shot/scheduleprobe.mjs`. All three criteria measured, and each
+of them was wrong first in a way worth keeping.
+
+**The reader is the runtime path, and that is what makes it un-rottable.**
+Rev 4 deleted a format so that one file is the score: M68 writes a standard
+MIDI file, `midi.ts` reads it, and the browser plays what a person opens in a
+DAW. So the reader is not an escape hatch someone remembers to exercise —
+nothing sounds without it, and every run is a test of it. Substituting a
+different, clearly-licensed `.mid` needs no code at all, which for a work
+whose licensing questions are live ([`licensing.md`](licensing.md)) is not a
+small property.
+
+**`a.pos += f()` when `f` advances `pos`.** The reader parsed, produced 475
+notes, and put them at times that were *nearly* right. JavaScript evaluates
+the left-hand reference before calling the right-hand function, so
+`tr.pos += tr.vlq()` computes `oldPos + length` and throws away the bytes the
+length field itself occupied — one byte behind for the rest of the track,
+every subsequent delta read from the middle of some other event, and a parse
+that desynchronised into plausible-looking garbage rather than an error. It
+was found by printing a tick of 111 and recognising it as the letter `o` of
+"Soprano". The first pass over the same bytes did not have the bug, because it
+reads meta payloads with `bytes(len)` instead of skipping them: **two readers
+of one format, one of them subtly wrong.**
+
+**AC1 passes: 191 scored soprano onsets, 0 missed, median 0.22 ms, p95
+1.04 ms, worst 1.71 ms** over the full 240 s — measured from rendered audio,
+not from the scheduler's own account of itself. Three substitutions are made
+for the measurement and all three are stated in the harness: a fast attack
+(the organ's 35 ms ramp is not an edge, and an instrument that cannot resolve
+3 ms cannot measure 3 ms), one voice (four lines attacking within a few
+milliseconds cannot be separated by any detector, and the question is
+scheduling rather than polyphony), and a tap at the voice bus rather than the
+master output — for which see the next paragraph.
+
+**The mastering chain delays everything by a measured 5.986 ms, and nothing
+in the Web Audio API says so.** Onsets taken from the master output were
+consistently ~6 ms late with a spread under a millisecond, which is never a
+scheduling error and always a delay line. An impulse through a bare
+`DynamicsCompressorNode` with this project's settings comes out **264 samples
+later at 44.1 kHz**; the waveshaper and the EQ add none. A compressor has to
+look ahead — a limiter that reacted only to samples it had already passed on
+could not attenuate the transient that triggered it — and the lookahead is a
+pre-delay on the signal path. A constant delay on everything is inaudible.
+**It is M71's problem**: "the Kick's audio onset and the first frame of the
+camera Kick within one frame" is a 16.7 ms budget, and six of those
+milliseconds are spent before any binding code exists. `measureOutputLatency()`
+therefore lives in `engine.ts` and measures it at runtime rather than trusting
+a constant, because the number depends on the browser and the sample rate.
+
+**Two onset detectors were wrong before this one, and the arithmetic says why
+each had to be.** The first used a level threshold with hysteresis and found
+**2 onsets in four minutes**: with four sustaining voices the envelope never
+falls back below the disarm level, so it arms once and never again. Sustain is
+the entire point of the instrument (M69), so the detector has to look at the
+*rise*. The second smoothed |x| with a one-pole filter and took its flux, and
+found **1107 onsets in a part that has 191 notes**: |sin| ripples at twice the
+fundamental, so at 220 Hz the envelope bumps every 2.3 ms, and any smoother
+slow enough not to follow that is too slow to resolve 3 ms. **There is no
+setting of that filter that works.** What works is a **running maximum** over
+more than one period: ripple-free by construction, and — unlike any low-pass —
+it rises on the very sample a louder signal arrives, because a maximum has no
+time constant.
+
+**And then the setting that mattered came from the music rather than from
+tuning.** Even with the right envelope, a note's 50 ms release beats against
+the next note's attack and the beat is a rise. Raising the level threshold
+suppressed those *and* the quietest real entries — 50 spurious detections and
+**two real onsets missed**. The shortest interval between two soprano onsets
+in this score is a quaver at 84 bpm, **0.357 s**, so any second detection
+within 0.25 s of the first cannot be a note: a 250 ms refractory period leaves
+**8 spurious and none missed**. The threshold was a guess about levels; the
+refractory is a fact about the piece.
+
+**AC2 passes: 0.9956, 0.9898, 0.9936, 0.9959, and a silence.** Two things had
+to be fixed before the numbers meant anything, one in the scheduler and one in
+the criterion.
+
+*The scheduler was silent at bar 81.* The first `seek()` placed the cursor at
+the next note and stopped, on the reasoning that a note has an attack and
+starting one in the middle is a click with a pitch. That is true, and it
+produced **nothing at all** when the harness landed at t = 221.7 s — the piece
+has a three-and-a-half-bar pedal point there, one held note under everything
+else, started long before. Playing nothing is not "musically correct material
+for that position", it is the absence of the material. A spanning note is now
+resumed for its *remaining* duration and the click is solved where it belongs,
+in the envelope.
+
+*And the criterion compared against the wrong thing, twice.* The reference was
+a full-run render — which the harness had rendered **soprano-only** for AC1, so
+four of the five seeks were being compared against a different piece of music.
+The reference is now a render that **played into** the moment from six seconds
+earlier, so it arrives with the releases and the reverb tail a listener would
+have. Then t = 221.7 s: it is inside the ten-second caesura before the final
+chord, the seek correctly produced silence, and a cosine similarity between a
+silence and a reverb tail is 0. **The right answer was being reported as a
+failure by a metric that could not represent it.** A position the score leaves
+empty is now compared against the score: silent where silent is correct, and
+the reference's residual 0.030 rms of tail is printed rather than pretended
+away — a fresh seek cannot have it and should not.
+
+**AC3 passes: 0 pending, 0 sounding after 100 randomised operations** (29
+seeks, 39 pauses, 32 plays). It reported four pending, and they were not a
+leak: the run ended on a seek **while paused**, and `seek()` was resuming the
+spanning notes. Scrubbing a stopped show must not start a note — nothing will
+ever come along to stop it, because nothing is playing — so the resume is now
+gated on the clock. The harness also runs time forward past every scheduled
+release before counting, since a note whose release is still in the future is
+just a note.
+
+**Rung 5, and what it was worth.** The milestone is marked *mandatory* for the
+screenshot, which was written before rev 2's rule; M70 changes no pixel. The
+frames were shot anyway because M70 touches `viewer/src`, and they are
+identical to M66's. Two console 404s, both `/tileset/cuts.json` — that
+directory has no cuts index and `fetchCutsIndex` returning `null` is the
+designed behaviour. `cargo test --workspace --no-fail-fast`: **273 pass, 1
+fails for want of `sqlite3` on this container's PATH**, unrelated and
+pre-existing.
 ---
 
 ### M71 — audio↔visual binding, autoplay policy, and the mixer UI
