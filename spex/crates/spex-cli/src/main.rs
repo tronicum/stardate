@@ -10,6 +10,7 @@ mod graph_diff;
 mod molecule;
 mod nav;
 mod npm_deps;
+mod packet;
 mod ps_tree;
 mod pstree_demo;
 mod sql_schema;

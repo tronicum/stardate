@@ -4,6 +4,7 @@
 //! the cell's real RGB). Unlike that project — which samples an
 //! already-rendered 2D image — this projects real 3D point data through a
 //! simple pinhole camera first, so overlaps need resolving by depth.
+use crate::packet::{self, NodeLabel};
 use anyhow::Result;
 use spex_core::{Aabb, Point};
 use std::io::IsTerminal;
@@ -15,6 +16,14 @@ use std::path::Path;
 const RAMP: &[char] = &[' ', '.', '\u{b7}', ':', ';', '=', '+', '*', 'x', '%', '#', '@'];
 const CHAR_ASPECT: f64 = 0.62;
 const FOV_Y_DEGREES: f64 = 60.0;
+
+/// The graph packet marker (see `packet.rs`): a letter, not a ramp glyph, so
+/// it reads as "a distinct thing" rather than "a brighter point" — RAMP is
+/// all punctuation, so any letter is unambiguous — colored bright magenta,
+/// a hue the metric-driven blue->yellow->red blob gradient never produces
+/// (`spex_graph::layout`), so the marker never blends into real graph data.
+const PACKET_MARKER_CHAR: char = 'P';
+const PACKET_MARKER_COLOR: [u8; 3] = [255, 0, 255];
 
 pub fn run(tileset_dir: &Path, width: usize) -> Result<String> {
     let points = spex_tiler::read_points(tileset_dir)?;
@@ -129,6 +138,28 @@ fn project(points: &[Point], camera: &Camera, width: usize, height: usize) -> Ve
     zbuffer.into_iter().map(|cell| cell.map(|(_, color)| color)).collect()
 }
 
+/// Same projection math as [`project`], but for a single 3D position rather
+/// than a whole point cloud's z-buffer pass — used to place the packet
+/// marker (see `packet.rs`) in a frame's grid, which only ever needs one
+/// point placed per frame, not a full `Vec<Point>` re-projection.
+fn project_point(position: [f64; 3], camera: &Camera, width: usize, height: usize) -> Option<(usize, usize)> {
+    let rel = sub(position, camera.position);
+    let cz = dot(rel, camera.forward);
+    if cz <= 1e-6 {
+        return None; // behind the camera
+    }
+    let cx = dot(rel, camera.right);
+    let cy = dot(rel, camera.up);
+    let sx = cx / (cz * camera.tan_half_fov);
+    let sy = cy / (cz * camera.tan_half_fov);
+    if !(-1.0..=1.0).contains(&sx) || !(-1.0..=1.0).contains(&sy) {
+        return None; // outside the field of view
+    }
+    let col = ((((sx + 1.0) / 2.0) * width as f64) as usize).min(width - 1);
+    let row = ((((1.0 - sy) / 2.0) * height as f64) as usize).min(height - 1);
+    Some((row, col))
+}
+
 fn luminance_to_char(color: [u8; 3]) -> char {
     let lum = 0.2126 * color[0] as f64 + 0.7152 * color[1] as f64 + 0.0722 * color[2] as f64;
     let t = (lum / 255.0).clamp(0.0, 1.0);
@@ -183,11 +214,19 @@ fn project_cropped(points: &[Point], width: usize) -> Option<(Vec<Option<[u8; 3]
 
 /// Renders one already-projected grid slice as ANSI text — shared by the
 /// single-frame `render` and the multi-frame animation renderer so both
-/// produce byte-identical formatting for the same cells.
-fn grid_slice_to_ansi(grid: &[Option<[u8; 3]>], width: usize, min_row: usize, max_row: usize, min_col: usize, max_col: usize, use_color: bool) -> String {
+/// produce byte-identical formatting for the same cells. `marker`, if
+/// given, is a `(row, col)` cell in full (uncropped) grid coordinates that
+/// gets overwritten with the packet glyph regardless of what point (if any)
+/// landed there — drawn last, on top of the regular points, per the graph
+/// packet overlay (see `packet_overlay`).
+fn grid_slice_to_ansi(grid: &[Option<[u8; 3]>], width: usize, min_row: usize, max_row: usize, min_col: usize, max_col: usize, use_color: bool, marker: Option<(usize, usize)>) -> String {
     let mut out = String::new();
     for row in min_row..=max_row {
         for col in min_col..=max_col {
+            if marker == Some((row, col)) {
+                out.push_str(&packet_marker_ansi(use_color));
+                continue;
+            }
             match grid[row * width + col] {
                 None => out.push(' '),
                 Some(color) => {
@@ -205,12 +244,29 @@ fn grid_slice_to_ansi(grid: &[Option<[u8; 3]>], width: usize, min_row: usize, ma
     out
 }
 
+fn packet_marker_ansi(use_color: bool) -> String {
+    if use_color {
+        format!("\x1b[38;2;{};{};{}m{PACKET_MARKER_CHAR}\x1b[0m", PACKET_MARKER_COLOR[0], PACKET_MARKER_COLOR[1], PACKET_MARKER_COLOR[2])
+    } else {
+        PACKET_MARKER_CHAR.to_string()
+    }
+}
+
 fn render(points: &[Point], width: usize) -> String {
     let Some((grid, min_row, max_row, min_col, max_col)) = project_cropped(points, width) else {
         return String::new();
     };
     let use_color = std::io::stdout().is_terminal() && std::env::var_os("NO_COLOR").is_none();
-    grid_slice_to_ansi(&grid, width, min_row, max_row, min_col, max_col, use_color)
+    grid_slice_to_ansi(&grid, width, min_row, max_row, min_col, max_col, use_color, None)
+}
+
+/// The azimuth (radians) of orbit frame `i` of `frame_count` — pulled out so
+/// [`project_frames_cropped`]'s camera sweep and [`packet_overlay`]'s
+/// per-frame camera (needed to project the packet marker) are guaranteed to
+/// agree on which angle a given frame index means, rather than risking two
+/// copies of the formula drifting apart.
+fn frame_angle(i: usize, frame_count: usize) -> f64 {
+    (i as f64 / frame_count as f64) * std::f64::consts::TAU
 }
 
 /// Projects `points` from `frame_count` camera angles evenly spaced around a
@@ -218,9 +274,12 @@ fn render(points: &[Point], width: usize) -> String {
 /// the *union* of all frames' real content bounds rather than each frame's
 /// own — so the crop window is stable across the animation instead of the
 /// content jumping around as different angles light up different regions
-/// of the grid. Returns `(grids, width, min_row, max_row, min_col, max_col)`.
+/// of the grid. Returns `(grids, bounds, width, height, min_row, max_row,
+/// min_col, max_col)` — `bounds`/`height` ride along so a caller can
+/// re-derive the exact same per-frame cameras (see [`packet_overlay`])
+/// without recomputing bounds from `points` a second time.
 #[allow(clippy::type_complexity)]
-fn project_frames_cropped(points: &[Point], width: usize, frame_count: usize) -> Option<(Vec<Vec<Option<[u8; 3]>>>, usize, usize, usize, usize, usize)> {
+fn project_frames_cropped(points: &[Point], width: usize, frame_count: usize) -> Option<(Vec<Vec<Option<[u8; 3]>>>, Aabb, usize, usize, usize, usize, usize, usize)> {
     if points.is_empty() || width == 0 || frame_count == 0 {
         return None;
     }
@@ -229,8 +288,7 @@ fn project_frames_cropped(points: &[Point], width: usize, frame_count: usize) ->
 
     let grids: Vec<Vec<Option<[u8; 3]>>> = (0..frame_count)
         .map(|i| {
-            let angle = (i as f64 / frame_count as f64) * std::f64::consts::TAU;
-            let camera = orbit_camera(&bounds, angle);
+            let camera = orbit_camera(&bounds, frame_angle(i, frame_count));
             project(points, &camera, width, height)
         })
         .collect();
@@ -253,26 +311,76 @@ fn project_frames_cropped(points: &[Point], width: usize, frame_count: usize) ->
     let max_row = (max_row + 1).min(height - 1);
     let min_col = min_col.saturating_sub(1);
     let max_col = (max_col + 1).min(width - 1);
-    Some((grids, width, min_row, max_row, min_col, max_col))
+    Some((grids, bounds, width, height, min_row, max_row, min_col, max_col))
+}
+
+/// Per-frame graph packet overlay: where to draw the marker (if it projects
+/// inside that frame's view at all) and the hop-readout text to print
+/// beneath the grid — always present as long as `path` is real, even on a
+/// frame where the marker itself falls outside the crop, so "what hop are
+/// we on" stays answerable every frame. `frame_count` must match the number
+/// of grids the caller projected, so marker/footer line up 1:1 with frames.
+struct PacketOverlay {
+    /// One entry per frame: `(row, col)` in full (uncropped) grid
+    /// coordinates, or `None` if the packet isn't in view that frame.
+    markers: Vec<Option<(usize, usize)>>,
+    /// One "hop N/M: from -> to" line per frame.
+    footers: Vec<String>,
+}
+
+fn packet_overlay(bounds: &Aabb, width: usize, height: usize, path: &[NodeLabel], frame_count: usize) -> Option<PacketOverlay> {
+    let states = packet::packet_states(path, frame_count);
+    if states.is_empty() {
+        return None;
+    }
+    let mut markers = Vec::with_capacity(states.len());
+    let mut footers = Vec::with_capacity(states.len());
+    for (i, state) in states.iter().enumerate() {
+        let camera = orbit_camera(bounds, frame_angle(i, frame_count));
+        markers.push(project_point(state.position, &camera, width, height));
+        footers.push(format!("hop {}/{}: {} -> {}", state.hop_index, state.hop_count, state.from_label, state.to_label));
+    }
+    Some(PacketOverlay { markers, footers })
 }
 
 /// One ANSI-colored string per frame of a turntable orbit animation — same
-/// crop window for every frame (see [`project_frames_cropped`]).
-pub fn render_frames(points: &[Point], width: usize, frame_count: usize) -> Vec<String> {
-    let Some((grids, width, min_row, max_row, min_col, max_col)) = project_frames_cropped(points, width, frame_count) else {
+/// crop window for every frame (see [`project_frames_cropped`]). `path`, if
+/// given a real (>= 2 node) graph packet path (see `packet.rs`), overlays a
+/// distinct marker glyph plus a trailing "hop N/M: ..." readout line on
+/// every frame; `None` reproduces the exact pre-graph-awareness output
+/// (plain point-cloud tilesets have no `nodes.json` to build a path from).
+pub fn render_frames(points: &[Point], width: usize, frame_count: usize, path: Option<&[NodeLabel]>) -> Vec<String> {
+    let Some((grids, bounds, width, height, min_row, max_row, min_col, max_col)) = project_frames_cropped(points, width, frame_count) else {
         return Vec::new();
     };
     let use_color = std::io::stdout().is_terminal() && std::env::var_os("NO_COLOR").is_none();
-    grids.iter().map(|g| grid_slice_to_ansi(g, width, min_row, max_row, min_col, max_col, use_color)).collect()
+    let overlay = path.and_then(|p| packet_overlay(&bounds, width, height, p, grids.len()));
+    grids
+        .iter()
+        .enumerate()
+        .map(|(i, g)| {
+            let marker = overlay.as_ref().and_then(|o| o.markers[i]);
+            let mut frame = grid_slice_to_ansi(g, width, min_row, max_row, min_col, max_col, use_color, marker);
+            if let Some(o) = &overlay {
+                frame.push_str(&o.footers[i]);
+                frame.push('\n');
+            }
+            frame
+        })
+        .collect()
 }
 
 /// Plays a turntable orbit animation directly in the terminal: clears the
 /// screen and redraws each frame in place (`\x1b[2J\x1b[H`), pacing frames
 /// at `fps`, for `loops` full orbits (`loops == 0` means forever, until the
-/// process is interrupted — e.g. Ctrl-C).
+/// process is interrupted — e.g. Ctrl-C). Graph-aware: if `tileset_dir` has
+/// a real `nodes.json` alongside it (graph pipeline output — absent for a
+/// plain point-cloud tileset), each frame also carries the packet marker +
+/// hop readout (see [`render_frames`]/`packet.rs`).
 pub fn run_animated(tileset_dir: &Path, width: usize, frame_count: usize, fps: f64, loops: usize) -> Result<()> {
     let points = spex_tiler::read_points(tileset_dir)?;
-    let frames = render_frames(&points, width, frame_count);
+    let path = load_packet_path(tileset_dir)?;
+    let frames = render_frames(&points, width, frame_count, path.as_deref());
     if frames.is_empty() {
         return Ok(());
     }
@@ -295,11 +403,23 @@ pub fn run_animated(tileset_dir: &Path, width: usize, frame_count: usize, fps: f
 
 /// Renders one already-projected grid slice as an HTML body (`<span
 /// style="color:...">` per lit cell) — shared by the single-frame
-/// `render_html` and the multi-frame animated HTML export.
-fn grid_slice_to_html_body(grid: &[Option<[u8; 3]>], width: usize, min_row: usize, max_row: usize, min_col: usize, max_col: usize) -> String {
+/// `render_html` and the multi-frame animated HTML export. `marker` is the
+/// same "draw this cell as the packet regardless of what's under it" as
+/// `grid_slice_to_ansi`'s.
+fn grid_slice_to_html_body(grid: &[Option<[u8; 3]>], width: usize, min_row: usize, max_row: usize, min_col: usize, max_col: usize, marker: Option<(usize, usize)>) -> String {
     let mut body = String::new();
     for row in min_row..=max_row {
         for col in min_col..=max_col {
+            if marker == Some((row, col)) {
+                body.push_str(&format!(
+                    "<span style=\"color:rgb({},{},{})\">{}</span>",
+                    PACKET_MARKER_COLOR[0],
+                    PACKET_MARKER_COLOR[1],
+                    PACKET_MARKER_COLOR[2],
+                    html_escape_char(PACKET_MARKER_CHAR)
+                ));
+                continue;
+            }
             match grid[row * width + col] {
                 None => body.push(' '),
                 Some(color) => {
@@ -323,7 +443,7 @@ fn render_html(points: &[Point], width: usize, title: &str) -> String {
     let Some((grid, min_row, max_row, min_col, max_col)) = project_cropped(points, width) else {
         return format!("<!doctype html><title>{title}</title><body style=\"background:#0b0e12\"></body>");
     };
-    let body = grid_slice_to_html_body(&grid, width, min_row, max_row, min_col, max_col);
+    let body = grid_slice_to_html_body(&grid, width, min_row, max_row, min_col, max_col, None);
 
     format!(
         "<!doctype html>\n\
@@ -343,17 +463,34 @@ fn render_html(points: &[Point], width: usize, title: &str) -> String {
 /// by a small inline `<script>` via `setInterval` swapping one `<pre>`'s
 /// `innerHTML`. No canvas/WebGL — this is meant to be viewable literally
 /// anywhere an HTML file renders, matching the plain-ASCII spirit of the
-/// static view it's an animated sibling of.
+/// static view it's an animated sibling of. Graph-aware the same way
+/// `run_animated` is: a real `nodes.json` next to `tileset_dir` gets the
+/// packet marker + hop-readout line baked into every frame's body, so the
+/// same single `innerHTML` swap updates the grid and the readout together.
 pub fn run_html_animated(tileset_dir: &Path, width: usize, frame_count: usize, fps: f64, title: &str) -> Result<String> {
     let points = spex_tiler::read_points(tileset_dir)?;
-    Ok(render_html_animated(&points, width, frame_count, fps, title))
+    let path = load_packet_path(tileset_dir)?;
+    Ok(render_html_animated(&points, width, frame_count, fps, title, path.as_deref()))
 }
 
-fn render_html_animated(points: &[Point], width: usize, frame_count: usize, fps: f64, title: &str) -> String {
-    let Some((grids, width, min_row, max_row, min_col, max_col)) = project_frames_cropped(points, width, frame_count) else {
+fn render_html_animated(points: &[Point], width: usize, frame_count: usize, fps: f64, title: &str, path: Option<&[NodeLabel]>) -> String {
+    let Some((grids, bounds, width, height, min_row, max_row, min_col, max_col)) = project_frames_cropped(points, width, frame_count) else {
         return format!("<!doctype html><title>{title}</title><body style=\"background:#0b0e12\"></body>");
     };
-    let bodies: Vec<String> = grids.iter().map(|g| grid_slice_to_html_body(g, width, min_row, max_row, min_col, max_col)).collect();
+    let overlay = path.and_then(|p| packet_overlay(&bounds, width, height, p, grids.len()));
+    let bodies: Vec<String> = grids
+        .iter()
+        .enumerate()
+        .map(|(i, g)| {
+            let marker = overlay.as_ref().and_then(|o| o.markers[i]);
+            let mut body = grid_slice_to_html_body(g, width, min_row, max_row, min_col, max_col, marker);
+            if let Some(o) = &overlay {
+                body.push('\n');
+                body.push_str(&html_escape(&o.footers[i]));
+            }
+            body
+        })
+        .collect();
     let frames_json = serde_json::to_string(&bodies).unwrap_or_else(|_| "[]".to_string());
     let interval_ms = (1000.0 / fps.max(0.1)).round() as u64;
 
@@ -383,6 +520,26 @@ fn html_escape_char(c: char) -> String {
         '&' => "&amp;".to_string(),
         _ => c.to_string(),
     }
+}
+
+/// Escapes a whole string cell-by-cell via [`html_escape_char`] — used for
+/// the hop-readout footer line, whose text (real node labels from a graph
+/// adapter) isn't otherwise guaranteed HTML-safe.
+fn html_escape(s: &str) -> String {
+    s.chars().map(html_escape_char).collect()
+}
+
+/// Loads a tileset's graph packet path, if it has one: `nodes.json` (see
+/// `packet::load_nodes`) swept via `packet::build_full_sweep_path`. `None`
+/// covers both "plain point-cloud tileset, no `nodes.json` at all" and "a
+/// graph with fewer than two real hops" — either way, nothing to animate a
+/// packet along, so callers fall back to the pre-graph-awareness behavior.
+fn load_packet_path(tileset_dir: &Path) -> Result<Option<Vec<NodeLabel>>> {
+    let Some(nodes) = packet::load_nodes(tileset_dir)? else {
+        return Ok(None);
+    };
+    let path = packet::build_full_sweep_path(&nodes);
+    Ok((path.len() >= 2).then_some(path))
 }
 
 #[cfg(test)]
@@ -462,7 +619,7 @@ mod tests {
         // A point off-center so different orbit angles actually project it
         // to different screen positions, not the same cell every frame.
         let points = vec![Point { position: [3.0, 0.0, 0.0], color: [255, 255, 255] }];
-        let frames = render_frames(&points, 60, 8);
+        let frames = render_frames(&points, 60, 8, None);
         assert_eq!(frames.len(), 8);
         assert!(frames.iter().all(|f| !f.is_empty()), "every frame should render real content");
         // Not every frame should be byte-identical — the camera really is
@@ -473,7 +630,7 @@ mod tests {
     #[test]
     fn render_frames_share_a_stable_crop_window_across_the_orbit() {
         let points = vec![Point { position: [3.0, 0.0, 0.0], color: [255, 255, 255] }];
-        let frames = render_frames(&points, 60, 8);
+        let frames = render_frames(&points, 60, 8, None);
         let widths: Vec<usize> = frames.iter().map(|f| f.lines().next().map(str::chars).map(Iterator::count).unwrap_or(0)).collect();
         assert!(widths.iter().all(|w| *w == widths[0]), "every frame should share the same crop width: {widths:?}");
     }
@@ -481,7 +638,7 @@ mod tests {
     #[test]
     fn render_html_animated_embeds_every_frame_as_real_json() {
         let points = vec![Point { position: [3.0, 0.0, 0.0], color: [200, 50, 50] }];
-        let html = render_html_animated(&points, 60, 6, 10.0, "test");
+        let html = render_html_animated(&points, 60, 6, 10.0, "test", None);
         assert!(html.contains("const frames ="));
         assert!(html.contains("setInterval"));
         // The embedded JSON array should parse back into exactly 6 real strings.
@@ -489,5 +646,54 @@ mod tests {
         let json_end = html[json_start..].find(";\n").unwrap() + json_start;
         let parsed: Vec<String> = serde_json::from_str(&html[json_start..json_end]).unwrap();
         assert_eq!(parsed.len(), 6);
+    }
+
+    /// A minimal two-node "graph" whose blobs sit at the same points used in
+    /// the tests above, so `path: Some(..)` output can be compared directly
+    /// against `path: None` output on identical underlying point data.
+    fn sample_path() -> Vec<NodeLabel> {
+        vec![
+            NodeLabel { id: "a".into(), label: "root".into(), parent: None, center: [3.0, 0.0, 0.0], metric: None, metadata: Default::default() },
+            NodeLabel { id: "b".into(), label: "child".into(), parent: Some("a".into()), center: [-3.0, 0.0, 0.0], metric: None, metadata: Default::default() },
+        ]
+    }
+
+    #[test]
+    fn no_nodes_json_reproduces_the_pre_graph_aware_output_exactly() {
+        // Backward compatibility: a plain point-cloud tileset (no graph
+        // data at all) must render byte-identical output whether or not
+        // this feature exists — `path: None` is exactly what `run_animated`
+        // passes when `nodes.json` is absent (see `load_packet_path`).
+        let points = vec![Point { position: [3.0, 0.0, 0.0], color: [255, 255, 255] }, Point { position: [-3.0, 0.0, 0.0], color: [80, 80, 200] }];
+        let without_path = render_frames(&points, 60, 8, None);
+        let also_without_path = render_frames(&points, 60, 8, None);
+        assert_eq!(without_path, also_without_path);
+        assert!(without_path.iter().all(|f| !f.contains("hop ")), "no footer line should appear without a graph path");
+    }
+
+    #[test]
+    fn a_graph_path_adds_a_hop_readout_footer_and_a_marker_glyph() {
+        let points = vec![Point { position: [3.0, 0.0, 0.0], color: [255, 255, 255] }, Point { position: [-3.0, 0.0, 0.0], color: [80, 80, 200] }];
+        let path = sample_path();
+        let frames = render_frames(&points, 60, 8, Some(&path));
+        assert_eq!(frames.len(), 8);
+        assert!(frames.iter().all(|f| f.contains("hop ") && f.contains('/')), "every frame should carry a hop readout line");
+        assert!(frames[0].contains("hop 1/1: root -> child"), "frame 0 should read hop 1/1, got: {}", frames[0]);
+        // The marker glyph itself must appear somewhere across the
+        // animation (it may fall outside a given frame's cropped view, but
+        // not every frame, since the path's own nodes are within bounds).
+        assert!(frames.iter().any(|f| f.contains(PACKET_MARKER_CHAR)), "expected the packet marker glyph to show up in at least one frame");
+    }
+
+    #[test]
+    fn html_export_embeds_the_hop_readout_alongside_each_frame() {
+        let points = vec![Point { position: [3.0, 0.0, 0.0], color: [255, 255, 255] }, Point { position: [-3.0, 0.0, 0.0], color: [80, 80, 200] }];
+        let path = sample_path();
+        let html = render_html_animated(&points, 60, 6, 10.0, "test", Some(&path));
+        let json_start = html.find("const frames = ").unwrap() + "const frames = ".len();
+        let json_end = html[json_start..].find(";\n").unwrap() + json_start;
+        let parsed: Vec<String> = serde_json::from_str(&html[json_start..json_end]).unwrap();
+        assert_eq!(parsed.len(), 6);
+        assert!(parsed.iter().all(|f| f.contains("hop ")), "every embedded frame body should carry the hop readout");
     }
 }
