@@ -1,4 +1,4 @@
-0 Monolith Assembly - 9-part stylized stack (7 Brick 1 x 4 + 2 Plate 1 x 4)
+0 Monolith Assembly - 9-part stylized stack (7 Brick 1 x 4 + 1 Plate 1 x 4 + 1 Tile 1 x 4)
 0 Name: monolith.ldr
 0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
 0 // Real stacking math: each part's own bottom surface lands exactly on
@@ -7,6 +7,21 @@
 0 // Brick 1x4 (3010.dat) is 24 LDU tall, Plate 1x4 (3710.dat) is 8 LDU
 0 // tall. Total stack height: 7*24 + 2*8 = 184 LDU = 73.6mm, matching
 0 // spex's own already-verified real monolith numbers (ratio 1:4:9.20).
+0 //
+0 // The top course is a TILE (2431.dat), not a plate. A tile is plate
+0 // height - 8 LDU, the same as the 3710 it replaces - and has no studs,
+0 // so the stack reads as one smooth slab from above rather than as a
+0 // stack of parts with a lid. Swapping rather than adding is the whole
+0 // point: adding a tenth part would take the height to 192 LDU and the
+0 // ratio to 1:4:9.60, further from the 1:4:9 the object is quoting.
+0 //
+0 // 1:4:9 exactly is NOT constructible here, and the proof is short.
+0 // It would need 180 LDU from 1x4 bricks and plates: 24a + 8b = 180,
+0 // i.e. 6a + 2b = 45 - even on the left, odd on the right. No solution.
+0 // The reachable heights bracket it symmetrically: 176 LDU is 1:4:8.80
+0 // and 184 LDU is 1:4:9.20, both off by exactly 0.20. The grid cannot
+0 // hit the ideal from either side, which is the piece's own subject
+0 // rather than a defect in this file.
 1 0 0 -24 0 1 0 0 0 1 0 0 0 1 3010.dat
 1 0 0 -48 0 1 0 0 0 1 0 0 0 1 3010.dat
 1 0 0 -72 0 1 0 0 0 1 0 0 0 1 3010.dat
@@ -15,4 +30,4 @@
 1 0 0 -144 0 1 0 0 0 1 0 0 0 1 3010.dat
 1 0 0 -168 0 1 0 0 0 1 0 0 0 1 3010.dat
 1 0 0 -176 0 1 0 0 0 1 0 0 0 1 3710.dat
-1 0 0 -184 0 1 0 0 0 1 0 0 0 1 3710.dat
+1 0 0 -184 0 1 0 0 0 1 0 0 0 1 2431.dat

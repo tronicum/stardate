@@ -221,7 +221,7 @@
               "payload": { "event": "landingAccent", "perLanding": true }
             }
           ],
-          "note": "The assembly. Nine real parts (7x 3010.dat + 2x 3710.dat, Black) fly in from the scattered start and settle into ldraw-scenes/monolith.ldr, staggered by real build step. The scatter is NOT authored as keyframes: it descends from a per-placement splitmix seed, so the document declares the generator and its constants and the choreography (M63) produces the placements. Nine hand-written transform tracks would be nine numbers that could disagree with the model. Voice 2 enters with the tonal answer as the first part lands."
+          "note": "The assembly. Nine real parts (7x 3010.dat + 1x 3710.dat + 1x 2431.dat, Black) fly in from the scattered start and settle into ldraw-scenes/monolith.ldr, staggered by real build step. The scatter is NOT authored as keyframes: it descends from a per-placement splitmix seed, so the document declares the generator and its constants and the choreography (M63) produces the placements. Nine hand-written transform tracks would be nine numbers that could disagree with the model. Voice 2 enters with the tonal answer as the first part lands."
         },
         {
           "id": "A1-S05",

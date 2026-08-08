@@ -266,3 +266,18 @@ chain, camera and ground state at t=0 before and after a real loop, and renders
 the same frame with and without the ground and with and without the
 environment. It is what found the Fresnel answer to "why is the opening frame
 not black".
+
+**`showvideo.mjs <url> <out> [cut] [frames] [fps]`** is not a test — it is the
+one that produces something to *watch*, for people who are not sitting at the
+machine that renders it. On a software rasteriser at two or three frames a
+second there is no screen-recording a show live, so it pauses the clock and
+steps it: seek, render, capture, repeat, with show time advancing a fixed
+amount per captured frame. The recording is therefore a property of the piece
+and not of the machine. The trade is that anything derived from *frame* time
+rather than show time — the grade pass's dither, a materialise flash decay —
+gets stepped along with it. Assemble with ffmpeg:
+
+```sh
+node scripts/viewer-shot/showvideo.mjs http://127.0.0.1:8120/ /tmp/vid endless 300 15
+ffmpeg -framerate 15 -i /tmp/vid/f%04d.png -c:v libx264 -pix_fmt yuv420p -crf 20 out.mp4
+```
