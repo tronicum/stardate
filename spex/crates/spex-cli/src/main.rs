@@ -8,6 +8,7 @@ mod export_static;
 mod frame_sequence;
 mod graph_diff;
 mod graph_morph;
+mod heritage_preview;
 mod molecule;
 mod nav;
 mod npm_deps;
@@ -309,6 +310,23 @@ enum Command {
         out: PathBuf,
     },
 
+    /// A real, quick, standalone proof that a real UNESCO World Heritage
+    /// monument's dominant real-world shape can be reconstructed through
+    /// spex's existing point-cloud pipeline — not the formal M74 Atlas
+    /// system (`docs/FUGEN-ENGINE.md`, a much bigger, currently-unbuilt
+    /// mesh-rendering pipeline). Real cited dimensions, parametric
+    /// geometry, same sampling technique `spex-ankerstein` already uses.
+    HeritagePreview {
+        /// A known real shape id (run with no argument to list them).
+        shape: Option<String>,
+
+        #[arg(long, default_value_t = 4000)]
+        points: usize,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+    },
+
     /// List available demos (subdirectories of `demos/` containing a
     /// graph.json), showing the terminal/web view command for each — so you
     /// can pick which demo and which representation to look at.
@@ -563,6 +581,7 @@ fn main() -> Result<()> {
         Command::GraphPrint { graph } => cmd_graph_print(&graph),
         Command::GraphDiff { old, new, merge, out } => cmd_graph_diff(&old, &new, merge, out),
         Command::GraphMorph { old, new, frames, fps, out } => graph_morph::run(&old, &new, frames, fps, &out),
+        Command::HeritagePreview { shape, points, out } => heritage_preview::run(shape, points, out),
         Command::Demos { dir } => cmd_demos(&dir),
         Command::Gallery { dir, port, no_open } => cmd_gallery(&dir, port, !no_open),
         Command::ExportStatic { dir, out } => cmd_export_static(&dir, &out),
