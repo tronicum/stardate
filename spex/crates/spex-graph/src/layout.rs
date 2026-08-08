@@ -29,11 +29,11 @@ pub struct LayoutResult {
 const RADIUS_STEP: f64 = 8.0;
 const HEIGHT_STEP: f64 = 4.0;
 const ANGLE_JITTER: f64 = 0.6;
-const BLOB_POINTS: usize = 300;
+pub const BLOB_POINTS: usize = 300;
 const BLOB_RADIUS: f64 = 1.5;
 const EDGE_POINTS: usize = 60;
 const EDGE_JITTER: f64 = 0.15;
-const NEUTRAL_GRAY: [u8; 3] = [140, 140, 140];
+pub const NEUTRAL_GRAY: [u8; 3] = [140, 140, 140];
 /// Fixed colors for the diff/temporal viewer (`graph_diff::merge_for_viz`'s
 /// `diff_status` metadata tag) — distinct from the metric heat gradient so
 /// "what changed" reads as a category, not a magnitude.
@@ -65,7 +65,11 @@ fn fnv1a(s: &str) -> u64 {
     hash
 }
 
-fn lerp_color(a: [u8; 3], b: [u8; 3], t: f64) -> [u8; 3] {
+/// Linearly interpolates two colors — `pub` so callers building a point
+/// cloud from positions/colors they computed themselves (e.g.
+/// `graph_morph`'s per-frame blend between a node's old and new color) can
+/// use the exact same blend the layout engine itself uses internally.
+pub fn lerp_color(a: [u8; 3], b: [u8; 3], t: f64) -> [u8; 3] {
     [
         (a[0] as f64 + (b[0] as f64 - a[0] as f64) * t).round() as u8,
         (a[1] as f64 + (b[1] as f64 - a[1] as f64) * t).round() as u8,
@@ -76,7 +80,7 @@ fn lerp_color(a: [u8; 3], b: [u8; 3], t: f64) -> [u8; 3] {
 /// blue (low) -> yellow (mid) -> red (high). Shared by the 3D layout (blob
 /// color) and the terminal view (`display::format_tree`'s ANSI color), so
 /// both media use exactly the same color language for the same data.
-pub(crate) fn heat_color(t: f64) -> [u8; 3] {
+pub fn heat_color(t: f64) -> [u8; 3] {
     let t = t.clamp(0.0, 1.0);
     if t < 0.5 {
         lerp_color([40, 110, 255], [255, 220, 0], t / 0.5)
@@ -88,7 +92,7 @@ pub(crate) fn heat_color(t: f64) -> [u8; 3] {
 /// `(min, range)` over whatever nodes have a metric, with `range` defaulting
 /// to 1.0 when there's no real spread (or no metrics at all) — used to
 /// normalize a metric into `heat_color`'s 0..1 input.
-pub(crate) fn metric_min_range<'a>(metrics: impl Iterator<Item = &'a Option<f64>>) -> (f64, f64) {
+pub fn metric_min_range<'a>(metrics: impl Iterator<Item = &'a Option<f64>>) -> (f64, f64) {
     let (min, max) = metrics
         .filter_map(|m| *m)
         .fold((f64::INFINITY, f64::NEG_INFINITY), |(lo, hi), m| (lo.min(m), hi.max(m)));
@@ -321,14 +325,28 @@ fn random_in_sphere(rng: &mut StdRng, radius: f64) -> [f64; 3] {
 }
 
 fn scatter_blob(ln: &LayoutNode, out: &mut Vec<Point>) {
-    let mut rng = StdRng::seed_from_u64(fnv1a(&ln.id) ^ 0x5bd1_e995);
-    for _ in 0..BLOB_POINTS {
+    out.extend(scatter_blob_at(&ln.id, ln.center, ln.color, BLOB_POINTS));
+}
+
+/// Scatters `count` points in a jittered sphere around `center`, colored
+/// `color` — the same per-node "blob" every layout node gets, exposed
+/// standalone (not just via a full `LayoutNode`) so a caller building a
+/// point cloud from positions it computed itself — e.g. `graph_morph`'s
+/// per-frame interpolated centers, or a fading node's shrinking point
+/// count — gets the exact same visual look real layout output has, seeded
+/// the same way (`id`, not the caller's own RNG) so a given node's blob
+/// jitter pattern stays stable across frames even as its center moves.
+pub fn scatter_blob_at(id: &str, center: [f64; 3], color: [u8; 3], count: usize) -> Vec<Point> {
+    let mut rng = StdRng::seed_from_u64(fnv1a(id) ^ 0x5bd1_e995);
+    let mut out = Vec::with_capacity(count);
+    for _ in 0..count {
         let offset = random_in_sphere(&mut rng, BLOB_RADIUS);
         out.push(Point {
-            position: [ln.center[0] + offset[0], ln.center[1] + offset[1], ln.center[2] + offset[2]],
-            color: ln.color,
+            position: [center[0] + offset[0], center[1] + offset[1], center[2] + offset[2]],
+            color,
         });
     }
+    out
 }
 
 fn scatter_edge(parent: &LayoutNode, child: &LayoutNode, out: &mut Vec<Point>) {

@@ -2,7 +2,10 @@ mod display;
 mod layout;
 
 pub use display::format_tree;
-pub use layout::{build, build_points, LayoutNodeInfo, LayoutResult};
+pub use layout::{
+    build, build_points, heat_color, lerp_color, metric_min_range, scatter_blob_at, LayoutNodeInfo, LayoutResult,
+    BLOB_POINTS, NEUTRAL_GRAY,
+};
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
