@@ -17,6 +17,7 @@ spex-ldraw = { workspace = true }
 spex-mesh = { workspace = true }
 spex-show = { workspace = true }
 spex-fugue = { workspace = true }
+spex-build = { workspace = true }
 anyhow = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

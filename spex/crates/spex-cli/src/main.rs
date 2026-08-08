@@ -1,6 +1,7 @@
 mod ascii;
 mod brew_deps;
 mod brick;
+mod build_cmd;
 mod cargo_deps;
 mod deb_deps;
 mod disk_usage;
@@ -281,6 +282,19 @@ enum Command {
         /// Local cache directory for fetched real LDraw files.
         #[arg(long, default_value = ".ldraw-cache")]
         cache_dir: PathBuf,
+    },
+
+    /// M72: build a real, grid-legal `.ldr` from a `spex-build` recipe
+    /// (`spec/recipe.schema.json`). Prints every real problem `validate`
+    /// finds — declared exceptions (the recipe's own `"knownIllegal"`)
+    /// separately from undeclared ones — and writes the file either way.
+    Build {
+        /// A recipe JSON file, e.g. recipes/test-wall.json.
+        recipe: PathBuf,
+
+        /// Output .ldr path.
+        #[arg(short, long)]
+        out: PathBuf,
     },
 
     /// Realise a show document's fugue plan as a standard MIDI file.
@@ -646,6 +660,7 @@ fn main() -> Result<()> {
             &cache_dir,
             &show::BuildOptions { target_sec: duration, seed, endless, no_bundles, skip_unbuildable, crease },
         ),
+        Command::Build { recipe, out } => build_cmd::cmd_build(&recipe, &out),
         Command::FugueBuild { show, out, seed } => fugue::build(&show, &out, seed),
         Command::Show { show_dir, port, no_open, at, cut, director } =>
             cmd_show(&show_dir, port, !no_open, at, cut.as_deref(), director),
