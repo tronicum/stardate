@@ -381,3 +381,39 @@ count in each sample is how many times the 240 s cut has come round, and a
 scheduler that did not re-seek on the loop would show cues applied dropping to
 zero after the first cycle.
 
+## Watching it
+
+`showvideo.mjs` records the picture and **`filmaudio.mjs` records the sound**, and
+neither is a test. On a software rasteriser that renders the show at four
+frames a second there is no screen-recording it live, so both are *stepped*
+rather than captured: the video seeks show time frame by frame, the audio
+renders the same score offline through the shipped `AudioEngine`. Each is
+therefore a property of the piece and not of the machine, which is the only
+reason `ffmpeg` can put them together and have them line up:
+
+```sh
+spex show-build shows/die-geschichtliche-matrix.show.json -o demos/matrix \
+  --duration 240 --duration 120 --endless --skip-unbuildable
+spex fugue-build shows/die-geschichtliche-matrix.show.json -o demos/matrix/fugue.mid
+spex show demos/matrix --port 8170 --no-open &
+
+node scripts/viewer-shot/filmaudio.mjs demos/matrix/fugue.mid /tmp/film 240
+node scripts/viewer-shot/showvideo.mjs http://127.0.0.1:8170/ /tmp/filmframes \
+  240 2400 10 640 360 medium
+
+ffmpeg -y -framerate 10 -i /tmp/filmframes/f%04d.png -i /tmp/film/film.wav \
+  -c:v libx264 -pix_fmt yuv420p -crf 20 -c:a aac -b:a 192k -shortest film.mp4
+```
+
+**Frames × fps must equal the cut's length** or the result is a time-lapse:
+2400 frames at 10 fps is the 240 s cut in real time. The viewport and quality
+arguments exist because a frame here costs its pixel count and nothing else —
+the *timing* is unaffected, since show time is stepped, so 640×360 buys about
+half the wall clock and changes nothing about what the recording means. The
+240 s cut at 10 fps and 640×360 took **131 minutes** for the frames and about
+four for the sound.
+
+`filmaudio.mjs` uses the **shipped** engine — no fast attack, no single voice,
+no tap before the mastering chain. Every substitution the measuring harnesses
+make is a substitution for measurement, and this one is for listening.
+

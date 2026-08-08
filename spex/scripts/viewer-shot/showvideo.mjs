@@ -26,17 +26,24 @@ const outDir = process.argv[3];
 const cut = process.argv[4] ?? 'endless';
 const FRAMES = Number(process.argv[5] ?? 300);
 const FPS = Number(process.argv[6] ?? 15);
+// Optional, because the cost of a frame on a software rasteriser is entirely
+// its pixel count: a four-minute recording at 960x540 is hours and at 640x360
+// is not. The recording's *timing* is unaffected — show time is stepped, so
+// the only thing the viewport changes is how long the machine takes.
+const WIDTH = Number(process.argv[7] ?? 960);
+const HEIGHT = Number(process.argv[8] ?? 540);
+const QUALITY = process.argv[9] ?? 'medium';
 if (!url || !outDir) {
-  console.error('usage: showvideo.mjs <viewer-url> <out-dir> [cut] [frames] [fps]');
+  console.error('usage: showvideo.mjs <viewer-url> <out-dir> [cut] [frames] [fps] [width] [height]');
   process.exit(2);
 }
 mkdirSync(outDir, { recursive: true });
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
+const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT } });
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
-await page.goto(`${url}?duration=${cut}&quality=medium`, { waitUntil: 'networkidle' });
+await page.goto(`${url}?duration=${cut}&quality=${QUALITY}`, { waitUntil: 'networkidle' });
 await page.waitForFunction(() => !!window.__spexShow, null, { timeout: 120000 });
 // M71 put a gate in front of the piece — no browser will start an
 // `AudioContext` without a gesture, and the piece is four voices. `begin()`
