@@ -1,0 +1,69 @@
+name: Release prebuilt spex binaries
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: spex-linux-x86_64
+          - os: macos-latest
+            artifact: spex-macos-aarch64
+          - os: macos-13
+            artifact: spex-macos-x86_64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The viewer must be built *before* the Rust workspace, since
+      # spex-server embeds viewer/dist at Rust compile time (rust-embed),
+      # not at runtime — same ordering as pages.yml.
+      - name: Build viewer
+        working-directory: spex/viewer
+        run: |
+          npm ci
+          npm run build
+
+      - name: Build spex (release)
+        working-directory: spex
+        run: cargo build --release -p spex-cli
+
+      - name: Package
+        working-directory: spex
+        run: |
+          mkdir -p dist
+          cp target/release/spex dist/${{ matrix.artifact }}
+          tar -C dist -czf ${{ matrix.artifact }}.tar.gz ${{ matrix.artifact }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: spex/${{ matrix.artifact }}.tar.gz
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/*/*.tar.gz
+          generate_release_notes: true
