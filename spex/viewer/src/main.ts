@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { fetchTileset, fetchNodePoints, fetchNodeLabels, fetchGraphMeta, fetchSequence, mergeBounds, type Bounds, type NodeLabel } from './tileset';
 import { NodeIndex, selectNodes } from './lod';
-import { buildFullSweepPath } from './packetAnimation';
+import { buildConcurrentSweepPaths } from './packetAnimation';
 
 /** In gallery mode (`spex gallery`, or a static export served by e.g. GitHub
  * Pages) each demo lives under `.../d/<name>/`, with its tileset at
@@ -211,96 +211,147 @@ async function main() {
     }
   }
 
-  // Optional: animate a marker sweeping the full tree (a real depth-first
-  // traversal, heaviest subtree first) — absent/no-op for plain point-cloud
-  // tilesets with no node labels at all.
-  const packetPath = buildFullSweepPath(nodeLabels);
-  const packetSpeed = diag * 0.15; // units/sec — a hop's travel time scales with its real distance
-  let packetMesh: THREE.Mesh | null = null;
-  let packetSegment = 0;
-  let packetT = 0;
+  // Optional: animate one marker per the root's direct children, each
+  // independently sweeping only its own subtree (issue #26) — absent/no-op
+  // for plain point-cloud tilesets with no node labels at all. A chain (one
+  // child per node, e.g. a single top-level process or a traceroute) has
+  // exactly one root child, so this degrades to exactly one marker with the
+  // exact same path `buildFullSweepPath` always produced; a single-node
+  // graph has zero root children, so zero markers. See
+  // `packetAnimation.ts`'s `buildConcurrentSweepPaths` doc comment.
+  const packetPaths = buildConcurrentSweepPaths(nodeLabels);
+  // units/sec — a hop's travel time scales with its real 3D distance, same
+  // as before #26. Every marker shares this one real-world speed constant,
+  // so a marker sweeping a bigger subtree simply takes proportionally
+  // longer to finish its own loop instead of being sped up/slowed down to
+  // artificially finish in lockstep with the others — concurrent, but not
+  // synchronized.
+  const packetSpeed = diag * 0.15;
+  // Distinct colors per marker (cycling if there are more markers than
+  // colors — bounded by the layout's own MAX_CHILDREN_SHOWN fan-out cap, so
+  // this never has to cycle more than once for real data): plain white
+  // first, so a chain's single marker looks exactly as it did before #26.
+  const PACKET_MARKER_COLORS = [0xffffff, 0x22e5ff, 0xff3df0, 0xffd166, 0x8cff66, 0xff6b6b, 0x6b8cff];
+  const PACKET_HIT_FLASH_SECONDS = 1.2;
+
+  interface PacketMarker {
+    path: NodeLabel[];
+    mesh: THREE.Mesh;
+    segment: number;
+    t: number;
+    // "Hit" flash: briefly show the same hover tooltip (label/metric/metadata)
+    // for whichever node this marker just reached, so the metric view isn't
+    // only reachable by mousing over a blob — the traveling packet surfaces it too.
+    hitNode: NodeLabel | null;
+    hitTimer: number;
+  }
+
+  const packetMarkers: PacketMarker[] = packetPaths
+    .filter((path) => path.length >= 2)
+    .map((path, i) => {
+      const geometry = new THREE.SphereGeometry(Math.max(diag * 0.01, 0.001), 16, 16);
+      const material = new THREE.MeshBasicMaterial({ color: PACKET_MARKER_COLORS[i % PACKET_MARKER_COLORS.length] });
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.set(path[0].center[0], path[0].center[1], path[0].center[2]);
+      mesh.visible = animatePacketInput.checked;
+      scene.add(mesh);
+      return { path, mesh, segment: 0, t: 0, hitNode: null, hitTimer: 0 };
+    });
+  animatePacketInput.addEventListener('input', () => {
+    for (const marker of packetMarkers) {
+      marker.mesh.visible = animatePacketInput.checked;
+      if (!animatePacketInput.checked) marker.hitTimer = 0;
+    }
+  });
+
   const packetA = new THREE.Vector3();
   const packetB = new THREE.Vector3();
   const packetHitProjection = new THREE.Vector3();
-  // "Hit" flash: briefly show the same hover tooltip (label/metric/metadata)
-  // for whichever node the packet just reached, so the metric view isn't
-  // only reachable by mousing over a blob — the traveling packet surfaces it too.
-  const PACKET_HIT_FLASH_SECONDS = 1.2;
-  let packetHitNode: NodeLabel | null = null;
-  let packetHitTimer = 0;
-  if (packetPath.length >= 2) {
-    const geometry = new THREE.SphereGeometry(Math.max(diag * 0.01, 0.001), 16, 16);
-    const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    packetMesh = new THREE.Mesh(geometry, material);
-    packetMesh.position.set(packetPath[0].center[0], packetPath[0].center[1], packetPath[0].center[2]);
-    packetMesh.visible = animatePacketInput.checked;
-    scene.add(packetMesh);
-  }
-  animatePacketInput.addEventListener('input', () => {
-    if (packetMesh) packetMesh.visible = animatePacketInput.checked;
-    if (!animatePacketInput.checked) packetHitTimer = 0;
-  });
 
-  function updatePacket(deltaSeconds: number) {
-    packetHitTimer = Math.max(0, packetHitTimer - deltaSeconds);
-    if (!packetMesh || !animatePacketInput.checked) return;
-    const numSegments = packetPath.length - 1;
-    let a = packetPath[packetSegment];
-    let b = packetPath[packetSegment + 1];
+  function updatePacketMarker(marker: PacketMarker, deltaSeconds: number) {
+    marker.hitTimer = Math.max(0, marker.hitTimer - deltaSeconds);
+    if (!animatePacketInput.checked) return;
+    const numSegments = marker.path.length - 1;
+    let a = marker.path[marker.segment];
+    let b = marker.path[marker.segment + 1];
     packetA.set(a.center[0], a.center[1], a.center[2]);
     packetB.set(b.center[0], b.center[1], b.center[2]);
     const segmentLength = packetA.distanceTo(packetB) || 0.001;
     const segmentDuration = segmentLength / packetSpeed;
-    packetT += deltaSeconds / segmentDuration;
-    if (packetT >= 1) {
-      packetT = 0;
-      packetSegment = (packetSegment + 1) % numSegments; // loops back to the start immediately, no return trip
-      a = packetPath[packetSegment];
-      b = packetPath[packetSegment + 1];
+    marker.t += deltaSeconds / segmentDuration;
+    if (marker.t >= 1) {
+      marker.t = 0;
+      marker.segment = (marker.segment + 1) % numSegments; // loops its own subtree independently, no return trip
+      a = marker.path[marker.segment];
+      b = marker.path[marker.segment + 1];
       packetA.set(a.center[0], a.center[1], a.center[2]);
       packetB.set(b.center[0], b.center[1], b.center[2]);
-      packetHitNode = a; // the node the packet just reached
-      packetHitTimer = PACKET_HIT_FLASH_SECONDS;
+      marker.hitNode = a; // the node this marker just reached
+      marker.hitTimer = PACKET_HIT_FLASH_SECONDS;
     }
-    packetMesh.position.lerpVectors(packetA, packetB, packetT);
+    marker.mesh.position.lerpVectors(packetA, packetB, marker.t);
     const pulse = 1 + 0.15 * Math.sin(performance.now() / 150);
-    packetMesh.scale.setScalar(pulse);
+    marker.mesh.scale.setScalar(pulse);
+  }
+
+  function updatePacket(deltaSeconds: number) {
+    for (const marker of packetMarkers) updatePacketMarker(marker, deltaSeconds);
   }
 
   // Reuses the same tooltip elements/positioning as the mouse-hover labels
-  // (see updateLabels below) — just driven by the packet's arrival instead
-  // of cursor proximity, and shown regardless of where the mouse is.
+  // (see updateLabels below) — just driven by each marker's arrival instead
+  // of cursor proximity, and shown regardless of where the mouse is. Every
+  // node belongs to exactly one root child's subtree (tree structure), so
+  // no two markers ever fight over the same tooltip element.
   function updatePacketHitLabel() {
-    if (!showLabelsInput.checked || packetHitTimer <= 0 || !packetHitNode) return;
-    const el = labelEls.get(packetHitNode.id);
-    if (!el) return;
-    camera.updateMatrixWorld();
-    packetHitProjection.set(packetHitNode.center[0], packetHitNode.center[1], packetHitNode.center[2]).project(camera);
-    if (packetHitProjection.z < -1 || packetHitProjection.z > 1) return; // behind the camera
-    el.style.display = 'block';
-    el.style.left = `${(packetHitProjection.x * 0.5 + 0.5) * window.innerWidth}px`;
-    el.style.top = `${(-packetHitProjection.y * 0.5 + 0.5) * window.innerHeight}px`;
+    if (!showLabelsInput.checked) return;
+    for (const marker of packetMarkers) {
+      if (marker.hitTimer <= 0 || !marker.hitNode) continue;
+      const el = labelEls.get(marker.hitNode.id);
+      if (!el) continue;
+      camera.updateMatrixWorld();
+      packetHitProjection.set(marker.hitNode.center[0], marker.hitNode.center[1], marker.hitNode.center[2]).project(camera);
+      if (packetHitProjection.z < -1 || packetHitProjection.z > 1) continue; // behind the camera
+      el.style.display = 'block';
+      el.style.left = `${(packetHitProjection.x * 0.5 + 0.5) * window.innerWidth}px`;
+      el.style.top = `${(-packetHitProjection.y * 0.5 + 0.5) * window.innerHeight}px`;
+    }
   }
 
   // A lower-left "debug panel" for complex (chain/packet) demos — a plain-
   // language readout of what's happening right now, so a viewer doesn't
-  // have to hover a blob or guess to follow along.
+  // have to hover a blob or guess to follow along. A single marker (the
+  // common chain case — traceroute, a single top-level process) keeps the
+  // original detailed single-packet readout (status/distance/metric)
+  // unchanged; concurrent markers get one compact line each instead, so N
+  // markers don't turn the panel into a wall of text.
   function updateDebugPanel() {
-    if (!packetMesh || packetPath.length < 2 || !animatePacketInput.checked) {
+    if (packetMarkers.length === 0 || !animatePacketInput.checked) {
       debugPanelEl.style.display = 'none';
       return;
     }
-    const a = packetPath[packetSegment];
-    const b = packetPath[packetSegment + 1] ?? packetPath[0];
-    const pct = Math.round(packetT * 100);
-    const lines = [`packet: ${a.label} -> ${b.label}  (${pct}%)`, `hop ${packetSegment + 1}/${packetPath.length - 1}`];
-    const metadata = b.metadata;
-    if (typeof metadata.status === 'string') lines.push(`status: ${metadata.status}`);
-    if (typeof metadata.distanceKm === 'number') lines.push(`distance: ${metadata.distanceKm} km`);
-    if (b.metric != null) {
-      lines.push(graphMeta?.metricLabel ? `${b.metric.toFixed(2)} ${graphMeta.metricLabel}` : b.metric.toFixed(2));
+    if (packetMarkers.length === 1) {
+      const marker = packetMarkers[0];
+      const a = marker.path[marker.segment];
+      const b = marker.path[marker.segment + 1] ?? marker.path[0];
+      const pct = Math.round(marker.t * 100);
+      const lines = [`packet: ${a.label} -> ${b.label}  (${pct}%)`, `hop ${marker.segment + 1}/${marker.path.length - 1}`];
+      const metadata = b.metadata;
+      if (typeof metadata.status === 'string') lines.push(`status: ${metadata.status}`);
+      if (typeof metadata.distanceKm === 'number') lines.push(`distance: ${metadata.distanceKm} km`);
+      if (b.metric != null) {
+        lines.push(graphMeta?.metricLabel ? `${b.metric.toFixed(2)} ${graphMeta.metricLabel}` : b.metric.toFixed(2));
+      }
+      debugPanelEl.textContent = lines.join('\n');
+    } else {
+      const lines = packetMarkers.map((marker, i) => {
+        const a = marker.path[marker.segment];
+        const b = marker.path[marker.segment + 1] ?? marker.path[0];
+        const pct = Math.round(marker.t * 100);
+        return `packet ${i + 1}: ${a.label} -> ${b.label}  (${pct}%)  hop ${marker.segment + 1}/${marker.path.length - 1}`;
+      });
+      debugPanelEl.textContent = lines.join('\n');
     }
-    debugPanelEl.textContent = lines.join('\n');
     debugPanelEl.style.display = 'block';
   }
 
