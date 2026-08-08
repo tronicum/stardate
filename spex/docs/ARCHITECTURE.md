@@ -136,13 +136,23 @@ committing them.
 
 ## Non-goals (on purpose, for now)
 
-- **Trees/forests only** — `GraphNode.parent` is a single optional string,
-  not a general edge list. A real dependency graph can have a package
-  required by two different things; today that package is duplicated as two
-  separate nodes rather than merged into one with two incoming edges.
-  Modeling general graphs (cycles, shared parents) is a bigger change to the
-  layout algorithm (which assumes a tree when computing angular slices) and
-  is intentionally deferred (see `TODOs.md`).
+- **Trees/forests only for *position*** — `GraphNode.parent` is a single
+  optional string, and `layout::place()`'s radial layout still assigns each
+  node exactly one 3D position via a strict single-parent recursive walk (one
+  angular slice per tree position); modeling general graphs (cycles, a node
+  literally living at two positions) is a bigger change to that algorithm and
+  stays intentionally deferred (see `TODOs.md`). What issue #24 did fix: a
+  real dependency graph can have a package required by two different things
+  (`brew-deps` on a formula like `wget` re-expands `libunistring` as a
+  transitive dep in four different places) — `brew_deps.rs` now merges those
+  into the one real `GraphNode` (position still driven by its first real
+  occurrence's `parent`) and records every other real parent in
+  `extra_parents`/`extraParents`, rendered as extra viewer edge lines,
+  instead of duplicating the node. Same precedent `sql_schema.rs`'s
+  extra-FK metadata and `molecule.rs`'s `ring_bond_to` metadata already used.
+  `npm-deps`/`cargo-deps` have the identical positional-duplication pattern
+  and would take the identical fix, but that's an explicit follow-up, not
+  done in the same pass (kept to one adapter for a focused diff).
 - **No real ICMP probing** — `trace` uses standard UDP traceroute, which
   needs no elevated privileges. True ICMP echo probing would need a raw
   socket (sudo/capabilities) for a marginal difference in the captured path.

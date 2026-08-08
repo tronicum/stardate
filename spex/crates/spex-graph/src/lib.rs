@@ -14,7 +14,7 @@ use std::path::Path;
 /// A single node in a generic tree: the common intermediate format that any
 /// input adapter (traceroute, pstree, dependency graphs, ...) can target, and
 /// that any layout/output stage can consume without knowing the source domain.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct GraphNode {
     pub id: String,
     pub label: String,
@@ -23,6 +23,15 @@ pub struct GraphNode {
     /// Generic numeric weight (e.g. RTT ms, subtree size) driving color/size in a layout.
     #[serde(default)]
     pub metric: Option<f64>,
+    /// Real *additional* parent ids for a node that's genuinely shared by
+    /// more than one branch (e.g. a package that's a transitive dependency
+    /// of two different formulas). `parent` above is still the single edge
+    /// that drives this node's one real 3D position — `Graph`/`layout::place`
+    /// remain tree-only for *position*; this is extra structure recorded
+    /// alongside it, same precedent as `sql_schema.rs`'s extra-FK metadata
+    /// and `molecule.rs`'s `ring_bond_to` metadata. Almost always empty.
+    #[serde(default, skip_serializing_if = "Vec::is_empty", rename = "extraParents")]
+    pub extra_parents: Vec<String>,
     /// Free-form source-specific fields (ip, hostname, hop number, pid, ...).
     #[serde(default)]
     pub metadata: serde_json::Map<String, serde_json::Value>,

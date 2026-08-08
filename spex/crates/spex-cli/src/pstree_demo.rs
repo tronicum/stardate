@@ -40,6 +40,7 @@ pub fn generate() -> Graph {
                 parent: p.parent.map(|s| s.to_string()),
                 metric: Some(p.mem_mb),
                 metadata,
+                ..Default::default()
             }
         })
         .collect();

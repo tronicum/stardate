@@ -68,6 +68,65 @@ fn validate(instance_path: &Path, schema_file: &str) {
     );
 }
 
+/// A node with `extraParents` (issue #24 — DAG/shared-dependency merging)
+/// is real, valid `spex` output (e.g. from `brew-deps` on a formula with a
+/// genuinely shared transitive dependency), but neither `pstree-demo` above
+/// nor any other fixture used elsewhere in this file ever produces one — so
+/// without this test, `graph.schema.json`/`nodes.schema.json`'s
+/// `additionalProperties: false` could silently drift out of sync with the
+/// real field `GraphNode`/`LayoutNodeInfo` serialize and nothing here would
+/// catch it. Hand-writes a small graph.json with one shared node (standing
+/// in for what `brew_deps::build_nodes` produces for a real re-occurring
+/// package) and runs it through the real `spex graph-layout` binary.
+#[test]
+fn graph_with_extra_parents_matches_schemas() {
+    let dir = std::env::temp_dir().join(format!("spex-schema-test-extra-parents-{}", std::process::id()));
+    let _ = std::fs::remove_dir_all(&dir);
+    std::fs::create_dir_all(&dir).unwrap();
+
+    let graph_path = dir.join("graph.json");
+    let tileset_dir = dir.join("tileset");
+
+    // "shared" stands in for a real package like openssl@3: reachable as a
+    // direct dep of "a" (its one real parent, driving its one real 3D
+    // position) AND as a dep of "b" (recorded as an extra structural edge).
+    std::fs::write(
+        &graph_path,
+        r#"{
+  "title": "extraParents schema fixture",
+  "nodes": [
+    { "id": "root", "label": "root", "parent": null },
+    { "id": "a", "label": "a", "parent": "root" },
+    { "id": "b", "label": "b", "parent": "root" },
+    { "id": "shared", "label": "shared", "parent": "a", "extraParents": ["b"] }
+  ]
+}"#,
+    )
+    .unwrap();
+
+    let status = Command::new(spex_bin())
+        .arg("graph-layout")
+        .arg(&graph_path)
+        .arg("-o")
+        .arg(&tileset_dir)
+        .status()
+        .expect("running spex graph-layout");
+    assert!(status.success(), "spex graph-layout failed");
+
+    validate(&graph_path, "graph.schema.json");
+    validate(&tileset_dir.join("tileset.json"), "tileset.schema.json");
+    validate(&tileset_dir.join("nodes.json"), "nodes.schema.json");
+    validate(&tileset_dir.join("meta.json"), "meta.schema.json");
+
+    // Confirm extraParents actually round-tripped into nodes.json (not just
+    // schema-valid, but really carrying the data through graph-layout).
+    let nodes_json: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(tileset_dir.join("nodes.json")).unwrap()).unwrap();
+    let shared_node = nodes_json.as_array().unwrap().iter().find(|n| n["id"] == "shared").expect("shared node present in nodes.json");
+    assert_eq!(shared_node["extraParents"], serde_json::json!(["b"]));
+
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
 #[test]
 fn frame_sequence_output_matches_schemas() {
     let dir = std::env::temp_dir().join(format!("spex-schema-test-sequence-{}", std::process::id()));

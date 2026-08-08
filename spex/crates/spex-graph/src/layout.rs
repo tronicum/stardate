@@ -16,6 +16,12 @@ pub struct LayoutNodeInfo {
     pub id: String,
     pub label: String,
     pub parent: Option<String>,
+    /// Real *additional* parent ids for a node genuinely shared by more than
+    /// one branch — carried straight through from `GraphNode.extra_parents`
+    /// (see its doc comment) so the viewer can draw extra edges without a
+    /// second 3D position. Almost always empty.
+    #[serde(skip_serializing_if = "Vec::is_empty", rename = "extraParents")]
+    pub extra_parents: Vec<String>,
     pub center: [f64; 3],
     pub metric: Option<f64>,
     pub metadata: Map<String, Value>,
@@ -108,6 +114,7 @@ struct WorkingNode {
     id: String,
     label: String,
     parent: Option<String>,
+    extra_parents: Vec<String>,
     metric: Option<f64>,
     metadata: Map<String, Value>,
 }
@@ -116,6 +123,7 @@ struct LayoutNode {
     id: String,
     label: String,
     parent: Option<String>,
+    extra_parents: Vec<String>,
     metric: Option<f64>,
     metadata: Map<String, Value>,
     center: [f64; 3],
@@ -144,6 +152,7 @@ pub fn build(graph: &Graph) -> LayoutResult {
                     id: n.id.clone(),
                     label: n.label.clone(),
                     parent: n.parent.clone(),
+                    extra_parents: n.extra_parents.clone(),
                     metric: n.metric,
                     metadata: n.metadata.clone(),
                 },
@@ -185,6 +194,7 @@ pub fn build(graph: &Graph) -> LayoutResult {
             id: ln.id.clone(),
             label: ln.label.clone(),
             parent: ln.parent.clone(),
+            extra_parents: ln.extra_parents.clone(),
             center: ln.center,
             metric: ln.metric,
             metadata: ln.metadata.clone(),
@@ -228,6 +238,7 @@ fn collapse_high_fanout(by_id: &mut HashMap<String, WorkingNode>, children: &mut
                 id: synthetic_id.clone(),
                 label: format!("+{} more", collapsed_ids.len()),
                 parent: parent_key.clone(),
+                extra_parents: Vec::new(),
                 metric: if metric_count > 0 { Some(metric_sum) } else { None },
                 metadata,
             },
@@ -293,6 +304,7 @@ fn place(
             id: node.id.clone(),
             label: node.label.clone(),
             parent: node.parent.clone(),
+            extra_parents: node.extra_parents.clone(),
             metric: node.metric,
             metadata: node.metadata.clone(),
             center,
@@ -379,7 +391,7 @@ mod tests {
             label: id.to_string(),
             parent: parent.map(|p| p.to_string()),
             metric,
-            metadata: Map::new(),
+            ..Default::default()
         }
     }
 

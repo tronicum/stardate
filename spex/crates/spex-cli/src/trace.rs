@@ -67,6 +67,7 @@ fn hops_to_graph(host: &str, hops: &[Hop]) -> Graph {
         parent: None,
         metric: None,
         metadata: Map::new(),
+        ..Default::default()
     }];
 
     let mut prev_id = ROOT_ID.to_string();
@@ -104,6 +105,7 @@ fn hops_to_graph(host: &str, hops: &[Hop]) -> Graph {
             parent: Some(prev_id.clone()),
             metric,
             metadata,
+            ..Default::default()
         });
         prev_id = id;
     }

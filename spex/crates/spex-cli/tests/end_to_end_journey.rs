@@ -78,6 +78,7 @@ fn city_node(id: &str, label: &str, parent: Option<&str>, metric: Option<f64>, c
         parent: parent.map(|p| p.to_string()),
         metric,
         metadata,
+        ..Default::default()
     }
 }
 

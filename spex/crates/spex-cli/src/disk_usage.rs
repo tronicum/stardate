@@ -78,6 +78,7 @@ fn build_graph(entries: Vec<(f64, String)>) -> Graph {
                 parent,
                 metric: Some(*kb),
                 metadata,
+                ..Default::default()
             }
         })
         .collect();

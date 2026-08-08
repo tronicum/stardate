@@ -92,6 +92,7 @@ fn build_graph(procs: Vec<Proc>) -> Graph {
                 parent,
                 metric: Some(p.mem),
                 metadata,
+                ..Default::default()
             }
         })
         .collect();

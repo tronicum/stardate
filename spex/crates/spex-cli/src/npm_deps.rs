@@ -51,6 +51,7 @@ pub fn run() -> Result<Graph> {
                 parent: e.parent.map(|p| format!("pkg-{p}")),
                 metric: Some(subtree_size[i]),
                 metadata,
+                ..Default::default()
             }
         })
         .collect();

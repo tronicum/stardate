@@ -57,6 +57,7 @@ pub fn run(db_path: &Path) -> Result<Graph> {
             parent,
             metric: Some(row_count),
             metadata,
+            ..Default::default()
         });
     }
 

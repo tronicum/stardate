@@ -186,6 +186,18 @@ async function main() {
       if (!parent) continue;
       positions.push(parent.center[0], parent.center[1], parent.center[2], n.center[0], n.center[1], n.center[2]);
     }
+    // Extra structural edges for genuinely shared nodes (e.g. a package
+    // that's a transitive dependency of two formulas) — same "one real
+    // node, no second 3D position" precedent as `parent` above: the line
+    // just points back at whichever other real parent also depends on this
+    // node's single existing position, it doesn't move or duplicate anything.
+    for (const n of nodeLabels) {
+      for (const extraParentId of n.extraParents ?? []) {
+        const extraParent = byId.get(extraParentId);
+        if (!extraParent) continue;
+        positions.push(extraParent.center[0], extraParent.center[1], extraParent.center[2], n.center[0], n.center[1], n.center[2]);
+      }
+    }
     if (positions.length > 0) {
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));

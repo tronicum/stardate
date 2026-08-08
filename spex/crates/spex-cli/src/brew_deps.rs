@@ -29,30 +29,82 @@ pub fn run(formula: &str) -> Result<Graph> {
     }
 
     let subtree_size = compute_subtree_sizes(&entries);
+    let nodes = build_nodes(&entries, &subtree_size);
 
-    let nodes = entries
-        .iter()
-        .enumerate()
-        .map(|(i, e)| {
-            let mut metadata = Map::new();
-            metadata.insert("name".to_string(), Value::from(e.name.clone()));
-            metadata.insert("depth".to_string(), Value::from(e.depth));
-            GraphNode {
-                id: format!("pkg-{i}"),
-                label: e.name.clone(),
-                parent: e.parent.map(|p| format!("pkg-{p}")),
-                // Subtree size (including self): a rough "how much of the
-                // dependency tree hangs off this package" weight, driving color.
-                metric: Some(subtree_size[i]),
-                metadata,
-            }
-        })
-        .collect();
     Ok(Graph {
         title: Some(format!("brew dependency tree: {formula}")),
         metric_label: Some("subtree size (packages)".to_string()),
         nodes,
     })
+}
+
+/// Turns the positional (one entry per real output line) parse into
+/// `GraphNode`s, merging real duplicate package names into one node instead
+/// of rendering each re-occurrence as its own blob. `brew deps --tree`
+/// doesn't dedup its own output — it re-expands the same real package at
+/// every position it's reachable from (e.g. `openssl@3` under two unrelated
+/// branches) — so without this, one real package would get two duplicate
+/// nodes in the graph.
+///
+/// The *first* time a name is seen becomes the one real node: its position
+/// in the entry list still drives `parent` (and therefore this node's one
+/// real 3D position downstream, via `layout::place`'s single-parent walk —
+/// unchanged by this). Every later re-occurrence of the same name reuses
+/// that node's id and contributes its own real parent at that position to
+/// `extra_parents` instead of creating a second node — same "one real
+/// position, extra structure recorded alongside it" precedent as
+/// `sql_schema.rs`'s extra-FK handling and `molecule.rs`'s `ring_bond_to`.
+fn build_nodes(entries: &[Entry], subtree_size: &[f64]) -> Vec<GraphNode> {
+    // canonical_of[i] = index of the first entry sharing entries[i]'s name.
+    let mut canonical_of: Vec<usize> = Vec::with_capacity(entries.len());
+    let mut first_seen: HashMap<&str, usize> = HashMap::new();
+    for (i, e) in entries.iter().enumerate() {
+        let canonical = *first_seen.entry(e.name.as_str()).or_insert(i);
+        canonical_of.push(canonical);
+    }
+    let node_id = |idx: usize| format!("pkg-{}", canonical_of[idx]);
+
+    let mut nodes: Vec<GraphNode> = Vec::new();
+    let mut node_pos: HashMap<usize, usize> = HashMap::new(); // canonical entry idx -> position in `nodes`
+
+    for (i, e) in entries.iter().enumerate() {
+        if canonical_of[i] != i {
+            // A later real occurrence of an already-seen package: not a new
+            // node, but a genuine additional real parent for the canonical
+            // one (skip self-references and exact duplicates of the primary parent).
+            let Some(p) = e.parent else { continue };
+            let extra_parent_id = node_id(p);
+            let pos = node_pos[&canonical_of[i]];
+            let canonical_node = &mut nodes[pos];
+            if extra_parent_id != canonical_node.id
+                && canonical_node.parent.as_deref() != Some(extra_parent_id.as_str())
+                && !canonical_node.extra_parents.contains(&extra_parent_id)
+            {
+                canonical_node.extra_parents.push(extra_parent_id);
+            }
+            continue;
+        }
+
+        let mut metadata = Map::new();
+        metadata.insert("name".to_string(), Value::from(e.name.clone()));
+        metadata.insert("depth".to_string(), Value::from(e.depth));
+        node_pos.insert(i, nodes.len());
+        nodes.push(GraphNode {
+            id: node_id(i),
+            label: e.name.clone(),
+            parent: e.parent.map(node_id),
+            // Subtree size (including self): a rough "how much of the
+            // dependency tree hangs off this package" weight, driving color.
+            // Computed from this (canonical/first) occurrence's own position
+            // only — a later occurrence's own subtree, if it has one, isn't
+            // folded into this number, same simplification `parent` above
+            // already makes for position.
+            metric: Some(subtree_size[i]),
+            extra_parents: Vec::new(),
+            metadata,
+        });
+    }
+    nodes
 }
 
 struct Entry {
@@ -170,6 +222,13 @@ neovim
 
     #[test]
     fn parses_nested_tree_with_duplicate_names() {
+        // `parse_tree` itself stays positional/per-line — one `Entry` per
+        // real line of `brew deps --tree` output, duplicates and all.
+        // Deduping same-name packages into one `GraphNode` happens one
+        // level up, in `build_nodes` (see
+        // `build_nodes_merges_duplicate_package_into_one_node_with_extra_parents`
+        // below) — this test documents the raw parse this merge step
+        // consumes, not the final graph.
         let entries = parse_tree(SAMPLE);
         assert_eq!(entries.len(), 12);
         assert_eq!(entries[0].name, "neovim");
@@ -190,6 +249,39 @@ neovim
         let libunistring_idx = entries.iter().position(|e| e.name == "libunistring").unwrap();
         assert_eq!(entries[json_c_idx].parent, Some(gettext_idx));
         assert_eq!(entries[libunistring_idx].parent, Some(gettext_idx));
+    }
+
+    #[test]
+    fn build_nodes_merges_duplicate_package_into_one_node_with_extra_parents() {
+        // "libuv" is real-world-shaped here: it's a direct dep of neovim
+        // AND a dep of luv, which `brew deps --tree` re-expands at both
+        // positions rather than deduping itself (issue #24). The graph we
+        // hand to the layout stage should merge those into one real node.
+        let entries = parse_tree(SAMPLE);
+        let subtree_size = compute_subtree_sizes(&entries);
+        let nodes = build_nodes(&entries, &subtree_size);
+
+        // 12 real lines, one real duplicate ("libuv" appears twice) merged away.
+        assert_eq!(nodes.len(), 11);
+
+        let libuv_nodes: Vec<&GraphNode> = nodes.iter().filter(|n| n.label == "libuv").collect();
+        assert_eq!(libuv_nodes.len(), 1, "libuv must appear as exactly one node, not two duplicates");
+        let libuv = libuv_nodes[0];
+
+        let neovim = nodes.iter().find(|n| n.label == "neovim").unwrap();
+        let luv = nodes.iter().find(|n| n.label == "luv").unwrap();
+
+        // Its one real 3D position is still driven by its first real
+        // occurrence's parent (direct child of neovim).
+        assert_eq!(libuv.parent.as_deref(), Some(neovim.id.as_str()));
+        // The second real occurrence's parent (luv) becomes a real extra
+        // structural edge instead of a second node.
+        assert_eq!(libuv.extra_parents, vec![luv.id.clone()]);
+
+        // Every other (genuinely non-duplicate) package still gets its own node.
+        assert!(nodes.iter().any(|n| n.label == "gettext"));
+        assert!(nodes.iter().any(|n| n.label == "json-c"));
+        assert!(nodes.iter().any(|n| n.label == "libunistring"));
     }
 
     #[test]

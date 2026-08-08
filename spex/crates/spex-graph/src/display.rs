@@ -135,6 +135,7 @@ mod tests {
                     parent: None,
                     metric: None,
                     metadata: Map::new(),
+                    ..Default::default()
                 },
                 GraphNode {
                     id: "a".to_string(),
@@ -142,6 +143,7 @@ mod tests {
                     parent: Some("root".to_string()),
                     metric: Some(7.167),
                     metadata: meta,
+                    ..Default::default()
                 },
             ],
         };
@@ -157,9 +159,9 @@ mod tests {
     fn formats_branching_tree_without_title_or_metric() {
         let graph = Graph {
             nodes: vec![
-                GraphNode { id: "r".to_string(), label: "root".to_string(), parent: None, metric: None, metadata: Map::new() },
-                GraphNode { id: "a".to_string(), label: "a".to_string(), parent: Some("r".to_string()), metric: None, metadata: Map::new() },
-                GraphNode { id: "b".to_string(), label: "b".to_string(), parent: Some("r".to_string()), metric: None, metadata: Map::new() },
+                GraphNode { id: "r".to_string(), label: "root".to_string(), parent: None, metric: None, metadata: Map::new(), ..Default::default() },
+                GraphNode { id: "a".to_string(), label: "a".to_string(), parent: Some("r".to_string()), metric: None, metadata: Map::new(), ..Default::default() },
+                GraphNode { id: "b".to_string(), label: "b".to_string(), parent: Some("r".to_string()), metric: None, metadata: Map::new(), ..Default::default() },
             ],
             ..Default::default()
         };
@@ -172,9 +174,9 @@ mod tests {
         let graph = Graph {
             metric_label: Some("size (KB)".to_string()),
             nodes: vec![
-                GraphNode { id: "r".to_string(), label: "root".to_string(), parent: None, metric: Some(1.0), metadata: Map::new() },
-                GraphNode { id: "big".to_string(), label: "big.bin".to_string(), parent: Some("r".to_string()), metric: Some(500.0), metadata: Map::new() },
-                GraphNode { id: "small".to_string(), label: "small.txt".to_string(), parent: Some("r".to_string()), metric: Some(0.5), metadata: Map::new() },
+                GraphNode { id: "r".to_string(), label: "root".to_string(), parent: None, metric: Some(1.0), metadata: Map::new(), ..Default::default() },
+                GraphNode { id: "big".to_string(), label: "big.bin".to_string(), parent: Some("r".to_string()), metric: Some(500.0), metadata: Map::new(), ..Default::default() },
+                GraphNode { id: "small".to_string(), label: "small.txt".to_string(), parent: Some("r".to_string()), metric: Some(0.5), metadata: Map::new(), ..Default::default() },
             ],
             ..Default::default()
         };
