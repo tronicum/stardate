@@ -22,6 +22,33 @@ picture was *supposed* to change.
 | 5 | A real headless-Chromium screenshot, looked at | **When the picture is supposed to change.** See below. |
 | 6 | `./scripts/walkthrough.sh` — regenerate every demo | At the **end of a phase**, or when something shared changed (a format, the tiler, the server). |
 
+## What rung 6 did not cover, until Phase 3 ran it
+
+**`walkthrough.sh` regenerated no mesh demo and no show demo at all.** Every
+example it built was a graph or a point cloud — and Phase 3 changed the
+instanced attribute layout, the LOD re-pack, the post chain's bloom, the
+dissolve shader and the edge pass. The gate that exists to catch a shared
+change breaking a demo nobody starts by hand any more was not covering the
+demos the change was in.
+
+It builds `mesh-model car`, `mesh-part 3001.dat` and the show directory now.
+The phase-3 run that found this was completed by hand — `dissolve.mjs`,
+`assembly.mjs`, `crossfade.mjs`, `showrun.mjs`, `lodprobe.mjs` — and all of
+them passed once the second finding below was dealt with.
+
+**And three probes had been reporting `FAIL` since M66 for two 404s that are
+the design working.** The viewer picks between its three render modes by
+*asking* — `show-resolved.json`, then `mesh.json` — and taking whichever
+answers; a 404 there is a fact, and every module involved says so. The browser
+logs it as a console error anyway, so any probe gating on "zero console errors"
+fails on a plain mesh bundle. `scripts/viewer-shot/absence.mjs` matches on the
+**URL of the failed response** rather than on the console text, which is the
+same sentence for every 404 there has ever been, and discounts only the paths
+whose absence is documented.
+
+Both are the same lesson from opposite ends: **a gate nobody runs is a gate
+that stops being true**, and it stops being true quietly.
+
 Rung 3 used to appear twice, at the start and again as a final gate. Once is
 enough: it is the same command against the same tree.
 

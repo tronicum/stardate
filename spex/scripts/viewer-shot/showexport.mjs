@@ -17,6 +17,7 @@
  * turns out to be no and the reason is not this export's doing.
  */
 import { chromium } from 'playwright';
+import { attachConsole } from './absence.mjs';
 import { createServer } from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { join, extname, resolve } from 'node:path';
@@ -52,8 +53,10 @@ async function tryUrl(label, url) {
   const errors = [];
   const requests = [];
   const page = await browser.newPage({ viewport: { width: 640, height: 400 } });
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-  page.on('pageerror', (e) => errors.push(String(e)));
+  // The 404s that are the viewer's mode test answering "no" are not errors
+  // (absence.mjs). Phase 3's rung 6 surfaced it: probes printed clean numbers
+  // and then FAIL, on demos nothing was wrong with.
+  const byDesign = attachConsole(page, errors);
   page.on('requestfailed', (r) => requests.push(`${r.url()} ${r.failure()?.errorText}`));
   page.on('response', (r) => { if (r.status() >= 400) requests.push(`${r.url()} ${r.status()}`); });
   let ok = false;

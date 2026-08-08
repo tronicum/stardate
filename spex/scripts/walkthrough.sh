@@ -261,6 +261,22 @@ for mol in ethanol benzene aspirin caffeine; do
   note "ready: spex serve demos/molecule-$mol/tileset"
 done
 
+say "4. The mesh renderer and the show"
+note "Added at the end of Phase 3, because until then this script regenerated"
+note "no mesh and no show demo at all -- every example above is a graph or a"
+note "point cloud. Rung 6 exists to catch a shared change breaking a demo"
+note "nobody starts by hand any more, and Phase 3 changed the instanced"
+note "attribute layout, the LOD re-pack, the post chain and the dissolve"
+note "shader: exactly the shared things, and none of them were covered."
+"$BIN" mesh-model car -o demos/car >/dev/null && note "ready: spex serve demos/car"
+"$BIN" mesh-part 3001.dat -o demos/brick >/dev/null 2>&1 && note "ready: spex serve demos/brick"
+if [ -f shows/die-geschichtliche-matrix.show.json ]; then
+  "$BIN" show-build shows/die-geschichtliche-matrix.show.json -o demos/matrix \
+    --duration 240 --duration 120 --endless --skip-unbuildable >/dev/null \
+    && "$BIN" fugue-build shows/die-geschichtliche-matrix.show.json -o demos/matrix/fugue.mid >/dev/null \
+    && note "ready: spex show demos/matrix   (add --director for the HUD)"
+fi
+
 say "4. What you've got"
 "$BIN" demos
 

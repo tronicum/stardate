@@ -812,3 +812,52 @@ the probe counted zero rows on a mixer that was plainly there. They are a class
 now.
 
 ---
+
+---
+
+## Rung 6 — the phase gate, and what running it found
+
+Phase 3 is complete at M71, so `./scripts/walkthrough.sh` ran. It passed, and
+that is the least interesting thing about it.
+
+**The gate did not cover what the phase changed.** Every demo the script
+regenerates is a graph or a point cloud — nineteen of them, all clean — and
+Phase 3 changed the instanced attribute layout, the LOD re-pack, the post
+chain's bloom, the dissolve shader and the edge pass. There was no mesh demo
+and no show demo in it at all. A gate that exists to catch a shared change
+breaking something nobody starts by hand any more was not looking at the things
+the change was in. The script builds `mesh-model car`, `mesh-part 3001.dat` and
+the show directory now, and `docs/agents/verification.md` records it.
+
+**Run by hand, the real gate passes.**
+
+| probe | result |
+|---|---|
+| `dissolve.mjs` (M65) | ok — 37 948 lit px → 0, worst single-frame step 6.15 %, rim peaks at dissolve 0.12 |
+| `assembly.mjs` (M64) | ok — TS/Rust splitmix64 identical to 0.000e+0 LDU, runtime vs baked worst 6.1e-6 mm |
+| `crossfade.mjs` (M65) | ok — centroid 0.36 % / 0.15 %, spread 0.32 % / 0.22 % |
+| `showrun.mjs` (M66) | ok — 6/6 shots, all four voices fired, clean loop within the dither floor, 13/13 URL parameters |
+| `lodprobe.mjs` (M59) | 33 instances at LOD0, **28 at LOD1**, 75 re-packs |
+
+That last row is the one worth reading. **The car demo demotes 28 of its 61
+instances**, which is exactly the condition under which the per-instance
+scalars were mis-indexed before M71 — so the bug had live scenes to be wrong
+in, and had for twelve milestones. It survived because the dissolve probe
+measures *lit pixels over the whole object*, and eroding the wrong bricks in
+the wrong order still erodes all of them: the aggregate is identical. A
+measurement can be right, repeated every milestone, and blind to the thing
+beside it.
+
+**And three probes had been printing `FAIL` since M66 on two 404s that are the
+design working.** The viewer picks its render mode by asking for
+`show-resolved.json`, then `mesh.json`, and taking whichever answers; absence
+is the test. The browser logs each miss as a console error, so every probe that
+gates on "zero console errors" fails on a plain mesh bundle. They had been
+failing for five milestones, printing a clean page of numbers and then the word
+FAIL, and nobody had run them because rung 6 did not.
+
+`scripts/viewer-shot/absence.mjs` fixes it by matching the **URL of the failed
+response** rather than the console text — which is the same sentence for every
+404 there has ever been — and discounts only the paths whose absence is
+documented in the module that asks for them.
+

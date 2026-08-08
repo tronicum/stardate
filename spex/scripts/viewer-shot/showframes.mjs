@@ -17,6 +17,7 @@
  * looks fine until someone checks it against the screenplay.
  */
 import { chromium } from 'playwright';
+import { attachConsole } from './absence.mjs';
 import { mkdirSync } from 'node:fs';
 
 const url = process.argv[2];
@@ -42,8 +43,10 @@ const errors = [];
 
 async function shoot(query, marks, prefix) {
   const page = await browser.newPage({ viewport: { width: 960, height: 600 } });
-  page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-  page.on('pageerror', (e) => errors.push(String(e)));
+  // The 404s that are the viewer's mode test answering "no" are not errors
+  // (absence.mjs). Phase 3's rung 6 surfaced it: probes printed clean numbers
+  // and then FAIL, on demos nothing was wrong with.
+  const byDesign = attachConsole(page, errors);
   await page.goto(url + query, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => !!window.__spexShow, null, { timeout: 120000 });
   // M71 put a gate in front of the piece — no browser will start an

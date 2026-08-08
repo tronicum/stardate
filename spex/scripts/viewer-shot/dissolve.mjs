@@ -21,6 +21,7 @@
  */
 
 import { chromium } from 'playwright';
+import { watchConsole } from './absence.mjs';
 import { PNG } from 'pngjs';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -39,10 +40,11 @@ mkdirSync(outDir, { recursive: true });
 const FRAMES = 90;
 
 const browser = await chromium.launch();
-const errors = [];
 const page = await browser.newPage({ viewport: { width: 640, height: 400 } });
-page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-page.on('pageerror', (e) => errors.push(String(e)));
+// `errors` excludes the 404s that are the viewer's mode test answering "no" —
+// see absence.mjs. This probe printed a clean set of numbers and then FAIL for
+// two of them, on a demo nothing was wrong with.
+const { errors, byDesign } = watchConsole(page);
 await page.goto(url, { waitUntil: 'networkidle' });
 await page.waitForFunction(() => !!window.__spexMesh, null, { timeout: 90000 });
 await page.waitForTimeout(3500);
@@ -188,6 +190,9 @@ console.log(
 if (errors.length) {
   console.log('\nconsole errors:');
   for (const e of errors) console.log(`  ${e}`);
+}
+if (byDesign.length) {
+  console.log(`\n${byDesign.length} 404(s) for files whose absence is how the viewer picks a mode — not errors.`);
 }
 
 const failed =

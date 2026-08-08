@@ -20,6 +20,7 @@
  */
 
 import { chromium } from 'playwright';
+import { attachConsole } from './absence.mjs';
 import { build } from 'esbuild';
 import { PNG } from 'pngjs';
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -53,8 +54,10 @@ const script = bundled.outputFiles[0].text;
 const browser = await chromium.launch();
 const errors = [];
 const page = await browser.newPage({ viewport: { width: 640, height: 400 } });
-page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-page.on('pageerror', (e) => errors.push(String(e)));
+// The 404s that are the viewer's mode test answering "no" are not errors
+// (absence.mjs). Phase 3's rung 6 surfaced it: probes printed clean numbers
+// and then FAIL, on demos nothing was wrong with.
+const byDesign = attachConsole(page, errors);
 await page.goto(url, { waitUntil: 'networkidle' });
 await page.waitForFunction(() => !!window.__spexMesh, null, { timeout: 60000 });
 await page.waitForTimeout(3500);
