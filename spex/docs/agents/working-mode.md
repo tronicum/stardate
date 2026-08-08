@@ -61,14 +61,10 @@ throttled too, under sustained load, not on the first request.)
 
 ## Known recurring gotchas
 
-- **Stale background server processes.** Killing/restarting a `spex serve`
-  or `spex gallery` background process with `pkill -f <pattern>` has failed
-  to actually kill it more than once in this project's history — always
-  verify with `ps -p <pid> -o pid,lstart` (compare against the binary's and
-  `demos/`'s mtime) before trusting that a running server reflects your
-  latest build. This has directly caused false "it's not working" moments
-  where the real cause was a stale process from a previous step still bound
-  to the port.
+- **Stale background server processes** are a real, recurring gotcha — see
+  `docs/agents/verification.md`'s "Stale server processes ruin a
+  verification round-trip" section for the full detail (why `pkill -f` isn't
+  reliable here, what to check before trusting a running server).
 - **"The bug is probably in the data, not the code" is often wrong — check
   first.** When a user reported the `neovim-deps` demo looked "strange"
   (packet stuck after one hop), the real `brew deps --tree neovim` data was
