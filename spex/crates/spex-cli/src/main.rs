@@ -103,6 +103,36 @@ enum Command {
         cache_dir: PathBuf,
     },
 
+    /// Batch-render a list of real LDraw parts (one alias or filename per
+    /// line in a plain text file) into `<out>/<part>/tileset/` each — the
+    /// same `demos/<name>/tileset` shape `spex gallery`/`export-static`
+    /// already expect, so the batch output is browsable with zero extra
+    /// wiring. A single real part failing (usually a real ldraw.org 404)
+    /// is skipped and reported, not fatal to the whole batch — this exits
+    /// non-zero only if nothing rendered at all. See issue #2 for the
+    /// real curated-parts-list use case this was built for; `!LICENSE`
+    /// checking (skip real "Not redistributable" parts) is a deliberately
+    /// separate, not-yet-done follow-up — see `docs/agents/`.
+    BrickPartsBatch {
+        /// Plain text file, one real LDraw part alias or filename per
+        /// line. Blank lines and lines starting with `#` are skipped.
+        list: Option<PathBuf>,
+
+        /// Real LDraw color code (see LDConfig.ldr) — default 4 = Red.
+        #[arg(long, default_value_t = 4)]
+        color: u32,
+
+        #[arg(long, default_value_t = 3000)]
+        points: usize,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+
+        /// Local cache directory for fetched real LDraw files.
+        #[arg(long, default_value = ".ldraw-cache")]
+        cache_dir: PathBuf,
+    },
+
     /// Render a full real multi-part LDraw scene (a named official model
     /// fetched from ldraw.org's models/ folder, or a local .ldr file)
     /// straight into an octree tileset. Resolves each distinct real part
@@ -456,6 +486,13 @@ fn main() -> Result<()> {
             out,
             cache_dir,
         } => cmd_brick_part(part, color, points, out, &cache_dir),
+        Command::BrickPartsBatch {
+            list,
+            color,
+            points,
+            out,
+            cache_dir,
+        } => cmd_brick_parts_batch(list, color, points, out, &cache_dir),
         Command::BrickModel {
             model,
             points,
@@ -573,6 +610,102 @@ fn cmd_brick_part(part: Option<String>, color: u32, points: usize, out: Option<P
 
     spex_tiler::build(cloud, &out, &spex_tiler::TilerConfig::default())?;
     println!("wrote tileset to {}", out.display());
+    Ok(())
+}
+
+fn cmd_brick_parts_batch(list: Option<PathBuf>, color: u32, points: usize, out: Option<PathBuf>, cache_dir: &Path) -> Result<()> {
+    let Some(list) = list else {
+        println!("usage: spex brick-parts-batch <list-file> -o <demos-dir>");
+        println!("list file: one real LDraw part alias or filename per line; blank lines and '#' comments are skipped.");
+        return Ok(());
+    };
+    let out = out.context("--out <demos-dir> is required for a batch render")?;
+    let text = std::fs::read_to_string(&list).with_context(|| format!("reading {}", list.display()))?;
+    let entries: Vec<&str> = text
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty() && !line.starts_with('#'))
+        .collect();
+    if entries.is_empty() {
+        bail!("{} contains no real part entries (blank lines/'#' comments only)", list.display());
+    }
+
+    let cache = spex_ldraw::LdrawCache::new(cache_dir);
+    let mut rendered = Vec::new();
+    let mut skipped: Vec<(String, String)> = Vec::new();
+
+    for (i, entry) in entries.iter().enumerate() {
+        let part_file = brick::resolve_part_alias(entry);
+        println!("[{}/{}] {entry} ({part_file})...", i + 1, entries.len());
+
+        let cloud = match brick::render_part_to_points(&cache, part_file, color, points, 0xC0FFEE) {
+            Ok(cloud) => cloud,
+            Err(e) => {
+                println!("  skip: {e:#}");
+                skipped.push((entry.to_string(), format!("{e:#}")));
+                continue;
+            }
+        };
+
+        let demo_name = sanitize_demo_name(entry);
+        let tileset_dir = out.join(&demo_name).join("tileset");
+        if let Err(e) = spex_tiler::build(cloud, &tileset_dir, &spex_tiler::TilerConfig::default()) {
+            println!("  skip: tiling failed: {e:#}");
+            skipped.push((entry.to_string(), format!("tiling failed: {e:#}")));
+            continue;
+        }
+        let title = spex_ldraw::geometry::part_description(&cache, part_file)
+            .ok()
+            .flatten()
+            .unwrap_or_else(|| part_file.to_string());
+        write_batch_demo_meta(&tileset_dir, &title)?;
+        println!("  ok: wrote {}", tileset_dir.display());
+        rendered.push(entry.to_string());
+    }
+
+    println!();
+    println!("rendered {}/{} real part(s)", rendered.len(), entries.len());
+    if !skipped.is_empty() {
+        println!("skipped {}:", skipped.len());
+        for (part, reason) in &skipped {
+            println!("  {part}: {reason}");
+        }
+    }
+
+    if rendered.is_empty() {
+        bail!("no real parts rendered — every entry in {} was skipped (see reasons above)", list.display());
+    }
+    Ok(())
+}
+
+/// Turns a list-file entry into a filesystem/URL-safe demo directory name
+/// — an alias like "1x1-brick" already is one, but a literal LDraw
+/// filename like "3005.dat" needs its extension dropped and any other
+/// non-alphanumeric character replaced, so it composes cleanly with
+/// `demos/<name>/tileset` (and therefore `spex gallery`/`export-static`,
+/// no adapter-specific handling needed there).
+fn sanitize_demo_name(entry: &str) -> String {
+    let stem = entry.strip_suffix(".dat").unwrap_or(entry);
+    stem.chars()
+        .map(|c| if c.is_ascii_alphanumeric() || c == '-' { c.to_ascii_lowercase() } else { '-' })
+        .collect()
+}
+
+/// Writes a minimal, schema-valid `meta.json` for one batch-rendered
+/// part's demo (see `spec/meta.schema.json`) purely so `render_gallery_html`
+/// — which already reads a demo's `meta.json` generically, regardless of
+/// which pipeline wrote it — shows the real part description instead of
+/// the raw list-file entry. The graph-specific fields stay `null`/`0`
+/// since a single rendered part has no metric to report.
+fn write_batch_demo_meta(tileset_dir: &Path, title: &str) -> Result<()> {
+    let meta = serde_json::json!({
+        "title": title,
+        "metricLabel": null,
+        "nodeCount": 0,
+        "metricMin": null,
+        "metricMax": null,
+    });
+    std::fs::write(tileset_dir.join("meta.json"), serde_json::to_string_pretty(&meta)?)?;
     Ok(())
 }
 
@@ -1196,5 +1329,59 @@ mod discover_demos_tests {
         assert!(sequence.kind == DemoKind::Sequence);
         assert!(sequence.graph_path.is_none());
         assert!(sequence.web_ready);
+    }
+}
+
+#[cfg(test)]
+mod brick_parts_batch_tests {
+    use super::*;
+
+    #[test]
+    fn sanitize_demo_name_strips_the_dat_extension() {
+        assert_eq!(sanitize_demo_name("3005.dat"), "3005");
+    }
+
+    #[test]
+    fn sanitize_demo_name_lowercases_and_replaces_non_alphanumerics() {
+        assert_eq!(sanitize_demo_name("Some Part_Name!.dat"), "some-part-name-");
+    }
+
+    #[test]
+    fn sanitize_demo_name_leaves_a_plain_alias_alone() {
+        assert_eq!(sanitize_demo_name("1x1-brick"), "1x1-brick");
+    }
+
+    #[test]
+    fn write_batch_demo_meta_is_schema_valid_and_round_trips_the_title() {
+        let dir = tempfile::tempdir().unwrap();
+        write_batch_demo_meta(dir.path(), "Brick  1 x  1").unwrap();
+
+        let text = std::fs::read_to_string(dir.path().join("meta.json")).unwrap();
+        let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+        assert_eq!(value["title"], "Brick  1 x  1");
+        assert_eq!(value["nodeCount"], 0);
+        assert!(value["metricLabel"].is_null());
+        assert!(value["metricMin"].is_null());
+        assert!(value["metricMax"].is_null());
+    }
+
+    #[test]
+    fn cmd_brick_parts_batch_rejects_a_list_with_only_comments_and_blanks() {
+        let dir = tempfile::tempdir().unwrap();
+        let list_path = dir.path().join("parts.txt");
+        std::fs::write(&list_path, "# just a comment\n\n   \n").unwrap();
+
+        let result = cmd_brick_parts_batch(Some(list_path), 4, 100, Some(dir.path().join("out")), &dir.path().join(".ldraw-cache"));
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn cmd_brick_parts_batch_errors_non_fatally_reports_a_missing_out() {
+        let dir = tempfile::tempdir().unwrap();
+        let list_path = dir.path().join("parts.txt");
+        std::fs::write(&list_path, "1x1-brick\n").unwrap();
+
+        let result = cmd_brick_parts_batch(Some(list_path), 4, 100, None, &dir.path().join(".ldraw-cache"));
+        assert!(result.is_err(), "--out is required");
     }
 }

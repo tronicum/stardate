@@ -149,8 +149,14 @@ pub fn render_gallery_html(demos: &[(String, PathBuf)]) -> String {
 
         let title = meta.title.unwrap_or_else(|| name.clone());
         let mut stats = Vec::new();
+        // A real graph always has at least a root, so 0 only ever means
+        // "this meta.json came from a non-graph demo, e.g.
+        // `brick-parts-batch`" — showing "0 nodes" there would read as an
+        // empty graph rather than what it actually is: not applicable.
         if let Some(n) = meta.node_count {
-            stats.push(format!("{n} nodes"));
+            if n > 0 {
+                stats.push(format!("{n} nodes"));
+            }
         }
         if let Some(p) = tileset.point_count {
             stats.push(format!("{p} points"));
@@ -479,6 +485,26 @@ mod tests {
             html.contains("href=\"d/decix-trace/\""),
             "should link into the demo with a relative href (subpath-hosting safe)"
         );
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[tokio::test]
+    async fn gallery_index_omits_the_node_count_for_a_non_graph_demo() {
+        // `spex brick-parts-batch` writes `nodeCount: 0` (the schema
+        // requires the field, but a rendered part has no graph nodes) —
+        // the card must not show a misleading "0 nodes".
+        let dir = temp_demo_dir("zero-nodes", "Brick  1 x  1", 0, 300);
+        let demos = vec![("1x1-brick".to_string(), dir.clone())];
+        let app = build_gallery_router(&demos);
+
+        let response = app.oneshot(Request::builder().uri("/").body(Body::empty()).unwrap()).await.unwrap();
+        let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+        let html = String::from_utf8(body.to_vec()).unwrap();
+
+        assert!(html.contains("Brick  1 x  1"), "should still show the real title");
+        assert!(!html.contains("0 nodes"), "0 nodes is not a meaningful stat for a point-cloud demo");
+        assert!(html.contains("300 points"), "should still show the real point count");
 
         let _ = std::fs::remove_dir_all(&dir);
     }
