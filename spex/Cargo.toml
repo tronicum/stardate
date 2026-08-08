@@ -8,6 +8,7 @@ members = [
     "crates/spex-graph",
     "crates/spex-ldraw",
     "crates/spex-cli",
+    "crates/spex-wasm",
 ]
 
 [workspace.package]

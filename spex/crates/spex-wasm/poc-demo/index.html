@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>spex-wasm PoC — client-side graph layout, no server</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #0b0e12; color: #e6e6e6; padding: 32px; max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 18px; }
+  p { color: #aaa; line-height: 1.5; }
+  textarea { width: 100%; height: 160px; background: #14181f; color: #e6e6e6; border: 1px solid #333; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 13px; }
+  button { background: #2a6df0; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; margin-top: 10px; }
+  button:hover { background: #3a7dff; }
+  pre { background: #14181f; border: 1px solid #333; border-radius: 6px; padding: 14px; overflow-x: auto; font-size: 13px; }
+  .stat { color: #6dd57a; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>spex-wasm PoC: real graph layout, entirely client-side</h1>
+<p>
+  This page loads <code>spex-graph</code>'s real radial layout algorithm — the
+  same code <code>spex graph-layout</code> runs on the server — compiled to
+  WebAssembly. Paste a real <code>graph.json</code> below and click Layout:
+  no server, no network round-trip beyond loading this page once.
+</p>
+<textarea id="input">{
+  "title": "spex-wasm PoC tree",
+  "nodes": [
+    {"id": "root", "label": "root", "parent": null, "metric": 1.0},
+    {"id": "a", "label": "a", "parent": "root", "metric": 4.0},
+    {"id": "b", "label": "b", "parent": "root", "metric": 2.0},
+    {"id": "c", "label": "c", "parent": "a", "metric": 7.0},
+    {"id": "d", "label": "d", "parent": "a", "metric": 3.0}
+  ]
+}</textarea>
+<br />
+<button id="run">Layout in-browser</button>
+<pre id="output">(click "Layout in-browser")</pre>
+
+<script type="module">
+  import init, { layout_graph } from "./pkg/spex_wasm.js";
+
+  const output = document.getElementById("output");
+  const runButton = document.getElementById("run");
+
+  async function main() {
+    await init();
+    runButton.disabled = false;
+  }
+  runButton.disabled = true;
+  main();
+
+  runButton.addEventListener("click", () => {
+    const graphJson = document.getElementById("input").value;
+    const started = performance.now();
+    try {
+      const resultJson = layout_graph(graphJson);
+      const elapsedMs = (performance.now() - started).toFixed(2);
+      const result = JSON.parse(resultJson);
+      output.textContent =
+        `laid out ${result.nodes.length} real node(s), ${result.points.length} real points, in ${elapsedMs}ms (in-browser, zero network calls)\n\n` +
+        JSON.stringify(result, null, 2).slice(0, 2000);
+    } catch (e) {
+      output.textContent = "Error: " + e;
+    }
+  });
+</script>
+</body>
+</html>
