@@ -26,27 +26,7 @@ pub fn run(package: &str) -> Result<Graph> {
     }
 
     let subtree_size = compute_subtree_sizes(&entries);
-
-    let nodes = entries
-        .iter()
-        .enumerate()
-        .map(|(i, e)| {
-            let mut metadata = Map::new();
-            metadata.insert("name".to_string(), Value::from(e.name.clone()));
-            if let Some(version) = &e.version {
-                metadata.insert("version".to_string(), Value::from(version.clone()));
-            }
-            metadata.insert("depth".to_string(), Value::from(e.depth));
-            GraphNode {
-                id: format!("pkg-{i}"),
-                label: e.name.clone(),
-                parent: e.parent.map(|p| format!("pkg-{p}")),
-                metric: Some(subtree_size[i]),
-                metadata,
-                ..Default::default()
-            }
-        })
-        .collect();
+    let nodes = build_nodes(&entries, &subtree_size);
     Ok(Graph {
         title: Some(format!("cargo dependency tree: {package}")),
         metric_label: Some("subtree size (crates)".to_string()),
@@ -59,6 +39,84 @@ struct Entry {
     version: Option<String>,
     parent: Option<usize>,
     depth: usize,
+}
+
+/// Turns the positional (one entry per real line of `cargo tree` output)
+/// parse into `GraphNode`s, merging real duplicate crates into one node
+/// instead of rendering each re-occurrence as its own blob. `cargo tree`
+/// doesn't dedup its own output either — the same real resolved crate (same
+/// name *and* same version — Cargo's resolver picks one exact version per
+/// unification group) legitimately gets re-expanded at every position in the
+/// tree it's required from (e.g. `proc-macro2` pulled in by both
+/// `clap_derive` and `quote`, where the second occurrence is elided with a
+/// trailing `(*)` since its subtree was already printed once) — so without
+/// this, one real crate would get two duplicate nodes in the graph.
+///
+/// Identity here is `(name, version)`, not just `name` — a version conflict
+/// can legitimately put two *different* versions of the same crate name in
+/// one real dependency tree, and those really are two distinct crates, not a
+/// duplicate; only a repeat of the same name at the same version is the real
+/// "reached from two branches" case issue #24 is about.
+///
+/// The *first* time an (name, version) pair is seen becomes the one real
+/// node: its position in the entry list still drives `parent`. Every later
+/// re-occurrence (typically the `(*)`-elided ones, which `parse_tree` already
+/// leaves childless) reuses that node's id and contributes its own real
+/// parent at that position to `extra_parents` instead of creating a second
+/// node — same technique as `brew_deps::build_nodes`.
+fn build_nodes(entries: &[Entry], subtree_size: &[f64]) -> Vec<GraphNode> {
+    // canonical_of[i] = index of the first entry sharing entries[i]'s (name, version).
+    let mut canonical_of: Vec<usize> = Vec::with_capacity(entries.len());
+    let mut first_seen: HashMap<(&str, Option<&str>), usize> = HashMap::new();
+    for (i, e) in entries.iter().enumerate() {
+        let key = (e.name.as_str(), e.version.as_deref());
+        let canonical = *first_seen.entry(key).or_insert(i);
+        canonical_of.push(canonical);
+    }
+    let node_id = |idx: usize| format!("pkg-{}", canonical_of[idx]);
+
+    let mut nodes: Vec<GraphNode> = Vec::new();
+    let mut node_pos: HashMap<usize, usize> = HashMap::new(); // canonical entry idx -> position in `nodes`
+
+    for (i, e) in entries.iter().enumerate() {
+        if canonical_of[i] != i {
+            // A later real occurrence of an already-seen (name, version): not
+            // a new node, but a genuine additional real parent for the
+            // canonical one (skip self-references and exact duplicates of
+            // the primary parent).
+            let Some(p) = e.parent else { continue };
+            let extra_parent_id = node_id(p);
+            let pos = node_pos[&canonical_of[i]];
+            let canonical_node = &mut nodes[pos];
+            if extra_parent_id != canonical_node.id
+                && canonical_node.parent.as_deref() != Some(extra_parent_id.as_str())
+                && !canonical_node.extra_parents.contains(&extra_parent_id)
+            {
+                canonical_node.extra_parents.push(extra_parent_id);
+            }
+            continue;
+        }
+
+        let mut metadata = Map::new();
+        metadata.insert("name".to_string(), Value::from(e.name.clone()));
+        if let Some(version) = &e.version {
+            metadata.insert("version".to_string(), Value::from(version.clone()));
+        }
+        metadata.insert("depth".to_string(), Value::from(e.depth));
+        node_pos.insert(i, nodes.len());
+        nodes.push(GraphNode {
+            id: node_id(i),
+            label: e.name.clone(),
+            parent: e.parent.map(node_id),
+            // Subtree size (including self), computed from this
+            // (canonical/first) occurrence's own position only — same
+            // simplification `brew_deps::build_nodes` makes.
+            metric: Some(subtree_size[i]),
+            metadata,
+            ..Default::default()
+        });
+    }
+    nodes
 }
 
 /// Parses `cargo tree`'s box-drawing output. Same depth-by-prefix-chunk
@@ -220,5 +278,68 @@ spex-cli v0.1.0 (/Users/stefan/workspace/stardate/spex/crates/spex-cli)
 
         let libc_idx = entries.iter().position(|e| e.name == "libc").unwrap();
         assert_eq!(sizes[libc_idx], 1.0); // leaf
+    }
+
+    #[test]
+    fn build_nodes_merges_duplicate_crate_into_one_node_with_extra_parents() {
+        // "proc-macro2 v1.0.107" is real-world-shaped here: it's a direct
+        // dep of `clap_derive` AND a dep of `quote`, and `cargo tree` itself
+        // marks the second occurrence with "(*)" since it already printed
+        // that subtree once (issue #24's cargo-tree analog of the brew-deps
+        // `openssl@3` case). The graph we hand to the layout stage should
+        // merge those into one real node.
+        let entries = parse_tree(SAMPLE);
+        let subtree_size = compute_subtree_sizes(&entries);
+        let nodes = build_nodes(&entries, &subtree_size);
+
+        // 10 real package lines ("[build-dependencies]" isn't a package),
+        // one real duplicate ("proc-macro2 v1.0.107" appears twice) merged away.
+        assert_eq!(nodes.len(), 9);
+
+        let proc_macro2_nodes: Vec<&GraphNode> = nodes.iter().filter(|n| n.label == "proc-macro2").collect();
+        assert_eq!(proc_macro2_nodes.len(), 1, "proc-macro2 v1.0.107 must appear as exactly one node, not two duplicates");
+        let proc_macro2 = proc_macro2_nodes[0];
+
+        let clap_derive = nodes.iter().find(|n| n.label == "clap_derive").unwrap();
+        let quote = nodes.iter().find(|n| n.label == "quote").unwrap();
+
+        // Its one real 3D position is still driven by its first real
+        // occurrence's parent (direct child of clap_derive), which also
+        // keeps its own real subtree (rustversion via [build-dependencies]).
+        assert_eq!(proc_macro2.parent.as_deref(), Some(clap_derive.id.as_str()));
+        // The second (elided, "(*)") real occurrence's parent (quote)
+        // becomes a real extra structural edge instead of a second node.
+        assert_eq!(proc_macro2.extra_parents, vec![quote.id.clone()]);
+
+        let rustversion = nodes.iter().find(|n| n.label == "rustversion").unwrap();
+        assert_eq!(rustversion.parent.as_deref(), Some(proc_macro2.id.as_str()));
+
+        // Every other (genuinely non-duplicate) crate still gets its own node.
+        assert!(nodes.iter().any(|n| n.label == "anyhow"));
+        assert!(nodes.iter().any(|n| n.label == "libc"));
+    }
+
+    #[test]
+    fn build_nodes_keeps_same_name_different_version_as_distinct_nodes() {
+        // A real cargo dependency graph can legitimately resolve two
+        // different versions of the same crate name side by side (a version
+        // conflict) — those are two distinct crates and must not be merged
+        // just because the name matches.
+        const VERSION_CONFLICT_SAMPLE: &str = "\
+root v0.1.0 (/tmp/root)
+├── left v1.0.0
+│   └── shared-lib v1.0.0
+└── right v1.0.0
+    └── shared-lib v2.0.0
+";
+        let entries = parse_tree(VERSION_CONFLICT_SAMPLE);
+        let subtree_size = compute_subtree_sizes(&entries);
+        let nodes = build_nodes(&entries, &subtree_size);
+
+        let shared_nodes: Vec<&GraphNode> = nodes.iter().filter(|n| n.label == "shared-lib").collect();
+        assert_eq!(shared_nodes.len(), 2, "shared-lib v1.0.0 and shared-lib v2.0.0 are distinct crates and must not be merged");
+        for n in &shared_nodes {
+            assert!(n.extra_parents.is_empty());
+        }
     }
 }
