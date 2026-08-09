@@ -230,12 +230,17 @@ impl Primitive for Wall {
                 let mut cursor_studs = 0u32;
                 for (part, w) in &segments {
                     let x_center = (cursor_studs as f64 + *w as f64 / 2.0) * STUD_LDU;
-                    local.push(Placement::on_grid(
+                    // One real build stage per course — the real
+                    // bricklaying stage (lay one course across the wall's
+                    // full width and depth, then the next).
+                    let mut p = Placement::on_grid(
                         GridPos::new(half_studs(x_center), y_plates, half_studs(z_center)),
                         Orientation::IDENTITY,
                         *part,
                         self.color,
-                    ));
+                    );
+                    p.build_step = course;
+                    local.push(p);
                     cursor_studs += w;
                 }
             }
@@ -347,7 +352,14 @@ impl Primitive for Stair {
                 color: self.color,
                 part_set: PartSet::Classic,
             };
-            local.extend(block.emit(GridPos::new(studs(step * step_run), 0, 0), Orientation::IDENTITY));
+            let mut block_placements = block.emit(GridPos::new(studs(step * step_run), 0, 0), Orientation::IDENTITY);
+            // One real build stage per physical stair step — overwrites
+            // the embedded Wall's per-course numbering, same pattern as
+            // Ziggurat's per-tier override.
+            for p in &mut block_placements {
+                p.build_step = step;
+            }
+            local.extend(block_placements);
         }
         transform_local(local, origin, orientation)
     }
@@ -533,7 +545,15 @@ impl Primitive for Colonnade {
         for i in 0..n {
             let x = studs(i * self.spacing_studs);
             let col = Column { height_plates: self.column.height_plates, diameter_studs: diameter, color: self.column.color };
-            local.extend(col.emit(GridPos::new(x, 0, 0), Orientation::IDENTITY));
+            // One real build stage per real column instance — the same
+            // "one upright, one stage" grain the real Stonehenge file
+            // uses. Column doesn't stage its own courses, so this is the
+            // whole of its numbering.
+            let mut col_placements = col.emit(GridPos::new(x, 0, 0), Orientation::IDENTITY);
+            for p in &mut col_placements {
+                p.build_step = i;
+            }
+            local.extend(col_placements);
         }
         if self.architrave && n > 0 {
             let span_studs = (n - 1) * self.spacing_studs + diameter;
@@ -546,7 +566,14 @@ impl Primitive for Colonnade {
                 part_set: PartSet::Classic,
             };
             let beam_top_plates = brick_courses(self.column.height_plates) * BRICK_PLATES;
-            local.extend(beam.emit(GridPos::new(0, -(beam_top_plates as i32), 0), Orientation::IDENTITY));
+            // The architrave is one final real stage, raised only after
+            // every real column below it — mirrors the real Stonehenge
+            // file's "all uprights, then the lintel ring" sequencing.
+            let mut beam_placements = beam.emit(GridPos::new(0, -(beam_top_plates as i32), 0), Orientation::IDENTITY);
+            for p in &mut beam_placements {
+                p.build_step = n;
+            }
+            local.extend(beam_placements);
         }
         transform_local(local, origin, orientation)
     }
@@ -632,6 +659,11 @@ mod tests {
 
         assert_eq!(placements.len(), 31, "10 + 11 + 10 real bricks across 3 courses");
 
+        // One real build stage per course.
+        assert!(placements[0..10].iter().all(|p| p.build_step == 0), "course 0");
+        assert!(placements[10..21].iter().all(|p| p.build_step == 1), "course 1");
+        assert!(placements[21..31].iter().all(|p| p.build_step == 2), "course 2");
+
         // And every one of them is grid-legal.
         let build_placements: Vec<crate::grid::Placement> = placements;
         let problems = validate(&build_placements, &FootprintTable::standard());
@@ -694,6 +726,24 @@ mod tests {
         let xs: Vec<i32> = placements.iter().map(|p| half_studs(p.translation_ldu[0])).collect();
         assert_eq!(xs, vec![1, 9, 17], "spaced 4 studs = 8 half-studs apart, each centered on its own stud");
         assert_eq!(col.extent(), (9, 1, 3));
+        // One real build stage per real column instance.
+        let steps: Vec<u32> = placements.iter().map(|p| p.build_step).collect();
+        assert_eq!(steps, vec![0, 1, 2]);
+    }
+
+    #[test]
+    fn colonnade_architrave_is_one_real_final_stage_after_every_column() {
+        let col = Colonnade {
+            columns: 2,
+            spacing_studs: 4,
+            column: Column { height_plates: 3, diameter_studs: 1, color: 71 },
+            architrave: true,
+        };
+        let placements = col.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
+        // 2 columns (1 real placement each) + 1 real architrave course.
+        let column_steps: Vec<u32> = placements[0..2].iter().map(|p| p.build_step).collect();
+        assert_eq!(column_steps, vec![0, 1]);
+        assert!(placements[2..].iter().all(|p| p.build_step == 2), "the architrave is one final real stage, after both real columns");
     }
 
     #[test]
@@ -735,6 +785,20 @@ mod tests {
         assert_eq!(stair.extent(), (6, 2, 9));
         let problems = validate(&placements, &FootprintTable::standard());
         assert_eq!(problems, vec![]);
+        // One real build stage per physical step, and each later step has
+        // strictly more real placements than the one before it (a taller
+        // block has more real courses) — real, hand-verifiable structure
+        // without hardcoding the exact greedy-tiling part counts.
+        let mut counts = [0u32; 3];
+        for p in &placements {
+            assert!(p.build_step < 3, "3 steps here, got build_step {}", p.build_step);
+            counts[p.build_step as usize] += 1;
+        }
+        assert!(counts[0] > 0 && counts[1] > counts[0] && counts[2] > counts[1], "{counts:?}");
+        // And build_step is emitted in non-decreasing order (step 0's real
+        // placements all come before step 1's, etc.) — required for
+        // write_ldr's real "0 STEP" emission to be correct.
+        assert!(placements.windows(2).all(|w| w[0].build_step <= w[1].build_step));
     }
 
     #[test]
