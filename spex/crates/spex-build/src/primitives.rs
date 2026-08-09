@@ -383,7 +383,16 @@ impl Primitive for Ziggurat {
                 part_set: PartSet::Classic,
             };
             let origin_for_tier = GridPos::new(studs(inset), -cumulative_plates, studs(inset));
-            local.extend(tier_wall.emit(origin_for_tier, Orientation::IDENTITY));
+            let mut tier_placements = tier_wall.emit(origin_for_tier, Orientation::IDENTITY);
+            // One real build stage per tier (the real structural unit a
+            // Ziggurat/Pyramid/Dome rises by), not per brick or per course
+            // — overwrites whatever `Wall::emit` set internally, matching
+            // the real Stonehenge precedent's grain (one stage per real
+            // structural instance).
+            for p in &mut tier_placements {
+                p.build_step = tier;
+            }
+            local.extend(tier_placements);
             cumulative_plates += brick_courses(self.tier_height_plates) as i32 * BRICK_PLATES as i32;
         }
         transform_local(local, origin, orientation)
@@ -705,6 +714,17 @@ mod tests {
         assert_eq!(zig.extent(), (6, 6, 6));
         let problems = validate(&placements, &FootprintTable::standard());
         assert_eq!(problems, vec![]);
+        // One real build stage per tier — every placement of tier 0 (the
+        // real structural unit) shares one stage, tier 1 the next, not one
+        // stage per brick/course.
+        // tier_height_plates: 3 is exactly one real brick course (24 LDU);
+        // this module's own "course c's bottom is at -((c+1)*BRICK_PLATES)
+        // plates" convention puts tier 0's placements at real Y=-24 and
+        // tier 1's at real Y=-48 — -36 cleanly bisects them.
+        let tier0_steps: Vec<u32> = placements.iter().filter(|p| p.translation_ldu[1] > -36.0).map(|p| p.build_step).collect();
+        let tier1_steps: Vec<u32> = placements.iter().filter(|p| p.translation_ldu[1] <= -36.0).map(|p| p.build_step).collect();
+        assert!(!tier0_steps.is_empty() && tier0_steps.iter().all(|&s| s == 0), "{tier0_steps:?}");
+        assert!(!tier1_steps.is_empty() && tier1_steps.iter().all(|&s| s == 1), "{tier1_steps:?}");
     }
 
     #[test]
@@ -743,5 +763,17 @@ mod tests {
         let placements = a.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
         let problems = validate(&placements, &FootprintTable::standard());
         assert_eq!(problems, vec![]);
+    }
+
+    #[test]
+    fn pyramid_inherits_ziggurats_real_per_tier_build_staging_for_free() {
+        // Pyramid delegates straight to Ziggurat::emit — no separate
+        // staging code, this just proves that delegation actually carries
+        // real, multi-valued build_step through rather than losing it.
+        let pyramid = Pyramid { base_studs: 6, color: 4, stepped: true };
+        let placements = pyramid.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
+        let distinct: std::collections::BTreeSet<u32> = placements.iter().map(|p| p.build_step).collect();
+        assert!(distinct.len() > 1, "a multi-tier pyramid must have more than one real build stage: {distinct:?}");
+        assert_eq!(*distinct.iter().min().unwrap(), 0, "stages are 0-based");
     }
 }
