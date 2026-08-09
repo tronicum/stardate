@@ -192,7 +192,13 @@ pub struct Wall {
 impl Wall {
     fn course_segments(&self, course: u32) -> Vec<(&'static str, u32)> {
         match self.bond {
-            Bond::Stack => stretcher_course(self.width_studs),
+            // Stack has no offset to keep consistent between courses (every
+            // course is identical), so unlike Running/EnglishCross below it
+            // has no reason to stay within stretcher_course's real-1x2-only
+            // set — real greedy tiling (1x4 first) gives a real build fewer,
+            // bigger parts instead of a wall of uniform 1x2s. This is what
+            // every Ziggurat/Pyramid/Dome tier actually builds from.
+            Bond::Stack => tile_length(self.part_set, self.width_studs),
             Bond::Running => {
                 if course % 2 == 0 {
                     stretcher_course(self.width_studs)
@@ -213,7 +219,6 @@ impl Wall {
 
 impl Primitive for Wall {
     fn emit(&self, origin: GridPos, orientation: Orientation) -> Vec<Placement> {
-        let _ = self.part_set; // reserved: every course helper above already targets Classic
         let courses = brick_courses(self.height_plates);
         let depth = self.depth_studs.max(1);
         let mut local = Vec::new();
@@ -628,9 +633,10 @@ mod tests {
     fn wall_reports_real_part_counts_and_extent() {
         let wall = Wall { width_studs: 8, height_plates: 3, depth_studs: 1, bond: Bond::Stack, color: 15, part_set: PartSet::Classic };
         let placements = wall.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
-        // 8 studs, stack bond, single course: greedy stretcher_course = 4x 1x2.
-        assert_eq!(placements.len(), 4);
-        assert!(placements.iter().all(|p| p.part == "3004.dat"));
+        // 8 studs, stack bond, single course: real greedy tiling, longest
+        // real brick first = 2x 1x4 (3010.dat), not 4x 1x2.
+        assert_eq!(placements.len(), 2);
+        assert!(placements.iter().all(|p| p.part == "3010.dat"));
         assert_eq!(wall.extent(), (8, 1, 3));
     }
 
@@ -657,10 +663,10 @@ mod tests {
     fn trilithon_emits_two_real_posts_and_a_real_lintel_with_no_illegality() {
         let tri = Trilithon { post_height_plates: 9, gap_studs: 3, color: 72 };
         let placements = tri.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
-        // 2 posts * 3 courses each (real 1x1 bricks) + 1 lintel course, a
-        // real stretcher_course tiling 5 studs (gap 3 + 2 posts) = 2x 1x2 +
-        // 1x 1x1 = 3 real bricks.
-        assert_eq!(placements.len(), 2 * 3 + 3);
+        // 2 posts * 3 courses each (real 1x1 bricks) + 1 lintel course, real
+        // greedy tiling of 5 studs (gap 3 + 2 posts) = 1x 1x4 + 1x 1x1 =
+        // 2 real bricks.
+        assert_eq!(placements.len(), 2 * 3 + 2);
         assert_eq!(tri.extent(), (5, 1, 12));
         let problems = validate(&placements, &FootprintTable::standard());
         assert_eq!(problems, vec![]);
