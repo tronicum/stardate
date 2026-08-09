@@ -10,16 +10,25 @@
 //!    of the bundle that was just built (`spex_show::compile`).
 //! 3. `show-resolved.json` is written.
 //!
-//! # Two source kinds have no generator yet
+//! # Two source kinds still have no generator
 //!
-//! A scene can be an `.ldr` file, a `build` recipe (M72), a `flag` (M75) or a
-//! `heritage` site (M73). Only the first exists. Rather than emit a show that
-//! silently has no Stonehenge in it, `show-build` **fails and names the
-//! milestone**, and `--skip-unbuildable` is the explicit way to say "build the
-//! part that exists" — which then prints exactly which scenes were dropped and
-//! which shots lost geometry. A missing scene that produces no message is the
-//! failure mode worth engineering against: at runtime it is simply an empty
-//! frame with no error anywhere.
+//! A scene can be an `.ldr` file, a `build` recipe (M72), an `ankerstein`
+//! assembly, a `flag` (M75) or a `heritage` site (M73). The first three
+//! exist — a `build` scene runs the real M72 recipe pipeline
+//! (`spex_build::build`) and feeds its real generated `.ldr` text through
+//! the exact same parsing/mesh-bundling path a hand-authored `.ldr` file
+//! uses; an `ankerstein` scene resolves through
+//! `spex_ankerstein::to_part_geometry` instead (no LDraw file at all — a
+//! real, procedurally-generated Anchor Stone shape), proving the same
+//! `MeshBundleBuilder` pipeline generalizes beyond LDraw. `flag`/`heritage`
+//! are still missing. Rather than emit a show that silently has no
+//! Stonehenge in it,
+//! `show-build` **fails and names the milestone**, and `--skip-unbuildable`
+//! is the explicit way to say "build the part that exists" — which then
+//! prints exactly which scenes were dropped and which shots lost geometry. A
+//! missing scene that produces no message is the failure mode worth
+//! engineering against: at runtime it is simply an empty frame with no error
+//! anywhere.
 //!
 //! # `--no-bundles`
 //!
@@ -200,9 +209,9 @@ fn unbuildable(show: &Show) -> Vec<(String, String)> {
         .iter()
         .filter_map(|scene| match &scene.source {
             SceneSource::Ldr { .. } => None,
-            SceneSource::Build { recipe } => {
-                Some((scene.id.clone(), format!("build recipe {recipe:?} — M72")))
-            }
+            // M72's spex-build now has a real generator (see build_bundles
+            // below) — a `build` scene is no longer unbuildable.
+            SceneSource::Build { .. } => None,
             SceneSource::Flag { flag } => Some((scene.id.clone(), format!("flag {flag:?} — M75"))),
             SceneSource::Heritage { site_id } => {
                 Some((scene.id.clone(), format!("heritage site {site_id:?} — M73")))
@@ -253,6 +262,23 @@ fn build_bundles(
                     .with_context(|| format!("scene {:?} from {path:?}", scene.id))?;
                 let stats = crate::mesh::build_scene_bundle(&cache, &parsed, opts.crease, &dir)?;
                 (stats, path.clone())
+            }
+            SceneSource::Build { recipe } => {
+                // M72: run the real recipe pipeline, then feed the same real
+                // `.ldr` text a hand-authored file would produce through the
+                // exact same `Ldr` parsing/mesh-bundling path above — no
+                // separate mesh-building logic to keep in sync.
+                let output = spex_build::build(Path::new(recipe))
+                    .with_context(|| format!("scene {:?}: building recipe {recipe:?}", scene.id))?;
+                std::fs::create_dir_all(&dir)
+                    .with_context(|| format!("creating {}", dir.display()))?;
+                let ldr_path = dir.join("_recipe.ldr");
+                std::fs::write(&ldr_path, &output.ldr_text)
+                    .with_context(|| format!("writing generated {}", ldr_path.display()))?;
+                let parsed = spex_ldraw::parse_scene(&cache, spex_ldraw::ModelSource::LocalFile(&ldr_path))
+                    .with_context(|| format!("scene {:?}: parsing generated LDraw from recipe {recipe:?}", scene.id))?;
+                let stats = crate::mesh::build_scene_bundle(&cache, &parsed, opts.crease, &dir)?;
+                (stats, recipe.clone())
             }
             SceneSource::Ankerstein { scene: scene_path, color } => {
                 // Not an LDraw scene at all — a real Ankerstein assembly,
