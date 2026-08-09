@@ -281,6 +281,17 @@ pub struct Placement {
     /// `"knownIllegal"` array can list (acceptance criterion 2), not as an
     /// undeclared `Illegality`.
     pub declared_off_grid: bool,
+    /// Which real construction stage this placement belongs to, 0-based.
+    /// A primitive sets this to stage its own internal structure (e.g.
+    /// `Ziggurat` numbers by tier); `recipe::build_recipe` then offsets
+    /// each emitted instance's own numbering so stages stay distinct
+    /// across a whole recipe. `recipe::write_ldr` turns runs of equal
+    /// `build_step` into real `0 STEP` lines, which is what lets the
+    /// already-shipped `spex-mesh`/viewer choreography (`instanceBuildSteps`,
+    /// `AssemblyChoreography`) animate a real progressive assembly —
+    /// see `docs/fugen/phase2-show.md`'s M64 section. Left at the default
+    /// `0` for every placement means "no animation data," not an error.
+    pub build_step: u32,
 }
 
 impl Placement {
@@ -293,6 +304,7 @@ impl Placement {
             translation_ldu: pos.to_ldu(),
             matrix: orientation.matrix(),
             declared_off_grid: false,
+            build_step: 0,
         }
     }
 }
@@ -517,6 +529,7 @@ mod tests {
             translation_ldu: [5.0, -24.0, 0.0], // 5 LDU is not a multiple of 10
             matrix: Orientation::IDENTITY.matrix(),
             declared_off_grid: false,
+            build_step: 0,
         }];
         let problems = validate(&placements, &FootprintTable::standard());
         assert_eq!(problems.len(), 1, "{problems:?}");
@@ -532,6 +545,7 @@ mod tests {
                 translation_ldu: [5.0, 1.0, 0.0],
                 matrix: Orientation::IDENTITY.matrix(),
                 declared_off_grid: false,
+                build_step: 0,
             },
             Placement {
                 part: "3005.dat".into(),
@@ -539,6 +553,7 @@ mod tests {
                 translation_ldu: [0.0, 40.0, 0.0], // off the ground and unsupported
                 matrix: [1.0, 0.0, 0.0, 0.0, 1.0, 0.5, 0.0, 0.0, 1.0], // not a real rotation
                 declared_off_grid: false,
+                build_step: 0,
             },
         ];
         let problems = validate(&placements, &FootprintTable::standard());
