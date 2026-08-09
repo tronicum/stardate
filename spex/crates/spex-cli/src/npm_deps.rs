@@ -35,26 +35,7 @@ pub fn run() -> Result<Graph> {
     }
 
     let subtree_size = compute_subtree_sizes(&entries);
-
-    let nodes = entries
-        .iter()
-        .enumerate()
-        .map(|(i, e)| {
-            let mut metadata = Map::new();
-            metadata.insert("name".to_string(), Value::from(e.name.clone()));
-            if let Some(version) = &e.version {
-                metadata.insert("version".to_string(), Value::from(version.clone()));
-            }
-            GraphNode {
-                id: format!("pkg-{i}"),
-                label: e.name.clone(),
-                parent: e.parent.map(|p| format!("pkg-{p}")),
-                metric: Some(subtree_size[i]),
-                metadata,
-                ..Default::default()
-            }
-        })
-        .collect();
+    let nodes = build_nodes(&entries, &subtree_size);
 
     Ok(Graph {
         title: Some(format!("npm dependency tree: {project_name}")),
@@ -67,6 +48,82 @@ struct Entry {
     name: String,
     version: Option<String>,
     parent: Option<usize>,
+}
+
+/// Turns the positional (one entry per real `dependencies` object walked)
+/// parse into `GraphNode`s, merging real duplicate packages into one node
+/// instead of rendering each re-occurrence as its own blob. `npm ls --json`
+/// doesn't dedup its own output — the same real resolved package (same name
+/// *and* same resolved version) legitimately gets re-expanded at every
+/// position in the tree it's required from (e.g. a common transitive dep
+/// pulled in by two unrelated top-level packages), so without this, one real
+/// installed package would get two duplicate nodes in the graph.
+///
+/// Identity here is `(name, version)`, not just `name` — unlike Homebrew
+/// formulas, npm legitimately resolves the *same* package name to two
+/// *different* versions at different tree positions (peer-dep/semver-range
+/// conflicts), and those really are two distinct installed packages, not a
+/// duplicate; only a repeat of the same name at the same resolved version is
+/// the real "reached from two branches" case issue #24 is about.
+///
+/// The *first* time an (name, version) pair is seen becomes the one real
+/// node: its position in the entry list still drives `parent`. Every later
+/// re-occurrence of the same (name, version) reuses that node's id and
+/// contributes its own real parent at that position to `extra_parents`
+/// instead of creating a second node — same technique as
+/// `brew_deps::build_nodes`.
+fn build_nodes(entries: &[Entry], subtree_size: &[f64]) -> Vec<GraphNode> {
+    // canonical_of[i] = index of the first entry sharing entries[i]'s (name, version).
+    let mut canonical_of: Vec<usize> = Vec::with_capacity(entries.len());
+    let mut first_seen: HashMap<(&str, Option<&str>), usize> = HashMap::new();
+    for (i, e) in entries.iter().enumerate() {
+        let key = (e.name.as_str(), e.version.as_deref());
+        let canonical = *first_seen.entry(key).or_insert(i);
+        canonical_of.push(canonical);
+    }
+    let node_id = |idx: usize| format!("pkg-{}", canonical_of[idx]);
+
+    let mut nodes: Vec<GraphNode> = Vec::new();
+    let mut node_pos: HashMap<usize, usize> = HashMap::new(); // canonical entry idx -> position in `nodes`
+
+    for (i, e) in entries.iter().enumerate() {
+        if canonical_of[i] != i {
+            // A later real occurrence of an already-seen (name, version): not
+            // a new node, but a genuine additional real parent for the
+            // canonical one (skip self-references and exact duplicates of
+            // the primary parent).
+            let Some(p) = e.parent else { continue };
+            let extra_parent_id = node_id(p);
+            let pos = node_pos[&canonical_of[i]];
+            let canonical_node = &mut nodes[pos];
+            if extra_parent_id != canonical_node.id
+                && canonical_node.parent.as_deref() != Some(extra_parent_id.as_str())
+                && !canonical_node.extra_parents.contains(&extra_parent_id)
+            {
+                canonical_node.extra_parents.push(extra_parent_id);
+            }
+            continue;
+        }
+
+        let mut metadata = Map::new();
+        metadata.insert("name".to_string(), Value::from(e.name.clone()));
+        if let Some(version) = &e.version {
+            metadata.insert("version".to_string(), Value::from(version.clone()));
+        }
+        node_pos.insert(i, nodes.len());
+        nodes.push(GraphNode {
+            id: node_id(i),
+            label: e.name.clone(),
+            parent: e.parent.map(node_id),
+            // Subtree size (including self), computed from this
+            // (canonical/first) occurrence's own position only — same
+            // simplification `brew_deps::build_nodes` makes.
+            metric: Some(subtree_size[i]),
+            metadata,
+            ..Default::default()
+        });
+    }
+    nodes
 }
 
 /// Recursively walks `npm ls --json`'s real `dependencies` object shape
@@ -170,5 +227,96 @@ mod tests {
 
         let ts_idx = entries.iter().position(|e| e.name == "typescript").unwrap();
         assert_eq!(sizes[ts_idx], 2.0); // typescript + its one nested dep
+    }
+
+    // "inflight" here is real-world-shaped: it's a common transitive dep
+    // (e.g. of glob) that `npm ls --json --all` legitimately re-expands at
+    // every position it's required from, same as issue #24's brew-deps
+    // `openssl@3` case. `debug` appears twice at two *different* resolved
+    // versions — a real npm peer-dep/semver-range split — and must stay two
+    // distinct nodes, not get merged just because the name matches.
+    const DUPLICATE_SAMPLE: &str = r#"{
+        "name": "spex-viewer",
+        "version": "0.1.0",
+        "dependencies": {
+            "glob": {
+                "version": "7.2.3",
+                "dependencies": {
+                    "inflight": { "version": "1.0.6" }
+                }
+            },
+            "rimraf": {
+                "version": "3.0.2",
+                "dependencies": {
+                    "inflight": { "version": "1.0.6" }
+                }
+            },
+            "eslint": {
+                "version": "8.57.0",
+                "dependencies": {
+                    "debug": { "version": "4.3.4" }
+                }
+            },
+            "chokidar": {
+                "version": "3.6.0",
+                "dependencies": {
+                    "debug": { "version": "3.2.7" }
+                }
+            }
+        }
+    }"#;
+
+    fn parse_duplicate_sample() -> Vec<Entry> {
+        let root: Value = serde_json::from_str(DUPLICATE_SAMPLE).unwrap();
+        let mut entries = vec![Entry {
+            name: root["name"].as_str().unwrap().to_string(),
+            version: root["version"].as_str().map(str::to_string),
+            parent: None,
+        }];
+        walk(root["dependencies"].as_object().unwrap(), 0, &mut entries);
+        entries
+    }
+
+    #[test]
+    fn build_nodes_merges_same_name_and_version_into_one_node_with_extra_parents() {
+        let entries = parse_duplicate_sample();
+        assert_eq!(entries.len(), 9); // root + glob + rimraf + eslint + chokidar + inflight*2 + debug*2
+
+        let subtree_size = compute_subtree_sizes(&entries);
+        let nodes = build_nodes(&entries, &subtree_size);
+
+        // 9 real entries, one real duplicate ("inflight@1.0.6" appears
+        // twice) merged away.
+        assert_eq!(nodes.len(), 8);
+
+        let inflight_nodes: Vec<&GraphNode> = nodes.iter().filter(|n| n.label == "inflight").collect();
+        assert_eq!(inflight_nodes.len(), 1, "inflight@1.0.6 must appear as exactly one node, not two duplicates");
+        let inflight = inflight_nodes[0];
+
+        let glob = nodes.iter().find(|n| n.label == "glob").unwrap();
+        let rimraf = nodes.iter().find(|n| n.label == "rimraf").unwrap();
+
+        // Its one real 3D position is still driven by its first real
+        // occurrence's parent (glob, the first dependency walked).
+        assert_eq!(inflight.parent.as_deref(), Some(glob.id.as_str()));
+        // The second real occurrence's parent (rimraf) becomes a real extra
+        // structural edge instead of a second node.
+        assert_eq!(inflight.extra_parents, vec![rimraf.id.clone()]);
+    }
+
+    #[test]
+    fn build_nodes_keeps_same_name_different_version_as_distinct_nodes() {
+        let entries = parse_duplicate_sample();
+        let subtree_size = compute_subtree_sizes(&entries);
+        let nodes = build_nodes(&entries, &subtree_size);
+
+        // "debug" appears at two different resolved versions (4.3.4 under
+        // eslint, 3.2.7 under chokidar) — a real npm version split, not a
+        // duplicate, so both must remain their own real node.
+        let debug_nodes: Vec<&GraphNode> = nodes.iter().filter(|n| n.label == "debug").collect();
+        assert_eq!(debug_nodes.len(), 2, "debug@4.3.4 and debug@3.2.7 are distinct packages and must not be merged");
+        for n in &debug_nodes {
+            assert!(n.extra_parents.is_empty());
+        }
     }
 }
