@@ -1,3 +1,4 @@
+mod apt_deps;
 mod ascii;
 mod brew_deps;
 mod brick;
@@ -455,6 +456,20 @@ enum Command {
         out: PathBuf,
     },
 
+    /// Run `apt-cache show <package>` (Debian/Ubuntu APT package index) on a
+    /// package and its direct dependencies and write them as a spex-graph
+    /// JSON file: one level of real direct deps, not a full recursive apt
+    /// tree. Unlike `deb-deps`, works against the APT cache (populated by
+    /// `apt-get update`), so the package doesn't need to be installed. Only
+    /// works on a real Debian/Ubuntu system.
+    AptDeps {
+        package: String,
+
+        /// Output graph JSON path.
+        #[arg(short, long)]
+        out: PathBuf,
+    },
+
     /// Run `cargo tree -p <package>` (from the current directory, which
     /// must be inside a real Cargo project) and write it as a spex-graph
     /// JSON file: real subtree size (crate count) drives color.
@@ -626,6 +641,7 @@ fn main() -> Result<()> {
         Command::PstreeDemo { out } => cmd_pstree_demo(&out),
         Command::BrewDeps { formula, out } => cmd_brew_deps(&formula, &out),
         Command::DebDeps { package, out } => cmd_deb_deps(&package, &out),
+        Command::AptDeps { package, out } => cmd_apt_deps(&package, &out),
         Command::CargoDeps { package, out } => cmd_cargo_deps(&package, &out),
         Command::NpmDeps { out } => cmd_npm_deps(&out),
         Command::DiskUsage { path, out } => cmd_disk_usage(&path, &out),
@@ -986,6 +1002,20 @@ fn cmd_brew_deps(formula: &str, out: &Path) -> Result<()> {
 fn cmd_deb_deps(package: &str, out: &Path) -> Result<()> {
     println!("running `dpkg -s {package}` and its direct dependencies...");
     let graph = deb_deps::run(package)?;
+    println!("captured {} packages", graph.nodes.len());
+    if let Some(parent) = out.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent)?;
+        }
+    }
+    graph.write_json(out)?;
+    println!("wrote graph to {}", out.display());
+    Ok(())
+}
+
+fn cmd_apt_deps(package: &str, out: &Path) -> Result<()> {
+    println!("running `apt-cache show {package}` and its direct dependencies...");
+    let graph = apt_deps::run(package)?;
     println!("captured {} packages", graph.nodes.len());
     if let Some(parent) = out.parent() {
         if !parent.as_os_str().is_empty() {
