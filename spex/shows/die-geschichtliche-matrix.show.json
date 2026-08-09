@@ -90,7 +90,7 @@
     },
     {
       "id": "stonehenge",
-      "source": { "kind": "heritage", "siteId": "stonehenge" },
+      "source": { "kind": "ldr", "path": "ldraw-scenes/stonehenge.ldr" },
       "prefix": "stonehenge"
     }
   ],
@@ -346,7 +346,7 @@
           "camera": {
             "mode": "dolly",
             "fovDeg": 36,
-            "dolly": { "from": [0, 40, 180], "to": [0, 130, 900], "lookAt": [0, 36.8, 0] },
+            "dolly": { "from": [0, 40, 180], "to": [0, 380, 1500], "lookAt": [0, 36.8, 0] },
             "motionBlur": 0.2
           },
           "tracks": [
