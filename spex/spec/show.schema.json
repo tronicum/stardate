@@ -133,9 +133,26 @@
                 "kind": { "const": "heritage" },
                 "siteId": { "type": "string", "description": "A World Heritage site id (M73)." }
               }
+            },
+            {
+              "type": "object",
+              "required": ["kind", "scene"],
+              "additionalProperties": false,
+              "properties": {
+                "kind": { "const": "ankerstein" },
+                "scene": {
+                  "type": "string",
+                  "description": "A real spex-ankerstein scene JSON file in this repository, e.g. \"ankerstein-scenes/pyramid.json\"."
+                },
+                "color": {
+                  "type": "string",
+                  "enum": ["brick-red", "cement-yellow", "slate-blue-grey"],
+                  "description": "Defaults to brick-red, matching `spex ankerstein-model`'s own CLI default."
+                }
+              }
             }
           ],
-          "description": "Four kinds because four different milestones produce geometry, and the document should not have to care which one a scene came from."
+          "description": "Five kinds because five different milestones produce geometry, and the document should not have to care which one a scene came from."
         }
       }
     },

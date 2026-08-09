@@ -207,6 +207,9 @@ fn unbuildable(show: &Show) -> Vec<(String, String)> {
             SceneSource::Heritage { site_id } => {
                 Some((scene.id.clone(), format!("heritage site {site_id:?} — M73")))
             }
+            // A real generator exists (see build_bundles below) — an
+            // `ankerstein` scene is not unbuildable.
+            SceneSource::Ankerstein { .. } => None,
         })
         .collect()
 }
@@ -243,15 +246,32 @@ fn build_bundles(
     let skipped = unbuildable(show);
 
     for scene in &show.scenes {
-        let SceneSource::Ldr { path } = &scene.source else { continue };
-        let path = path.clone();
-
         let dir = out.join("bundles").join(&scene.id);
-        let parsed = crate::mesh::parse_scene_arg(&cache, &path)
-            .with_context(|| format!("scene {:?} from {path:?}", scene.id))?;
-        let stats = crate::mesh::build_scene_bundle(&cache, &parsed, opts.crease, &dir)?;
+        let (stats, label) = match &scene.source {
+            SceneSource::Ldr { path } => {
+                let parsed = crate::mesh::parse_scene_arg(&cache, path)
+                    .with_context(|| format!("scene {:?} from {path:?}", scene.id))?;
+                let stats = crate::mesh::build_scene_bundle(&cache, &parsed, opts.crease, &dir)?;
+                (stats, path.clone())
+            }
+            SceneSource::Ankerstein { scene: scene_path, color } => {
+                // Not an LDraw scene at all — a real Ankerstein assembly,
+                // resolved through `spex_ankerstein::to_part_geometry`
+                // (crates/spex-ankerstein/src/geometry.rs) rather than
+                // `resolve_part_full`. Proves the same mesh-bundle pipeline
+                // (`MeshBundleBuilder::add_part`/`add_instance`, `write`)
+                // generalizes beyond LDraw/LEGO, which is the whole point.
+                let parsed = spex_ankerstein::parse_scene(Path::new(scene_path))
+                    .with_context(|| format!("scene {:?}: parsing Ankerstein scene {scene_path:?}", scene.id))?;
+                let color_code = crate::ankerstein::color_code_for(color)
+                    .with_context(|| format!("scene {:?}", scene.id))?;
+                let stats = crate::ankerstein::build_scene_mesh_bundle(&parsed, color_code, opts.crease, &dir)?;
+                (stats, scene_path.clone())
+            }
+            _ => continue,
+        };
         println!(
-            "  {} <- {path}: {} instance(s), {} part(s), {} triangle(s)",
+            "  {} <- {label}: {} instance(s), {} part(s), {} triangle(s)",
             scene.id, stats.instance_count, stats.part_count, stats.total_triangles
         );
         instances.insert(scene.id.clone(), read_instance_ids(&dir)?);

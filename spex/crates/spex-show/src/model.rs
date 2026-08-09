@@ -100,7 +100,7 @@ impl Show {
     }
 }
 
-/// Where a scene's geometry comes from. Four kinds, because four different
+/// Where a scene's geometry comes from. Five kinds, because five different
 /// milestones produce geometry and the document should not care which.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "lowercase")]
@@ -113,6 +113,22 @@ pub enum SceneSource {
     Flag { flag: String },
     /// A World Heritage site id (M73).
     Heritage { #[serde(rename = "siteId")] site_id: String },
+    /// A real `spex-ankerstein` scene JSON file (see
+    /// `spex_ankerstein::Scene`/`Placement`) — a procedurally-generated
+    /// Ankerstein assembly, not an LDraw/LEGO source file, proving the mesh
+    /// pipeline generalizes beyond LDraw.
+    Ankerstein {
+        scene: String,
+        /// One of the three real historical colors: brick-red,
+        /// cement-yellow, slate-blue-grey. Defaults to brick-red, matching
+        /// `spex ankerstein-model`'s own CLI default.
+        #[serde(default = "default_ankerstein_color")]
+        color: String,
+    },
+}
+
+fn default_ankerstein_color() -> String {
+    "brick-red".to_string()
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]

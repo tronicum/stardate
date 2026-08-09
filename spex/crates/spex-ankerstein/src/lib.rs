@@ -13,7 +13,7 @@ pub mod sets;
 
 pub use catalog::{load_catalog, AnkersteinShape, Caliber, ShapeType};
 pub use colors::{load_colors, AnkersteinColorTable};
-pub use geometry::generate_shape;
+pub use geometry::{generate_shape, generate_shape_edges, to_bundle_frame_position, to_part_geometry};
 pub use scene::{parse_scene, Placement, Scene};
 pub use sets::{load_sets, validate_against_catalog, AnkersteinSet, SetContent};
 
