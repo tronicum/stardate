@@ -50,6 +50,24 @@ spex gallery                                                      # web front pa
 spex nav                                                          # k9s-style interactive browser: move, enter to view a tree, w to open its web view
 ```
 
+### Point-cloud pipeline: bricks and Ankerstein
+
+`spex brick-part`/`spex brick-model`/`spex brick-assembly` (real LDraw geometry,
+see `BRICKs.md`) and `spex ankerstein-part`/`spex ankerstein-model` (real Richter's
+Anchor Stone geometry, see `ANKERSTEINE.md`) both render straight to a tileset —
+no `graph.json` involved, since a solid part/model isn't a tree. They use the
+plain point-cloud `out/` convention rather than `demos/`, but `spex demos`/
+`spex gallery` are directory-shape-agnostic (any dir containing `tileset/
+tileset.json` subdirectories is picked up, `graph.json` isn't required) —
+point either command at `out/` instead of the default `demos/` to see both
+kinds side by side:
+
+```sh
+spex brick-part 1x1-brick -o out/1x1-brick
+spex ankerstein-part gk-cube-full -o out/gk-cube-full
+spex gallery out                                                  # both cards show up together
+```
+
 ### Viewer
 
 The viewer (`viewer/`) is a Vite + TypeScript + three.js app, built via `npm run build`

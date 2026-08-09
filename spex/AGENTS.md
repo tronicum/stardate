@@ -34,21 +34,24 @@ See `docs/ARCHITECTURE.md` for the full reasoning and a worked example.
    and the reasoning behind non-obvious design choices (radial layout, the
    fan-out cap, why three views of one model, the tree-only `Graph`
    trade-off).
-4. **`TODOs.md`** — the single source of truth for project status. Numbered
-   milestones (each with what was actually *verified*, not just built),
+4. **`TODOs.md`** — the single source of truth for project status. A lean
+   Kanban index of numbered milestones (status + a one-line note each),
    what's actively being worked, and a pruned backlog of ideas actually
    worth doing next. **Check here before re-implementing something** — a
    surprising amount of "obvious next feature" ideas are already done, or
-   already deliberately deferred with a documented reason.
+   already deliberately deferred with a documented reason. Full milestone
+   rationale/verification narrative — what was actually *verified*, not
+   just built — now lives in `docs/MILESTONES-LOG.md`; look there before
+   assuming something wasn't verified.
 5. **`docs/agents/`** — this repo's specific operating playbooks: how
    verification actually happens here, how adapters are built, how to spend
    context/token budget well. Written from what concretely worked (and
    didn't) across many real sessions building this project with AI agents —
    not generic advice. Start with `docs/agents/working-mode.md`.
-6. **`.claude/agents/`** — two custom subagent definitions scoped to this
-   repo (`spex-verifier`, `spex-adapter-writer`) that already know the
-   playbooks in (5), so a coordinator can delegate without re-explaining
-   them every time.
+6. **`.claude/agents/`** — custom subagent definitions scoped to this repo
+   (`spex-verifier`, `spex-adapter-writer`, `spex-ankerstein-data-collector`)
+   that already know the playbooks in (5), so a coordinator can delegate
+   without re-explaining them every time.
 
 ## The short version of how we work here
 

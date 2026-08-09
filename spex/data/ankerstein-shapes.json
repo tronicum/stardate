@@ -1,0 +1,86 @@
+[
+  {
+    "id": "gk-cube-full",
+    "shapeType": "block",
+    "dimensionsMm": [25.0, 25.0, 25.0],
+    "caliber": "gk",
+    "sourceCitation": "Fred Hartjes, fredhartjes-home.nl/Anker.html — GK base cube unit"
+  },
+  {
+    "id": "gk-half-height",
+    "shapeType": "block",
+    "dimensionsMm": [25.0, 12.5, 25.0],
+    "caliber": "gk",
+    "sourceCitation": "Fred Hartjes, fredhartjes-home.nl/Anker.html — \"a typical Anker stone of 25 x 25 x 12.5 mm\""
+  },
+  {
+    "id": "kk-cube-full",
+    "shapeType": "block",
+    "dimensionsMm": [20.0, 20.0, 20.0],
+    "caliber": "kk",
+    "sourceCitation": "ankerstein.ch / Grokipedia summary of the CVA Book — KK base cube unit"
+  },
+  {
+    "id": "gk-brick-1x2x4",
+    "shapeType": "block",
+    "dimensionsMm": [25.0, 50.0, 100.0],
+    "caliber": "gk",
+    "sourceCitation": "Grokipedia summary of the CVA Book — 4th historical set's brick-shaped block, converted to the GK 25mm unit"
+  },
+  {
+    "id": "gk-prism-45",
+    "shapeType": "prism",
+    "dimensionsMm": [50.0, 50.0, 50.0],
+    "caliber": "gk",
+    "sourceCitation": "George Hardy, Richter's Anker Stone Building Sets (Club van Ankervrienden EN edition) — \"the fifth set added prism (sloped or triangular) shaped blocks, two of which would form the basic two inch cube\"; one of six real historical roof-slope angles, this is the only one so far reduced to a cited number (a 45-degree isosceles cross-section)"
+  },
+  {
+    "id": "gk-block-3x1x1",
+    "shapeType": "block",
+    "dimensionsMm": [75.0, 25.0, 25.0],
+    "caliber": "gk",
+    "sourceCitation": "CVA (Club van Ankervrienden), Steinkatalog, Ausgabe Januar 1999 (ankerstein.ch/downloads/CVA/steinkatalog.pdf), page 1-1 — Stein Nr. 5, real-size (Originalgroesse) technical drawing labeled 75 x 25 x 25 mm; downloaded and measured directly from the PDF 2026-08-08"
+  },
+  {
+    "id": "gk-block-2x0.5x1",
+    "shapeType": "block",
+    "dimensionsMm": [50.0, 12.5, 25.0],
+    "caliber": "gk",
+    "sourceCitation": "CVA (Club van Ankervrienden), Steinkatalog, Ausgabe Januar 1999 (ankerstein.ch/downloads/CVA/steinkatalog.pdf), page 1-2 — Stein Nr. 15, real-size technical drawing labeled 50 x 12.5 x 25 mm; downloaded and measured directly from the PDF 2026-08-08"
+  },
+  {
+    "id": "gk-block-1x0.5x0.5",
+    "shapeType": "block",
+    "dimensionsMm": [25.0, 12.5, 12.5],
+    "caliber": "gk",
+    "sourceCitation": "CVA (Club van Ankervrienden), Steinkatalog, Ausgabe Januar 1999 (ankerstein.ch/downloads/CVA/steinkatalog.pdf), page 1-3 — Stein Nr. 31, real-size technical drawing labeled 25 x 12.5 x 12.5 mm; downloaded and measured directly from the PDF 2026-08-08"
+  },
+  {
+    "id": "gk-block-1x0.25x0.5",
+    "shapeType": "block",
+    "dimensionsMm": [25.0, 6.25, 12.5],
+    "caliber": "gk",
+    "sourceCitation": "CVA (Club van Ankervrienden), Steinkatalog, Ausgabe Januar 1999 (ankerstein.ch/downloads/CVA/steinkatalog.pdf), page 1-4 — Stein Nr. 69, real-size technical drawing labeled 25 x 6.25 x 12.5 mm; downloaded and measured directly from the PDF 2026-08-08"
+  },
+  {
+    "id": "gk-arch-roman-span25",
+    "shapeType": "arch_voussoir",
+    "dimensionsMm": [50.0, 25.0, 25.0],
+    "caliber": "gk",
+    "sourceCitation": "CVA (Club van Ankervrienden), Steinkatalog, Ausgabe Januar 1999 (ankerstein.ch/downloads/CVA/steinkatalog.pdf), page 1-9 — Stein Nr. 108, a single cast Romanesque \"Bogenstein\" (arch stone) with a 25mm clear span, real-size technical drawing labeled 50 x 25 x 25 mm bounding box; catalog's own stone-category index (page 0-10, \"Romanische Bogen Ueberspannung 25mm: 108-119\") confirms the span; downloaded and measured directly from the PDF 2026-08-08. Bounding box only — this is one integrally-molded arch stone (voussoir lines are decorative engraving, not separate pieces), the closest fit to this catalog's shapeType enum"
+  },
+  {
+    "id": "gk-prism-45-unit",
+    "shapeType": "prism",
+    "dimensionsMm": [25.0, 25.0, 25.0],
+    "caliber": "gk",
+    "sourceCitation": "CVA (Club van Ankervrienden), Steinkatalog, Ausgabe Januar 1999 (ankerstein.ch/downloads/CVA/steinkatalog.pdf), page 1-15 — Stein Nr. 208, real-size technical drawing labeled 25 x 25 x 25 mm bounding box with an explicit \"1:1 = 45 grad\" slope annotation (a single-unit counterpart to gk-prism-45's two-unit wedge); downloaded and measured directly from the PDF 2026-08-08"
+  },
+  {
+    "id": "gk-pyramid-42.5",
+    "shapeType": "prism",
+    "dimensionsMm": [25.0, 42.5, 25.0],
+    "caliber": "gk",
+    "sourceCitation": "CVA (Club van Ankervrienden), Steinkatalog, Ausgabe Januar 1999 (ankerstein.ch/downloads/CVA/steinkatalog.pdf), page 1-17 — Stein Nr. 288, a square-based \"Kuppelstein\" (dome/pyramid stone) with a 25 x 25mm base tapering to a point, real-size technical drawing labeled 42.5mm height; downloaded and measured directly from the PDF 2026-08-08. Bounding box only — closest available shapeType is \"prism\" (this catalog has no dedicated pyramid/column category yet, see the sets.rs GKNF0 entry's note)"
+  }
+]

@@ -49,6 +49,18 @@ fn generated_files_match_their_schemas() {
     let _ = std::fs::remove_dir_all(&dir);
 }
 
+/// M72: the real recipe fixtures under `recipes/test/` (round-trip-tested
+/// by hand against `spex build` / `spex mesh-model` — see TODOs.md) must
+/// themselves match `recipe.schema.json`, the same "the schema describes
+/// what spex actually reads/writes" discipline this file already holds
+/// every other format to.
+#[test]
+fn recipe_fixtures_match_the_recipe_schema() {
+    for name in ["wall.json", "column.json", "wall-and-column.json"] {
+        validate(&repo_root().join("recipes/test").join(name), "recipe.schema.json");
+    }
+}
+
 fn validate(instance_path: &Path, schema_file: &str) {
     let schema_path = repo_root().join("spec").join(schema_file);
     let schema: serde_json::Value =

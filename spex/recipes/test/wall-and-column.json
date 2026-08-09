@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "id": "test-wall-and-column",
+  "title": "M72 round-trip fixture: a running-bond wall and a column",
+  "scale": { "studsPerMetre": 0.5, "note": "not a real site — a fixture for M72's own round-trip check" },
+  "palette": { "stone": 71 },
+  "steps": [
+    { "primitive": "Wall",
+      "params": { "widthStuds": 20, "heightPlates": 9, "bond": "Running", "color": "stone" } },
+    { "primitive": "Column",
+      "params": { "heightPlates": 9, "diameterStuds": 2, "color": "stone" },
+      "at": { "xStuds": 25, "zStuds": 0 } }
+  ]
+}
