@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "id": "ankerstein-mesh-demo",
+  "title": "Two GK Cubes and a Roof — Ankerstein Mesh Demo",
+  "subtitle": "A real proof: spex's mesh-rendering pipeline (MeshBundleBuilder, real triangles/edges/shading), previously LDraw/LEGO-only, generalized to a real procedurally-generated Ankerstein assembly with no source file to parse.",
+  "archiveSignature": "IA-2026-ANKERSTEIN-MESH-01",
+  "tempo": { "bpm": 84, "beatsPerBar": 4 },
+  "baseDurationBars": 8,
+  "seed": 1,
+  "scenes": [
+    {
+      "id": "roof",
+      "source": {
+        "kind": "ankerstein",
+        "scene": "ankerstein-scenes/two-cubes-and-a-roof.json",
+        "color": "brick-red"
+      },
+      "prefix": "roof"
+    }
+  ],
+  "movements": [
+    {
+      "id": "act-1",
+      "title": "The Assembly",
+      "romanNumeral": "I",
+      "shots": [
+        {
+          "id": "A1-S01",
+          "title": "Two Cubes, a Roof",
+          "weight": 0,
+          "scaling": "fixed",
+          "durationBars": 8,
+          "tier": 1,
+          "scenes": ["roof"],
+          "camera": {
+            "mode": "keyed",
+            "fovDeg": 32,
+            "keys": [
+              {
+                "t": 0,
+                "easing": "linear",
+                "value": {
+                  "position": [110, 95, 150],
+                  "lookAt": [0, 22, 0]
+                }
+              }
+            ]
+          },
+          "tracks": [],
+          "cues": [],
+          "note": "A static, framed 3/4 view of the real Ankerstein mesh scene: two 25mm GK cubes (generate_box) side by side, with a real 45-degree GK prism (generate_prism) spanning both as a roof — chosen over a pure-box pyramid specifically because it exercises both real shape generators together, so the prism's sloped-face shading and its real analytic edges (generate_prism_edges) are visibly proven, not just the box's."
+        }
+      ]
+    }
+  ]
+}

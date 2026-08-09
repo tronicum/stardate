@@ -1,3 +1,4 @@
+mod ankerstein;
 mod ascii;
 mod brew_deps;
 mod brick;
@@ -357,6 +358,73 @@ enum Command {
         out: PathBuf,
     },
 
+    /// Render one real Ankerstein (Richter's Anchor Stone Building Set,
+    /// Rudolstadt 1880) shape from the seed catalog straight into an
+    /// octree tileset — the stone-age-appropriate counterpart to
+    /// `brick-part`, see `docs/ANKERSTEIN-ENGINE.md` for the full spec.
+    AnkersteinPart {
+        /// A known shape id from the seed catalog (run with no argument to
+        /// list them).
+        shape: Option<String>,
+
+        /// One of the three real historical colors: brick-red,
+        /// cement-yellow, slate-blue-grey.
+        #[arg(long, default_value = "brick-red")]
+        color: String,
+
+        #[arg(long, default_value_t = 3000)]
+        points: usize,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+    },
+
+    /// Render a real assembled Ankerstein scene (a local JSON file — see
+    /// `ankerstein-scenes/two-cubes-and-a-roof.json` for an example)
+    /// straight into an octree tileset. Resolves each distinct real
+    /// catalog shape id exactly once no matter how many times the scene
+    /// places it — the Ankerstein counterpart to `brick-model`.
+    AnkersteinModel {
+        /// Path to a local scene JSON file (see
+        /// `spex_ankerstein::Scene`/`Placement` for the format).
+        scene: Option<PathBuf>,
+
+        /// One of the three real historical colors: brick-red,
+        /// cement-yellow, slate-blue-grey.
+        #[arg(long, default_value = "brick-red")]
+        color: String,
+
+        #[arg(long, default_value_t = 6_000)]
+        points: usize,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+    },
+
+    /// Render a real assembled Ankerstein scene as a MESH bundle — real
+    /// triangles, real crease-smoothed normals, and real analytic edge
+    /// lines (`spex_ankerstein::to_part_geometry`) instead of a sampled
+    /// point cloud. The Ankerstein counterpart to `mesh-model`, proving the
+    /// same mesh-bundle pipeline generalizes beyond LDraw. The point-cloud
+    /// `ankerstein-part`/`ankerstein-model` verbs are unaffected.
+    AnkersteinMesh {
+        /// Path to a local scene JSON file (see
+        /// `spex_ankerstein::Scene`/`Placement` for the format).
+        scene: Option<PathBuf>,
+
+        /// One of the three real historical colors: brick-red,
+        /// cement-yellow, slate-blue-grey.
+        #[arg(long, default_value = "brick-red")]
+        color: String,
+
+        /// Dihedral angle below which normals are averaged.
+        #[arg(long, default_value_t = spex_mesh::DEFAULT_CREASE_DEGREES)]
+        crease: f64,
+
+        #[arg(short, long)]
+        out: Option<PathBuf>,
+    },
+
     /// Serve a tileset directory and open the browser viewer.
     Serve {
         tileset_dir: PathBuf,
@@ -665,6 +733,9 @@ fn main() -> Result<()> {
         Command::Show { show_dir, port, no_open, at, cut, director } =>
             cmd_show(&show_dir, port, !no_open, at, cut.as_deref(), director),
         Command::ShowExport { show_dir, out } => cmd_show_export(&show_dir, &out),
+        Command::AnkersteinPart { shape, color, points, out } => cmd_ankerstein_part(shape, color, points, out),
+        Command::AnkersteinModel { scene, color, points, out } => cmd_ankerstein_model(scene, color, points, out),
+        Command::AnkersteinMesh { scene, color, crease, out } => cmd_ankerstein_mesh(scene, color, crease, out),
         Command::Serve {
             tileset_dir,
             port,
@@ -937,6 +1008,71 @@ fn report(stats: &spex_mesh::MeshBundleStats, out: &Path) {
         );
     }
     println!("wrote {} bytes to {}", stats.bytes_written, out.display());
+}
+
+fn cmd_ankerstein_part(shape: Option<String>, color: String, points: usize, out: Option<PathBuf>) -> Result<()> {
+    let Some(shape_id) = shape else {
+        println!("known Ankerstein seed-catalog shape ids:");
+        for shape in spex_ankerstein::catalog::seed_shapes() {
+            println!("  {:<16} {:?} {:?}mm ({:?})", shape.id, shape.shape_type, shape.dimensions_mm, shape.caliber);
+        }
+        println!("\nusage: spex ankerstein-part <shape-id> [--color brick-red|cement-yellow|slate-blue-grey] -o <tileset-dir>");
+        return Ok(());
+    };
+    let out = out.context("--out <tileset-dir> is required when rendering a shape")?;
+    let shape = ankerstein::find_shape(&shape_id)?;
+
+    println!("generating real Ankerstein shape {shape_id:?} ({:?}, {:?}mm, cited: {:?})...", shape.shape_type, shape.dimensions_mm, shape.source_citation);
+    let cloud = ankerstein::render_shape_to_points(&shape, &color, points, 0xC0FFEE)?;
+    println!("sampled {} real points, building octree tileset...", cloud.len());
+
+    spex_tiler::build(cloud, &out, &spex_tiler::TilerConfig::default())?;
+    println!("wrote tileset to {}", out.display());
+    Ok(())
+}
+
+fn cmd_ankerstein_model(scene: Option<PathBuf>, color: String, points: usize, out: Option<PathBuf>) -> Result<()> {
+    let Some(scene_path) = scene else {
+        println!("usage: spex ankerstein-model <scene.json> [--color brick-red|cement-yellow|slate-blue-grey] -o <tileset-dir>");
+        println!("example: spex ankerstein-model ankerstein-scenes/two-cubes-and-a-roof.json -o out/two-cubes-and-a-roof");
+        return Ok(());
+    };
+    let out = out.context("--out <tileset-dir> is required when rendering a scene")?;
+
+    println!("parsing real Ankerstein scene {scene_path:?}...");
+    let scene = spex_ankerstein::parse_scene(&scene_path)?;
+    println!("parsed {} placement(s) (scene title: {:?})", scene.placements.len(), scene.title);
+
+    let cloud = ankerstein::render_scene_to_points(&scene, &color, points, 0xC0FFEE)?;
+    println!("sampled {} real points, building octree tileset...", cloud.len());
+
+    spex_tiler::build(cloud, &out, &spex_tiler::TilerConfig::default())?;
+    println!("wrote tileset to {}", out.display());
+    Ok(())
+}
+
+fn cmd_ankerstein_mesh(scene: Option<PathBuf>, color: String, crease: f64, out: Option<PathBuf>) -> Result<()> {
+    let Some(scene_path) = scene else {
+        println!("usage: spex ankerstein-mesh <scene.json> [--color brick-red|cement-yellow|slate-blue-grey] -o <bundle-dir>");
+        println!("example: spex ankerstein-mesh ankerstein-scenes/two-cubes-and-a-roof.json -o out/two-cubes-and-a-roof-mesh");
+        return Ok(());
+    };
+    let out = out.context("--out <bundle-dir> is required when rendering a scene")?;
+    let color_code = ankerstein::color_code_for(&color)?;
+
+    println!("parsing real Ankerstein scene {scene_path:?}...");
+    let scene = spex_ankerstein::parse_scene(&scene_path)?;
+    println!(
+        "parsed {} placement(s) ({} distinct real shape(s)) from scene {:?} (title: {:?})",
+        scene.placements.len(),
+        ankerstein::distinct_shapes(&scene),
+        scene_path,
+        scene.title
+    );
+
+    let stats = ankerstein::build_scene_mesh_bundle(&scene, color_code, crease, &out)?;
+    report(&stats, &out);
+    Ok(())
 }
 
 fn cmd_serve(tileset_dir: &Path, port: u16, open_browser: bool) -> Result<()> {

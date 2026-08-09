@@ -29,6 +29,8 @@ isn't just aspirational prose, it's enforced against real output.
 | `fugue.schema.json` (the `audio` block of `show.json`) | [`fugue.schema.json`](fugue.schema.json) | hand-authored, mirrored by `crates/spex-fugue/src/model.rs` | M68's counterpoint generator |
 | `cuts.json` | *(no schema — four fields, written and read in one place each)* | `spex show-build` (`crates/spex-cli/src/show.rs`) | the viewer's `?duration=` (M66, `viewer/src/show/params.ts`) |
 | `recipe.json` | [`recipe.schema.json`](recipe.schema.json) | hand-authored (`recipes/**/*.json`) | `spex build` (`crates/spex-build`, `crates/spex-cli/src/build_cmd.rs`), M72 |
+| `data/ankerstein-shapes.json` | [`ankerstein-shapes.schema.json`](ankerstein-shapes.schema.json) | hand-authored (see `docs/ANKERSTEIN-ENGINE.md`) | `spex-ankerstein::catalog` |
+| `data/ankerstein-sets.json` | [`ankerstein-sets.schema.json`](ankerstein-sets.schema.json) | hand-authored, intentionally empty right now (see `docs/ANKERSTEIN-ENGINE.md`) | `spex-ankerstein::sets` |
 
 `octree/<node-id>.bin` (the point data itself) is a small binary format, not
 JSON — see the "Tileset format" section of `CLAUDE.md`: `u32` LE point

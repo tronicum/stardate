@@ -12,13 +12,17 @@
 //!
 //! # Two source kinds still have no generator
 //!
-//! A scene can be an `.ldr` file, a `build` recipe (M72), a `flag` (M75) or a
-//! `heritage` site (M73). The first two exist — a `build` scene runs the real
-//! M72 recipe pipeline (`spex_build::build`) and feeds its real generated
-//! `.ldr` text through the exact same parsing/mesh-bundling path a
-//! hand-authored `.ldr` file uses, so there is only one real mesh-building
-//! code path to keep correct, not two. `flag`/`heritage` are still missing.
-//! Rather than emit a show that silently has no Stonehenge in it,
+//! A scene can be an `.ldr` file, a `build` recipe (M72), an `ankerstein`
+//! assembly, a `flag` (M75) or a `heritage` site (M73). The first three
+//! exist — a `build` scene runs the real M72 recipe pipeline
+//! (`spex_build::build`) and feeds its real generated `.ldr` text through
+//! the exact same parsing/mesh-bundling path a hand-authored `.ldr` file
+//! uses; an `ankerstein` scene resolves through
+//! `spex_ankerstein::to_part_geometry` instead (no LDraw file at all — a
+//! real, procedurally-generated Anchor Stone shape), proving the same
+//! `MeshBundleBuilder` pipeline generalizes beyond LDraw. `flag`/`heritage`
+//! are still missing. Rather than emit a show that silently has no
+//! Stonehenge in it,
 //! `show-build` **fails and names the milestone**, and `--skip-unbuildable`
 //! is the explicit way to say "build the part that exists" — which then
 //! prints exactly which scenes were dropped and which shots lost geometry. A
@@ -212,6 +216,9 @@ fn unbuildable(show: &Show) -> Vec<(String, String)> {
             SceneSource::Heritage { site_id } => {
                 Some((scene.id.clone(), format!("heritage site {site_id:?} — M73")))
             }
+            // A real generator exists (see build_bundles below) — an
+            // `ankerstein` scene is not unbuildable.
+            SceneSource::Ankerstein { .. } => None,
         })
         .collect()
 }
@@ -249,11 +256,12 @@ fn build_bundles(
 
     for scene in &show.scenes {
         let dir = out.join("bundles").join(&scene.id);
-        let (parsed, label) = match &scene.source {
+        let (stats, label) = match &scene.source {
             SceneSource::Ldr { path } => {
                 let parsed = crate::mesh::parse_scene_arg(&cache, path)
                     .with_context(|| format!("scene {:?} from {path:?}", scene.id))?;
-                (parsed, path.clone())
+                let stats = crate::mesh::build_scene_bundle(&cache, &parsed, opts.crease, &dir)?;
+                (stats, path.clone())
             }
             SceneSource::Build { recipe } => {
                 // M72: run the real recipe pipeline, then feed the same real
@@ -269,12 +277,25 @@ fn build_bundles(
                     .with_context(|| format!("writing generated {}", ldr_path.display()))?;
                 let parsed = spex_ldraw::parse_scene(&cache, spex_ldraw::ModelSource::LocalFile(&ldr_path))
                     .with_context(|| format!("scene {:?}: parsing generated LDraw from recipe {recipe:?}", scene.id))?;
-                (parsed, recipe.clone())
+                let stats = crate::mesh::build_scene_bundle(&cache, &parsed, opts.crease, &dir)?;
+                (stats, recipe.clone())
+            }
+            SceneSource::Ankerstein { scene: scene_path, color } => {
+                // Not an LDraw scene at all — a real Ankerstein assembly,
+                // resolved through `spex_ankerstein::to_part_geometry`
+                // (crates/spex-ankerstein/src/geometry.rs) rather than
+                // `resolve_part_full`. Proves the same mesh-bundle pipeline
+                // (`MeshBundleBuilder::add_part`/`add_instance`, `write`)
+                // generalizes beyond LDraw/LEGO, which is the whole point.
+                let parsed = spex_ankerstein::parse_scene(Path::new(scene_path))
+                    .with_context(|| format!("scene {:?}: parsing Ankerstein scene {scene_path:?}", scene.id))?;
+                let color_code = crate::ankerstein::color_code_for(color)
+                    .with_context(|| format!("scene {:?}", scene.id))?;
+                let stats = crate::ankerstein::build_scene_mesh_bundle(&parsed, color_code, opts.crease, &dir)?;
+                (stats, scene_path.clone())
             }
             _ => continue,
         };
-
-        let stats = crate::mesh::build_scene_bundle(&cache, &parsed, opts.crease, &dir)?;
         println!(
             "  {} <- {label}: {} instance(s), {} part(s), {} triangle(s)",
             scene.id, stats.instance_count, stats.part_count, stats.total_triangles
