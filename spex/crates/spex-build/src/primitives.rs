@@ -18,7 +18,8 @@
 //! calling `.emit()` with a shifted `origin`.
 //!
 //! **The real part set.** Every primitive here builds from `PartSet::Classic`
-//! — 1x1 (`3005.dat`), 1x2 (`3004.dat`) and 1x4 (`3010.dat`) real bricks,
+//! — 1x1 (`3005.dat`), 1x2 (`3004.dat`), 1x4 (`3010.dat`) and 1x6
+//! (`3009.dat`) real bricks,
 //! the only parts this milestone has measured real footprints for (see
 //! `grid::FootprintTable::standard`'s doc comment for how). That constrains
 //! every primitive to whole-brick (3-plate) courses for now — plate-
@@ -54,7 +55,7 @@ impl PartSet {
     /// Real bricks, longest first, for greedy tiling.
     fn bricks(self) -> &'static [(&'static str, u32)] {
         match self {
-            PartSet::Classic => &[("3010.dat", 4), ("3004.dat", 2), ("3005.dat", 1)],
+            PartSet::Classic => &[("3009.dat", 6), ("3010.dat", 4), ("3004.dat", 2), ("3005.dat", 1)],
         }
     }
 }
@@ -675,9 +676,11 @@ mod tests {
         let wall = Wall { width_studs: 8, height_plates: 3, depth_studs: 1, bond: Bond::Stack, color: 15, part_set: PartSet::Classic };
         let placements = wall.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
         // 8 studs, stack bond, single course: real greedy tiling, longest
-        // real brick first = 2x 1x4 (3010.dat), not 4x 1x2.
+        // real brick first = 1x 1x6 (3009.dat) + 1x 1x2 (3004.dat), not
+        // 2x 1x4 or 4x 1x2.
         assert_eq!(placements.len(), 2);
-        assert!(placements.iter().all(|p| p.part == "3010.dat"));
+        assert_eq!(placements[0].part, "3009.dat");
+        assert_eq!(placements[1].part, "3004.dat");
         assert_eq!(wall.extent(), (8, 1, 3));
     }
 

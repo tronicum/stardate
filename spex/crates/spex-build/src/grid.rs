@@ -221,20 +221,34 @@ pub struct Footprint {
 /// depth of the underside tube (max Y in LDraw's down-positive frame),
 /// which is exactly the real brick/plate height. Measured 2026-08 against
 /// the real cached `parts/3005.dat`, `3004.dat`, `3010.dat`, `3710.dat`,
-/// `2431.dat` (see `crates/spex-build/tests/footprint_provenance.rs`,
-/// `#[ignore]`d because it needs the real LDraw cache, same convention as
-/// `spex-ldraw`'s own network-dependent tests):
+/// `2431.dat`, `3009.dat`, `3022.dat`, `3020.dat` (see
+/// `crates/spex-build/tests/footprint_provenance.rs`, `#[ignore]`d because
+/// it needs the real LDraw cache, same convention as `spex-ldraw`'s own
+/// network-dependent tests):
 ///
 /// | part | studs (W x D) | stacking height | measured max-Y (LDU) |
 /// |---|---|---|---|
 /// | `3005.dat` Brick 1 x 1  | 1 x 1 | 3 plates (1 brick) | 24.0 |
 /// | `3004.dat` Brick 1 x 2  | 2 x 1 | 3 plates (1 brick) | 24.0 |
 /// | `3010.dat` Brick 1 x 4  | 4 x 1 | 3 plates (1 brick) | 24.0 |
+/// | `3009.dat` Brick 1 x 6  | 6 x 1 | 3 plates (1 brick) | 24.0 |
 /// | `3710.dat` Plate 1 x 4  | 4 x 1 | 1 plate            | 8.0  |
 /// | `2431.dat` Tile 1 x 4   | 4 x 1 | 1 plate            | 8.0  |
+/// | `3022.dat` Plate 2 x 2  | 2 x 2 | 1 plate            | 8.0  |
+/// | `3020.dat` Plate 2 x 4  | 4 x 2 | 1 plate            | 8.0  |
 ///
 /// These also match this repo's own established real numbers
 /// (`BRICKs.md`'s "brick height 9.6mm = 24 LDU = 3 plates").
+///
+/// `3022.dat`/`3020.dat` are measured and cited here so `validate()` can
+/// check real placements of them, but **no primitive in this crate emits
+/// them yet** — every current primitive (`Wall`/`Column`/`Ziggurat`/...)
+/// tiles one row/course at a time assuming every real part is exactly
+/// 1-stud-deep, which a 2-studs-deep plate does not fit; generalizing that
+/// to real 2D footprint consumption is a genuine, separate primitive/tiler
+/// change, not a footprint-table addition. `3009.dat` has no such
+/// restriction (still 1-stud-deep) and *is* wired into `PartSet::Classic`'s
+/// greedy tiler below.
 #[derive(Clone, Debug, Default)]
 pub struct FootprintTable(HashMap<String, Footprint>);
 
@@ -260,6 +274,9 @@ impl FootprintTable {
         t.insert("3010.dat", Footprint { studs_w: 4, studs_d: 1, height_plates: BRICK_PLATES });
         t.insert("3710.dat", Footprint { studs_w: 4, studs_d: 1, height_plates: 1 });
         t.insert("2431.dat", Footprint { studs_w: 4, studs_d: 1, height_plates: 1 });
+        t.insert("3009.dat", Footprint { studs_w: 6, studs_d: 1, height_plates: BRICK_PLATES });
+        t.insert("3022.dat", Footprint { studs_w: 2, studs_d: 2, height_plates: 1 });
+        t.insert("3020.dat", Footprint { studs_w: 4, studs_d: 2, height_plates: 1 });
         t
     }
 }
