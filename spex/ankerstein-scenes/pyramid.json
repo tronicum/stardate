@@ -1,0 +1,285 @@
+{
+  "title": "A small stepped pyramid (ziggurat) \u2014 an original composition for a quick demo, not a transcribed historical Bauanleitung. Three real GK-cube courses (5x5, 3x3, 1x1) set back one cube width per course.",
+  "placements": [
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -50.0,
+        0.0,
+        -50.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -50.0,
+        0.0,
+        -25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -50.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -50.0,
+        0.0,
+        25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -50.0,
+        0.0,
+        50.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -25.0,
+        0.0,
+        -50.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -25.0,
+        0.0,
+        -25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -25.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -25.0,
+        0.0,
+        25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -25.0,
+        0.0,
+        50.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        0.0,
+        0.0,
+        -50.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        0.0,
+        0.0,
+        -25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        0.0,
+        0.0,
+        25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        0.0,
+        0.0,
+        50.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        25.0,
+        0.0,
+        -50.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        25.0,
+        0.0,
+        -25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        25.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        25.0,
+        0.0,
+        25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        25.0,
+        0.0,
+        50.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        50.0,
+        0.0,
+        -50.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        50.0,
+        0.0,
+        -25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        50.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        50.0,
+        0.0,
+        25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        50.0,
+        0.0,
+        50.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -25.0,
+        25.0,
+        -25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -25.0,
+        25.0,
+        0.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        -25.0,
+        25.0,
+        25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        0.0,
+        25.0,
+        -25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        0.0,
+        25.0,
+        0.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        0.0,
+        25.0,
+        25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        25.0,
+        25.0,
+        -25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        25.0,
+        25.0,
+        0.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        25.0,
+        25.0,
+        25.0
+      ]
+    },
+    {
+      "shapeId": "gk-cube-full",
+      "translationMm": [
+        0.0,
+        50.0,
+        0.0
+      ]
+    }
+  ]
+}
