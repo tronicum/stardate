@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "id": "coin",
+  "title": "Sardis, mid-6th century BCE \u2014 the struck electrum cylinder (A2-S04, A2-S05)",
+  "scale": {
+    "studsPerMetre": 25,
+    "note": "An early electrum stater is about 20 mm across; at 25 studs per metre that is 2 studs, which is why the coin is 2x2 and not larger."
+  },
+  "palette": {
+    "elektrum": 82
+  },
+  "_substitution": "Round 2x2 bricks and a round tile in the screenplay; square parts here, for the same reason as tokens.json. Colour 82 is real Metallic_Gold #DBAC34 against the palette's Elektrum #D4AF37 -- eight steps away, and metallic, which is what the shot is about.",
+  "steps": [
+    {
+      "primitive": "Column",
+      "at": {
+        "xStuds": 800,
+        "zStuds": 0,
+        "yPlates": 0,
+        "orientationDeg": 0
+      },
+      "params": {
+        "heightPlates": 6,
+        "diameterStuds": 2,
+        "color": "elektrum"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xStuds": 800,
+        "zStuds": 0,
+        "yPlates": -6,
+        "orientationDeg": 0
+      },
+      "params": {
+        "widthStuds": 2,
+        "heightPlates": 3,
+        "depthStuds": 2,
+        "bond": "Stack",
+        "color": "elektrum"
+      }
+    }
+  ]
+}

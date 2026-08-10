@@ -5,7 +5,7 @@
   "subtitle": "Akt I — Archäologie der Fuge",
   "archiveSignature": "IA-2026-002",
   "tempo": { "bpm": 84, "beatsPerBar": 4 },
-  "baseDurationBars": 17,
+  "baseDurationBars": 37,
   "seed": 263865,
   "palette": {
     "terrakotta": [0.462077, 0.162029, 0.076185],
@@ -87,6 +87,26 @@
       "id": "monolith",
       "source": { "kind": "ldr", "path": "ldraw-scenes/monolith.ldr" },
       "prefix": "monolith"
+    },
+    {
+      "id": "uruk",
+      "source": { "kind": "build", "recipe": "recipes/uruk-wall.json" },
+      "prefix": "uruk"
+    },
+    {
+      "id": "bulla",
+      "source": { "kind": "build", "recipe": "recipes/bulla.json" },
+      "prefix": "bulla"
+    },
+    {
+      "id": "tokens",
+      "source": { "kind": "build", "recipe": "recipes/tokens.json" },
+      "prefix": "tokens"
+    },
+    {
+      "id": "coin",
+      "source": { "kind": "build", "recipe": "recipes/coin.json" },
+      "prefix": "coin"
     },
     {
       "id": "stonehenge",
@@ -376,6 +396,177 @@
             { "t": 0.3, "kind": "hud", "payload": { "element": "caption", "text": "c. 2500 BCE" } }
           ],
           "note": "Stonehenge rises behind the monolith, Steingrau, materialising from the ground up at a scale that reveals the monolith was small all along. Camera dollies back. Voice 4 enters; the exposition is complete in four voices. The caption dates the sarsens, lintels, mortices and tenons — c. 2500 BCE — NOT the c. 3000 BCE ditch, which is a different monument on the same ground."
+        }
+      ]
+    },
+    {
+      "id": "act-2",
+      "title": "Der Core Standard",
+      "romanNumeral": "II",
+      "shots": [
+        {
+          "id": "A2-S01",
+          "title": "Uruk",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 21,
+          "tier": 1,
+          "scenes": ["uruk"],
+          "camera": {
+            "mode": "keyed",
+            "fovDeg": 34,
+            "keys": [
+              { "t": 0, "easing": "linear", "value": { "position": [150, 72, 270], "lookAt": [96, 52, 8] } },
+              { "t": 1, "easing": "linear", "value": { "position": [150, 72, 270], "lookAt": [96, 52, 8] } }
+            ]
+          }
+        },
+        {
+          "id": "A2-S02",
+          "title": "Der eine Stein",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 25,
+          "tier": 1,
+          "scenes": ["uruk", "bulla", "monolith"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 34,
+            "dolly": { "from": [150, 72, 270], "to": [2455, 46, 118], "lookAt": [2440, 22, 0] },
+            "motionBlur": 0.12
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "uruk/**",
+              "keys": [
+                { "t": 0.35, "value": 0, "easing": "linear" },
+                { "t": 0.85, "value": 1, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "bulla/**",
+              "keys": [
+                { "t": 0.3, "value": 1, "easing": "linear" },
+                { "t": 0.9, "value": 0, "easing": "cubicOut" }
+              ]
+            }
+          ],
+          "note": "The module becomes a container. The dome does not morph out of the brick, it is BUILT while the brick goes -- two dissolves crossing, not one shape becoming another, because the whole thesis is that the thing is re-assembled rather than transformed. The monolith is in the shot's scene list so it can sit at the edge of frame; the screenplay asks for that in both A2-S02 and A3-S04."
+        },
+        {
+          "id": "A2-S03",
+          "title": "Die Bulla bricht",
+          "weight": 3,
+          "scaling": "stretch",
+          "durationBars": 5,
+          "minBars": 3,
+          "maxBars": 32,
+          "tier": 1,
+          "scenes": ["bulla", "tokens"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 40,
+            "dolly": { "from": [2455, 46, 118], "to": [4500, 300, 900], "lookAt": [4500, 6, 0] },
+            "motionBlur": 0.1
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "bulla/**",
+              "keys": [
+                { "t": 0.1, "value": 0, "easing": "linear" },
+                { "t": 0.45, "value": 1, "easing": "cubicIn" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "tokens/**",
+              "keys": [
+                { "t": 0.15, "value": 1, "easing": "linear" },
+                { "t": 0.9, "value": 0, "easing": "linear" }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.75, "kind": "hud", "payload": { "element": "caption", "text": "Ein Konto, das man nicht ändern kann, ohne es zu zerbrechen." } }
+          ],
+          "note": "The tokens arrive one per beat and then keep arriving past what the row can hold -- the camera pulls back and they still run out of frame. NO numeral and no HUD counter: tallying by object ceasing to scale is the actual historical reason the bulla was sealed, and it is an image rather than a caption on a caption. The linear dissolve ramp is what makes the arrival even, one token a beat, rather than eased into a flourish."
+        },
+        {
+          "id": "A2-S04",
+          "title": "Sardis",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 25,
+          "tier": 1,
+          "scenes": ["tokens", "coin"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 30,
+            "dolly": { "from": [4500, 300, 900], "to": [6415, 26, 62], "lookAt": [6408, 15, 8] },
+            "motionBlur": 0.2
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "tokens/**",
+              "keys": [
+                { "t": 0.1, "value": 0, "easing": "linear" },
+                { "t": 0.55, "value": 1, "easing": "cubicIn" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "coin/**",
+              "keys": [
+                { "t": 0.35, "value": 1, "easing": "linear" },
+                { "t": 0.7, "value": 0, "easing": "cubicOut" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "bloomStrength",
+              "keys": [
+                { "t": 0, "value": 0.45, "easing": "linear" },
+                { "t": 0.74, "value": 0.45, "easing": "linear" },
+                { "t": 0.75, "value": 1.6, "easing": "linear" },
+                { "t": 0.82, "value": 0.45, "easing": "cubicOut" }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.75, "kind": "marker", "payload": { "event": "dieStrike" } }
+          ],
+          "note": "The strike is on the beat and it is one event in three channels: the die lands, the bloom goes to 1.6 for a single key and comes back, and the marker cue is there for M71's binder to hang the audio accent on. The bloom keys are deliberately one frame apart at t=0.74/0.75 -- a ramp would read as an exposure drift, and this is a hammer."
+        },
+        {
+          "id": "A2-S05",
+          "title": "Die geschlagene Fläche",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 3,
+          "minBars": 2,
+          "maxBars": 21,
+          "tier": 1,
+          "scenes": ["coin"],
+          "camera": {
+            "mode": "orbit",
+            "fovDeg": 22,
+            "orbit": { "center": [6408, 15, 8], "radius": 120, "height": 30, "startDeg": -40, "endDeg": 40 },
+            "motionBlur": 0.08
+          },
+          "cues": [
+            { "t": 0.25, "kind": "hud", "payload": { "element": "caption", "text": "Nicht die erste Münze. Die erste, die man nicht prüfen musste." } }
+          ],
+          "note": "Macro, rotating, chrome reflections off M56's synthetic environment -- the one place in the piece where the metal finish is the subject. The fugue reaches its first full cadence here, which is why the shot is short and the camera arc small: nothing should compete with the cadence. The caption is the corrected claim -- early electrum varied in its gold-to-silver ratio and could be manipulated; fungibility arrives with Kroisos's bimetallic reform, which is a better fact for this thesis than the one rev 1 had."
         }
       ]
     }

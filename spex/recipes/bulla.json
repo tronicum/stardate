@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "id": "bulla",
+  "title": "The clay bulla \u2014 a corbelled dome grown around one brick (A2-S02)",
+  "scale": {
+    "studsPerMetre": 25,
+    "note": "The wall's own scale: the bulla is the module become a container, so it is measured in the same bricks."
+  },
+  "palette": {
+    "lehm": 84
+  },
+  "_stage": "Act II stands its four scenes in a line along +X and walks the camera down it -- Uruk at 0, the bulla at 400 studs, the tokens from 700, Sardis at 1800. A show scene has no placement of its own, so the position is authored here, which is also where it belongs: the distance from Uruk to Sardis is a directorial fact, not a rendering one.",
+  "steps": [
+    {
+      "primitive": "Dome",
+      "at": {
+        "xStuds": 300,
+        "zStuds": 0,
+        "yPlates": 0,
+        "orientationDeg": 0
+      },
+      "params": {
+        "radiusStuds": 5,
+        "color": "lehm"
+      }
+    }
+  ]
+}

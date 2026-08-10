@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "id": "uruk-wall",
+  "title": "Uruk, c. 3500 BCE \u2014 a running-bond wall, one course per beat (A2-S01)",
+  "scale": {
+    "studsPerMetre": 25,
+    "note": "A Riemchen mud-brick of the Uruk period is roughly 16 cm square in plan; one stud is 8 mm, so at 25 studs per metre a 1x1 brick reads at about the size of the hand the caption is about."
+  },
+  "palette": {
+    "lehm": 84
+  },
+  "steps": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xStuds": 0,
+        "zStuds": 0,
+        "yPlates": 0,
+        "orientationDeg": 0
+      },
+      "params": {
+        "widthStuds": 24,
+        "heightPlates": 36,
+        "depthStuds": 2,
+        "bond": "Running",
+        "color": "lehm"
+      }
+    }
+  ]
+}
