@@ -102,8 +102,19 @@ fn resolve_into(
     if depth > 8 {
         bail!("LDraw reference recursion too deep at {part_file:?} - likely a real cycle or bug");
     }
+    // A top-level name is almost always a part, so `parts/` is tried first
+    // and costs one cache hit. But it is not *only* ever a part: a real
+    // LDraw resolver searches p/, parts/ and parts/s/ for any reference,
+    // and a hand-authored scene is entitled to name a primitive directly —
+    // which is what a scene composed of `box5.dat` and `stug-2x2.dat` does.
+    // Before this fell back, such a scene failed with a bare 404 on
+    // `official/parts/box5.dat`, which reads as "the library is missing a
+    // part" rather than "the resolver looked in one folder".
     let text = if depth == 0 {
-        cache.fetch(&format!("parts/{part_file}"))?
+        match cache.fetch(&format!("parts/{part_file}")) {
+            Ok(text) => text,
+            Err(_) => resolve_ref_path(cache, part_file)?.1,
+        }
     } else {
         resolve_ref_path(cache, part_file)?.1
     };
@@ -180,7 +191,12 @@ pub fn resolve_part(cache: &LdrawCache, part_file: &str, color_code: u32) -> Res
 /// that a part file's very first line is `0 <description>` (e.g. "Brick  1
 /// x  1") — or `None` if that line is missing/unparseable.
 pub fn part_description(cache: &LdrawCache, part_file: &str) -> Result<Option<String>> {
-    let text = cache.fetch(&format!("parts/{part_file}"))?;
+    // Same fallback as `resolve_into`: a scene may legally name a primitive,
+    // and a primitive has a description line like everything else.
+    let text = match cache.fetch(&format!("parts/{part_file}")) {
+        Ok(text) => text,
+        Err(_) => resolve_ref_path(cache, part_file)?.1,
+    };
     let Some(first_line) = text.lines().next() else {
         return Ok(None);
     };
@@ -370,10 +386,17 @@ fn resolve_full_into(
     if depth > 8 {
         bail!("LDraw reference recursion too deep at {part_file:?} - likely a real cycle or bug");
     }
+    // `parts/` first, then the same search any real LDraw resolver does —
+    // see `resolve_into`. A hand-authored scene may name a primitive
+    // directly, and before this fell back it failed with a bare 404 on
+    // `official/parts/box5.dat`, which reads as a missing part rather than
+    // as a resolver that looked in one folder.
     let (path, text) = if top_level {
         let p = format!("parts/{part_file}");
-        let t = ctx.cache.fetch(&p)?;
-        (p, t)
+        match ctx.cache.fetch(&p) {
+            Ok(t) => (p, t),
+            Err(_) => resolve_ref_path(ctx.cache, part_file)?,
+        }
     } else {
         resolve_ref_path(ctx.cache, part_file)?
     };
