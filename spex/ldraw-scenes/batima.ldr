@@ -1,7 +1,7 @@
 0 Batima, um 1924 - one block, alone in the studio (A3-S02)
 0 Name: batima.ldr
 0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
-0 // Places `parts/batima-2x2.dat`, which is modelled from PHOTOGRAPHS OF THE
+0 // Places `parts/batima-2x4.dat`, which is modelled from PHOTOGRAPHS OF THE
 0 // REAL OBJECT - Stefan's own set, with its albums ("BATIMA - Le Jeu de
 0 // Construction ideal ... Brevete", French and Dutch, so Belgian; consistent
 0 // with Le Batima Soc. and FR 588985, c. 1924). See that file for what the
@@ -21,6 +21,13 @@
 0 // joint. The act is stronger for the difference being visible: 1924 is a
 0 // different system, 1940 and 1949 are one object twice.
 0 //
-0 // Block height 20 LDU here, origin at the footprint centre, LDraw +Y down,
-0 // so a block standing on the ground plane is translated to y = -20.
-1 503 20000 -14 0 1 0 0 0 1 0 0 0 1 batima-2x2.dat
+0 // REAL SIZE NOW: 38 x 30 x 6 mm, measured on the object. That makes the
+0 // Batima module RECTANGULAR - 9.5 mm along, 15.0 mm across - and this is a
+0 // 2 x 4, the size that was measured. Height 6 mm = 15 LDU at the piece's
+0 // 2.5 LDU/mm, so a block on the ground plane is translated to y = -15.
+0 //
+0 // It is therefore also much LARGER and much FLATTER than the two bricks
+0 // that follow it: 38 x 30 x 6 against a 2 x 2 LEGO brick at 16 x 16 x 11.2.
+0 // That is true and the act should show it rather than normalise it - 1924
+0 // is a different system, and it does not even share a size.
+1 503 20000 -15 0 1 0 0 0 1 0 0 0 1 batima-2x4.dat

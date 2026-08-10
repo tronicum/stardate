@@ -1,0 +1,69 @@
+0 ~Batima block 2 x 4 - 38 x 30 x 6 mm, hollow studs, conical sockets
+0 Name: batima-2x4.dat
+0 Author: spex project (real dimensions from Stefan; shapes from photographs)
+0 !LDRAW_ORG Unofficial_Part
+0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt
+0 // REAL DIMENSIONS AT LAST, and they overturn an assumption this file had
+0 // been making since it was written.
+0 //
+0 // Stefan, from the object: a classic Batima 2 x 4 measures **38 x 30 x 6 mm**.
+0 // Four studs across 38 mm and two across 30 mm gives a pitch of
+0 //   9.5 mm along the length and 15.0 mm across the width.
+0 //
+0 // THE BATIMA MODULE IS NOT SQUARE. Every version of this file until now
+0 // kept LDraw's square 20 LDU pitch because nothing said otherwise. The
+0 // measurement says otherwise: the ratio is 0.63, and a Batima "2 x 3" is
+0 // therefore 28.5 x 30 mm - very nearly square in plan, with six sockets.
+0 // That is exactly what the block I measured in IMG_8989 looks like, and it
+0 // is why I read it as a 2 x 2: a rectangular module makes a 2 x 3 look
+0 // square. The photograph was right and my count was wrong.
+0 //
+0 // WHAT WOULD FALSIFY THIS: if 38 mm is not the four-stud direction. Then
+0 // the module is square after all and these numbers describe some other
+0 // piece. One glance at whether the four studs run along the 38 or the 30
+0 // settles it.
+0 //
+0 // The height confirms the reading independently: 6 mm against the 15.0 mm
+0 // cross pitch is 0.40, and the plate height measured off the photographs
+0 // was 0.34 of a pitch. Within photograph error, and nowhere near the 0.63
+0 // it would need if the pitch were 9.5 both ways.
+0 //
+0 // Scale: 1 mm = 2.5 LDU, the piece's own convention, so this file is in
+0 // LDU and the block comes out at 95 x 75 x 15.
+0 //
+0 // SHAPES still come from the photographs, as ratios of the SHORT pitch:
+0 // stud 0.60, bore 0.19, socket mouth 0.65. In millimetres: stud 5.7,
+0 // bore 1.8, socket 6.2. The sockets nearly touch along the short pitch,
+0 // which is what the close-ups show.
+0 //
+0 // NO `BFC CERTIFY`: the body quads are hand-wound.
+0 // LDraw primitives used under CC BY 4.0. LDraw is a trademark of the
+0 // LDraw Organization.
+
+0 // ---- body: 95 x 75 LDU footprint, 15 tall. Top face y = 0.
+4 16 -47.5 0 -37.5 47.5 0 -37.5 47.5 0 37.5 -47.5 0 37.5
+4 16 -47.5 15 -37.5 47.5 15 -37.5 47.5 15 37.5 -47.5 15 37.5
+4 16 -47.5 15 -37.5 47.5 15 -37.5 47.5 0 -37.5 -47.5 0 -37.5
+4 16 47.5 15 37.5 -47.5 15 37.5 -47.5 0 37.5 47.5 0 37.5
+4 16 47.5 15 -37.5 47.5 15 37.5 47.5 0 37.5 47.5 0 -37.5
+4 16 -47.5 15 37.5 -47.5 15 -37.5 -47.5 0 -37.5 -47.5 0 37.5
+
+0 // ---- eight hollow studs on the 23.75 x 37.5 LDU grid (9.5 x 15 mm)
+1 16 -35.625 0 -18.75 1 0 0 0 1 0 0 0 1 batima-stud.dat
+1 16 -35.625 0 18.75 1 0 0 0 1 0 0 0 1 batima-stud.dat
+1 16 -11.875 0 -18.75 1 0 0 0 1 0 0 0 1 batima-stud.dat
+1 16 -11.875 0 18.75 1 0 0 0 1 0 0 0 1 batima-stud.dat
+1 16 11.875 0 -18.75 1 0 0 0 1 0 0 0 1 batima-stud.dat
+1 16 11.875 0 18.75 1 0 0 0 1 0 0 0 1 batima-stud.dat
+1 16 35.625 0 -18.75 1 0 0 0 1 0 0 0 1 batima-stud.dat
+1 16 35.625 0 18.75 1 0 0 0 1 0 0 0 1 batima-stud.dat
+
+0 // ---- eight sockets in the underside, aligned with the studs above
+1 16 -35.625 15 -18.75 1 0 0 0 1 0 0 0 1 batima-socket.dat
+1 16 -35.625 15 18.75 1 0 0 0 1 0 0 0 1 batima-socket.dat
+1 16 -11.875 15 -18.75 1 0 0 0 1 0 0 0 1 batima-socket.dat
+1 16 -11.875 15 18.75 1 0 0 0 1 0 0 0 1 batima-socket.dat
+1 16 11.875 15 -18.75 1 0 0 0 1 0 0 0 1 batima-socket.dat
+1 16 11.875 15 18.75 1 0 0 0 1 0 0 0 1 batima-socket.dat
+1 16 35.625 15 -18.75 1 0 0 0 1 0 0 0 1 batima-socket.dat
+1 16 35.625 15 18.75 1 0 0 0 1 0 0 0 1 batima-socket.dat
