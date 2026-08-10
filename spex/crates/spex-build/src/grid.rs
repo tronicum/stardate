@@ -221,8 +221,8 @@ pub struct Footprint {
 /// depth of the underside tube (max Y in LDraw's down-positive frame),
 /// which is exactly the real brick/plate height. Measured 2026-08 against
 /// the real cached `parts/3005.dat`, `3004.dat`, `3010.dat`, `3710.dat`,
-/// `2431.dat`, `3009.dat`, `3022.dat`, `3020.dat` (see
-/// `crates/spex-build/tests/footprint_provenance.rs`, `#[ignore]`d because
+/// `2431.dat`, `3009.dat`, `3022.dat`, `3020.dat`, `3023.dat`, `3024.dat`
+/// (see `crates/spex-build/tests/footprint_provenance.rs`, `#[ignore]`d because
 /// it needs the real LDraw cache, same convention as `spex-ldraw`'s own
 /// network-dependent tests):
 ///
@@ -236,6 +236,8 @@ pub struct Footprint {
 /// | `2431.dat` Tile 1 x 4   | 4 x 1 | 1 plate            | 8.0  |
 /// | `3022.dat` Plate 2 x 2  | 2 x 2 | 1 plate            | 8.0  |
 /// | `3020.dat` Plate 2 x 4  | 4 x 2 | 1 plate            | 8.0  |
+/// | `3023.dat` Plate 1 x 2  | 2 x 1 | 1 plate            | 8.0  |
+/// | `3024.dat` Plate 1 x 1  | 1 x 1 | 1 plate            | 8.0  |
 ///
 /// These also match this repo's own established real numbers
 /// (`BRICKs.md`'s "brick height 9.6mm = 24 LDU = 3 plates").
@@ -277,6 +279,8 @@ impl FootprintTable {
         t.insert("3009.dat", Footprint { studs_w: 6, studs_d: 1, height_plates: BRICK_PLATES });
         t.insert("3022.dat", Footprint { studs_w: 2, studs_d: 2, height_plates: 1 });
         t.insert("3020.dat", Footprint { studs_w: 4, studs_d: 2, height_plates: 1 });
+        t.insert("3023.dat", Footprint { studs_w: 2, studs_d: 1, height_plates: 1 });
+        t.insert("3024.dat", Footprint { studs_w: 1, studs_d: 1, height_plates: 1 });
         t
     }
 }

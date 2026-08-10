@@ -1,7 +1,7 @@
 //! Every real parametric primitive `spex-build` ships: `Wall`, `Column`,
-//! `Arch`, `Stair`, `Ziggurat`, `Pyramid`, `Dome`, `Trilithon`, `Colonnade`,
-//! `Mosaic`. Each returns real `Placement`s, nothing else — no rendering,
-//! no I/O.
+//! `Slab`, `Arch`, `Stair`, `Ziggurat`, `Pyramid`, `Dome`, `Trilithon`,
+//! `Colonnade`, `Mosaic`. Each returns real `Placement`s, nothing else —
+//! no rendering, no I/O.
 //!
 //! **A shared building block.** LDraw's Y axis points down (see
 //! `ldraw-scenes/monolith.ldr`'s own comment); this module's convention is
@@ -288,6 +288,91 @@ impl Primitive for Column {
     fn extent(&self) -> (u32, u32, u32) {
         let d = self.diameter_studs.max(1);
         (d, d, self.height_plates)
+    }
+}
+
+/// Real 2-studs-deep plates, longest first — a real greedy row-*pair*
+/// tiler (fills two rows of depth at once), the counterpart to
+/// `PartSet::Classic`'s single-row `tile_length` set. `3020.dat` (Plate
+/// 2x4) then `3022.dat` (Plate 2x2) — both real, both exactly 2 studs
+/// deep, real footprints cited in `grid::FootprintTable::standard`.
+const SLAB_2DEEP: &[(&str, u32)] = &[("3020.dat", 4), ("3022.dat", 2)];
+/// Real 1-stud-deep plates, longest first — the real plate-height
+/// counterpart to `PartSet::Classic`'s brick-height set, used for `Slab`'s
+/// single leftover row (odd `depth_studs`) or, when `width_studs` is odd,
+/// every row (see `Slab::emit`'s own doc comment for why).
+const SLAB_1DEEP: &[(&str, u32)] = &[("3710.dat", 4), ("3023.dat", 2), ("3024.dat", 1)];
+
+/// Greedily tiles `len_studs` with a given real part set, longest first —
+/// the same real technique `tile_length` uses for `PartSet::Classic`,
+/// generalized to any set that (like `SLAB_1DEEP`) always has a real
+/// 1-stud finisher.
+fn tile_length_set(parts: &[(&'static str, u32)], len_studs: u32) -> Vec<(&'static str, u32)> {
+    let mut remaining = len_studs;
+    let mut out = Vec::new();
+    for (part, w) in parts {
+        while remaining >= *w {
+            out.push((*part, *w));
+            remaining -= *w;
+        }
+    }
+    debug_assert_eq!(remaining, 0, "the real 1-stud part in this set must always finish the remainder");
+    out
+}
+
+pub struct Slab {
+    pub width_studs: u32,
+    pub depth_studs: u32,
+    pub color: u32,
+}
+
+impl Primitive for Slab {
+    /// A real, solid, single-course flat plate area — real 2D footprint
+    /// consumption `Wall`/`Column` don't attempt (both tile one 1-stud-deep
+    /// row at a time; see `primitives.rs`'s own module doc comment). Real,
+    /// honest, greedy, not an optimal 2D bin-packer: tiles real depth in
+    /// pairs of 2 rows at a time using `SLAB_2DEEP` (fewer, bigger real
+    /// parts), with a final single leftover row (an odd `depth_studs`)
+    /// using `SLAB_1DEEP`.
+    ///
+    /// **A real, stated limitation, not a hidden one**: the 2-deep
+    /// optimization only applies when `width_studs` is even — `SLAB_2DEEP`
+    /// has no real 1-stud-wide member (no real 2-studs-deep, 1-stud-wide
+    /// plate exists to cite), so an odd width would leave a real 1-stud
+    /// gap in every 2-deep row pair. Rather than guess at a fix (e.g.
+    /// mixing a rotated `3023.dat` into a 2-deep row — a real, valid
+    /// option, just not attempted in this pass), an odd `width_studs`
+    /// falls back to `SLAB_1DEEP` for *every* row — always correct, never
+    /// silently short a part.
+    fn emit(&self, origin: GridPos, orientation: Orientation) -> Vec<Placement> {
+        let mut local = Vec::new();
+        let use_2deep = self.width_studs % 2 == 0;
+        let mut z_row = 0u32;
+        while use_2deep && z_row + 2 <= self.depth_studs {
+            let z_center = (z_row as f64 + 1.0) * STUD_LDU;
+            let mut cursor_studs = 0u32;
+            for (part, w) in tile_length_set(SLAB_2DEEP, self.width_studs) {
+                let x_center = (cursor_studs as f64 + w as f64 / 2.0) * STUD_LDU;
+                local.push(Placement::on_grid(GridPos::new(half_studs(x_center), -1, half_studs(z_center)), Orientation::IDENTITY, part, self.color));
+                cursor_studs += w;
+            }
+            z_row += 2;
+        }
+        while z_row < self.depth_studs {
+            let z_center = (z_row as f64 + 0.5) * STUD_LDU;
+            let mut cursor_studs = 0u32;
+            for (part, w) in tile_length_set(SLAB_1DEEP, self.width_studs) {
+                let x_center = (cursor_studs as f64 + w as f64 / 2.0) * STUD_LDU;
+                local.push(Placement::on_grid(GridPos::new(half_studs(x_center), -1, half_studs(z_center)), Orientation::IDENTITY, part, self.color));
+                cursor_studs += w;
+            }
+            z_row += 1;
+        }
+        transform_local(local, origin, orientation)
+    }
+
+    fn extent(&self) -> (u32, u32, u32) {
+        (self.width_studs, self.depth_studs, 1)
     }
 }
 
@@ -625,6 +710,46 @@ impl Primitive for Mosaic {
 mod tests {
     use super::*;
     use crate::grid::{validate, FootprintTable};
+
+    #[test]
+    fn slab_even_width_tiles_with_real_2deep_plates() {
+        // 4x4 studs: 2 real row-pairs, each exactly one real 3020.dat
+        // (Plate 2x4) - 4 studs of width, greedy-tiled, needs only one part.
+        let slab = Slab { width_studs: 4, depth_studs: 4, color: 71 };
+        let placements = slab.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
+        assert_eq!(placements.len(), 2);
+        assert!(placements.iter().all(|p| p.part == "3020.dat"));
+        assert_eq!(slab.extent(), (4, 4, 1));
+        let problems = validate(&placements, &FootprintTable::standard());
+        assert_eq!(problems, vec![], "{problems:?}");
+    }
+
+    #[test]
+    fn slab_odd_depth_has_one_real_leftover_1deep_row() {
+        // 4x5 studs: 2 real row-pairs (3020.dat each) + 1 real leftover
+        // row (odd depth) tiled with SLAB_1DEEP: width 4 -> one 3710.dat.
+        let slab = Slab { width_studs: 4, depth_studs: 5, color: 71 };
+        let placements = slab.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
+        assert_eq!(placements.len(), 3);
+        assert_eq!(placements[0].part, "3020.dat");
+        assert_eq!(placements[1].part, "3020.dat");
+        assert_eq!(placements[2].part, "3710.dat");
+        let problems = validate(&placements, &FootprintTable::standard());
+        assert_eq!(problems, vec![], "{problems:?}");
+    }
+
+    #[test]
+    fn slab_odd_width_falls_back_to_1deep_every_row() {
+        // 3x2 studs: no real 2-deep part is 1-stud-wide, so an odd width
+        // uses SLAB_1DEEP for every row: width 3 -> one 3023.dat (2) + one
+        // 3024.dat (1), per row, 2 rows -> 4 real placements, none 2-deep.
+        let slab = Slab { width_studs: 3, depth_studs: 2, color: 71 };
+        let placements = slab.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
+        assert_eq!(placements.len(), 4);
+        assert!(placements.iter().all(|p| p.part != "3020.dat" && p.part != "3022.dat"), "no real 2-deep part should appear for an odd width");
+        let problems = validate(&placements, &FootprintTable::standard());
+        assert_eq!(problems, vec![], "{problems:?}");
+    }
 
     #[test]
     fn wall_running_bond_produces_the_real_hand_computed_translations() {
