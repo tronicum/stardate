@@ -20,13 +20,59 @@ const USER_AGENT: &str = "spex-brick/1.0 (educational project, github.com/tronic
 /// distinct part plus its own subpart/primitive tree).
 pub struct LdrawCache {
     pub cache_dir: PathBuf,
+    /// Local directories searched **before** the library, in order — the
+    /// "model directory" every real LDraw resolver looks in first.
+    ///
+    /// This is what lets a hand-authored scene name a part the official
+    /// library does not have. `ldraw-scenes/kiddicraft.ldr` referring to
+    /// `brick-2x2-tubeless.dat` is not an exotic case: a 1949 brick has no
+    /// tube, no official part is a brick without a tube, and building one
+    /// out of a modern `3003.dat` would put a 1958 feature under a 1949
+    /// caption. Before this existed, such a reference failed with a 404 on
+    /// `official/parts/brick-2x2-tubeless.dat`.
+    ///
+    /// **Precedence is deliberate and it can shadow.** A file here answers
+    /// before the library does, exactly as it would in LDraw, so dropping a
+    /// `3001.dat` into a search directory really does replace the official
+    /// part everywhere in that build. That is the feature — it is how
+    /// unofficial parts ship alongside a model — and it is safe to leave
+    /// unguarded here because every resolved file's real path is recorded
+    /// in `PartGeometry::sources` and written into `mesh.json`, so what
+    /// answered is a fact in the output rather than something to infer.
+    pub search_dirs: Vec<PathBuf>,
 }
 
 impl LdrawCache {
     pub fn new(cache_dir: impl Into<PathBuf>) -> Self {
         LdrawCache {
             cache_dir: cache_dir.into(),
+            search_dirs: Vec::new(),
         }
+    }
+
+    /// Adds one local directory to search before the library. Both the
+    /// full relative path (`parts/foo.dat`) and the bare file name are
+    /// tried, because a reference arrives here already prefixed with the
+    /// library folder the resolver is guessing at.
+    pub fn with_search_dir(mut self, dir: impl Into<PathBuf>) -> Self {
+        let dir = dir.into();
+        if !self.search_dirs.contains(&dir) {
+            self.search_dirs.push(dir);
+        }
+        self
+    }
+
+    /// The local file, if any search directory has it.
+    fn search_local(&self, path: &str) -> Option<PathBuf> {
+        let base = Path::new(path).file_name()?;
+        for dir in &self.search_dirs {
+            for candidate in [dir.join(path), dir.join(base)] {
+                if candidate.is_file() {
+                    return Some(candidate);
+                }
+            }
+        }
+        None
     }
 
     fn cache_path(&self, path: &str) -> PathBuf {
@@ -42,6 +88,14 @@ impl LdrawCache {
     /// or a live fetch) actually answered it, so a later call never cares
     /// which one it was.
     pub fn fetch(&self, path: &str) -> Result<String> {
+        // The model directory first — see `search_dirs`. Deliberately NOT
+        // written into the disk cache: a project file is not a library file,
+        // and caching it under `parts/` would make it outlive the build and
+        // shadow the real part in every later one.
+        if let Some(local) = self.search_local(path) {
+            return fs::read_to_string(&local)
+                .with_context(|| format!("reading local part {}", local.display()));
+        }
         let cache_path = self.cache_path(path);
         if cache_path.exists() {
             return fs::read_to_string(&cache_path)
@@ -139,6 +193,47 @@ impl LdrawCache {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_search_dir_answers_before_the_cache_and_is_not_written_into_it() {
+        // The Act III case: a scene names a part the official library does
+        // not have, and the file lives beside the scene. Both spellings the
+        // resolver may arrive with — the bare name and a `parts/` prefix —
+        // have to resolve, because `resolve_ref_path` guesses the folder.
+        let lib = tempfile::tempdir().unwrap();
+        let model = tempfile::tempdir().unwrap();
+        fs::write(model.path().join("brick-2x2-tubeless.dat"), "0 ~Brick 2 x 2 without Bottom Tube\n").unwrap();
+        let cache = LdrawCache::new(lib.path()).with_search_dir(model.path());
+
+        assert!(cache.fetch("brick-2x2-tubeless.dat").unwrap().contains("without Bottom Tube"));
+        assert!(cache.fetch("parts/brick-2x2-tubeless.dat").unwrap().contains("without Bottom Tube"));
+        assert!(cache.fetch("p/brick-2x2-tubeless.dat").unwrap().contains("without Bottom Tube"));
+
+        // A project file is not a library file: caching it under `parts/`
+        // would make it outlive this build and shadow the real part in
+        // every later one, which is a bug nobody would find by looking at
+        // the build that caused it.
+        assert!(!lib.path().join("parts/brick-2x2-tubeless.dat").exists());
+        assert!(!lib.path().join("brick-2x2-tubeless.dat").exists());
+    }
+
+    #[test]
+    fn a_search_dir_shadows_the_library_on_purpose() {
+        // Stated as a test rather than as a warning in a doc comment,
+        // because it is the sharp edge of the feature: a file in a model
+        // directory really does replace an official part for that build.
+        let lib = tempfile::tempdir().unwrap();
+        fs::create_dir_all(lib.path().join("parts")).unwrap();
+        fs::write(lib.path().join("parts/3005.dat"), "the official part\n").unwrap();
+        let model = tempfile::tempdir().unwrap();
+        fs::write(model.path().join("3005.dat"), "the model's own\n").unwrap();
+
+        let plain = LdrawCache::new(lib.path());
+        assert_eq!(plain.fetch("parts/3005.dat").unwrap().trim(), "the official part");
+
+        let shadowed = LdrawCache::new(lib.path()).with_search_dir(model.path());
+        assert_eq!(shadowed.fetch("parts/3005.dat").unwrap().trim(), "the model's own");
+    }
 
     #[test]
     fn fetch_reads_from_an_existing_disk_cache_without_any_network() {

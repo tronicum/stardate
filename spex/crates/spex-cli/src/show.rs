@@ -247,7 +247,22 @@ fn build_bundles(
     cache_dir: &Path,
     opts: &BuildOptions,
 ) -> Result<SceneInstances> {
-    let cache = LdrawCache::new(cache_dir);
+    // Every hand-authored scene's own directory is a model directory, and a
+    // model directory is searched before the library — which is what lets
+    // `ldraw-scenes/kiddicraft.ldr` name `brick-2x2-tubeless.dat`, a part
+    // the official library does not have and should not have. Collected
+    // from the document rather than hard-coded, so a scene kept somewhere
+    // else brings its own parts with it.
+    let mut cache = LdrawCache::new(cache_dir);
+    for scene in &show.scenes {
+        if let SceneSource::Ldr { path } = &scene.source {
+            if let Some(dir) = Path::new(path).parent() {
+                cache = cache.with_search_dir(dir);
+                cache = cache.with_search_dir(dir.join("parts"));
+            }
+        }
+    }
+    let cache = cache;
     let mut instances = SceneInstances::new();
     // One source of truth for "which scenes have no generator", shared with
     // `dropped_scenes` — so what is built and what is removed from every cut

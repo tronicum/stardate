@@ -134,6 +134,11 @@
       "prefix": "lego"
     },
     {
+      "id": "saeule",
+      "source": { "kind": "ldr", "path": "ldraw-scenes/saeule.ldr" },
+      "prefix": "saeule"
+    },
+    {
       "id": "klemme",
       "source": { "kind": "ldr", "path": "ldraw-scenes/klemme.ldr" },
       "prefix": "klemme"
@@ -670,8 +675,8 @@
             "mode": "keyed",
             "fovDeg": 30,
             "keys": [
-              { "t": 0, "easing": "linear", "value": { "position": [8000, 22, 78], "lookAt": [8000, 5, 0] } },
-              { "t": 1, "easing": "linear", "value": { "position": [8000, 22, 78], "lookAt": [8000, 5, 0] } }
+              { "t": 0, "easing": "linear", "value": { "position": [8000, 14, 42], "lookAt": [8000, 5, 0] } },
+              { "t": 1, "easing": "linear", "value": { "position": [8000, 14, 42], "lookAt": [8000, 5, 0] } }
             ]
           },
           "tracks": [
@@ -724,9 +729,9 @@
             "mode": "keyed",
             "fovDeg": 30,
             "keys": [
-              { "t": 0, "easing": "cubicInOut", "value": { "position": [8000, 22, 78], "lookAt": [8000, 5, 0] } },
-              { "t": 0.4, "easing": "linear", "value": { "position": [8032, 22, 170], "lookAt": [8032, 5, 0] } },
-              { "t": 1, "easing": "linear", "value": { "position": [8032, 22, 170], "lookAt": [8032, 5, 0] } }
+              { "t": 0, "easing": "cubicInOut", "value": { "position": [8000, 14, 42], "lookAt": [8000, 5, 0] } },
+              { "t": 0.4, "easing": "linear", "value": { "position": [8024, 14, 78], "lookAt": [8024, 5, 0] } },
+              { "t": 1, "easing": "linear", "value": { "position": [8024, 14, 78], "lookAt": [8024, 5, 0] } }
             ]
           },
           "tracks": [
@@ -771,21 +776,21 @@
         },
         {
           "id": "A3-S04",
-          "title": "Die Klemme",
-          "weight": 3,
+          "title": "Die Säule",
+          "weight": 2,
           "scaling": "stretch",
-          "durationBars": 5,
-          "minBars": 2,
-          "maxBars": 32,
+          "durationBars": 3,
+          "minBars": 1.5,
+          "maxBars": 20,
           "tier": 1,
-          "scenes": ["batima", "kiddicraft", "lego", "klemme"],
+          "scenes": ["batima", "kiddicraft", "lego", "saeule"],
           "camera": {
             "mode": "dolly",
-            "fovDeg": 20,
+            "fovDeg": 28,
             "dolly": {
-              "from": [8032, 22, 170],
-              "to": [8508, 21, 48],
-              "lookAt": [8480, 20, 0]
+              "from": [8024, 14, 78],
+              "to": [8288, 26, 80],
+              "lookAt": [8288, 17, 0]
             },
             "motionBlur": 0.12
           },
@@ -795,8 +800,7 @@
               "property": "exposure",
               "keys": [
                 { "t": 0, "value": 0.16, "easing": "linear" },
-                { "t": 0.5, "value": 0.16, "easing": "linear" },
-                { "t": 0.78, "value": 0.085, "easing": "cubicInOut" }
+                { "t": 1, "value": 0.16, "easing": "linear" }
               ]
             },
             {
@@ -804,7 +808,7 @@
               "property": "bloomStrength",
               "keys": [
                 { "t": 0, "value": 0.18, "easing": "linear" },
-                { "t": 0.6, "value": 0.05, "easing": "cubicInOut" }
+                { "t": 1, "value": 0.18, "easing": "linear" }
               ]
             },
             {
@@ -812,49 +816,108 @@
               "target": "lego/**",
               "keys": [
                 { "t": 0, "value": 1, "easing": "linear" },
-                { "t": 0.14, "value": 0, "easing": "cubicOut" },
-                { "t": 0.34, "value": 0, "easing": "linear" },
-                { "t": 0.5, "value": 1, "easing": "cubicIn" }
+                { "t": 0.2, "value": 0, "easing": "cubicOut" },
+                { "t": 0.45, "value": 0, "easing": "linear" },
+                { "t": 0.62, "value": 1, "easing": "cubicIn" }
               ]
             },
             {
               "kind": "dissolve",
               "target": "batima/**",
               "keys": [
-                { "t": 0.28, "value": 0, "easing": "linear" },
-                { "t": 0.44, "value": 1, "easing": "cubicIn" }
+                { "t": 0.36, "value": 0, "easing": "linear" },
+                { "t": 0.56, "value": 1, "easing": "cubicIn" }
               ]
             },
             {
               "kind": "dissolve",
               "target": "kiddicraft/**",
               "keys": [
-                { "t": 0.31, "value": 0, "easing": "linear" },
-                { "t": 0.47, "value": 1, "easing": "cubicIn" }
+                { "t": 0.4, "value": 0, "easing": "linear" },
+                { "t": 0.59, "value": 1, "easing": "cubicIn" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "saeule/**",
+              "keys": [
+                { "t": 0.42, "value": 1, "easing": "linear" },
+                { "t": 0.68, "value": 0, "easing": "cubicOut" }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.2, "kind": "hud", "payload": { "element": "caption", "text": "Automatic Binding Bricks · 1949" } }
+          ],
+          "note": "A third brick joins the two, then all three go and the column arrives -- a rebuild, not a morph, the same grammar A2-S02 used for the bulla, because the whole thesis is that things are re-assembled rather than transformed. THE COLUMN IS TUBELESS. `saeule.ldr` stacks three of `parts/brick-2x2-tubeless.dat`: studs on top, hollow underneath, nothing inside to grip them. It stands because it is stacked, not because it is clutched, and that is the reason the next shot exists. OPEN: the screenplay asks for the monolith at the edge of frame here, as it does in A2-S02 and A4-S01. It stands at the origin, 8.3 m from this camera. Three shots have now asked; a near second copy is probably the answer."
+        },
+        {
+          "id": "A3-S04b",
+          "title": "Die Klemme",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 2,
+          "minBars": 1.5,
+          "maxBars": 16,
+          "tier": 1,
+          "scenes": ["saeule", "klemme"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 20,
+            "dolly": {
+              "from": [8288, 26, 80],
+              "to": [8492, 21, 26],
+              "lookAt": [8480, 20.4, 0]
+            },
+            "motionBlur": 0.12
+          },
+          "tracks": [
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.16, "easing": "linear" },
+                { "t": 0.55, "value": 0.085, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "bloomStrength",
+              "keys": [
+                { "t": 0, "value": 0.18, "easing": "linear" },
+                { "t": 0.45, "value": 0.05, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "saeule/**",
+              "keys": [
+                { "t": 0.05, "value": 0, "easing": "linear" },
+                { "t": 0.3, "value": 1, "easing": "cubicIn" }
               ]
             },
             {
               "kind": "dissolve",
               "target": "klemme/**",
               "keys": [
-                { "t": 0.3, "value": 1, "easing": "linear" },
-                { "t": 0.52, "value": 0, "easing": "cubicOut" }
+                { "t": 0.08, "value": 1, "easing": "linear" },
+                { "t": 0.34, "value": 0, "easing": "cubicOut" }
               ]
             },
             {
               "kind": "transform",
-              "target": "klemme/3001/2",
+              "target": "klemme/3003/2",
               "keys": [
-                { "t": 0.6, "easing": "linear", "value": { "position": [0, 0, 0] } },
-                { "t": 0.92, "easing": "cubicInOut", "value": { "position": [0, -2.4, 0] } }
+                { "t": 0.45, "easing": "linear", "value": { "position": [0, 0, 0] } },
+                { "t": 0.9, "easing": "cubicInOut", "value": { "position": [0, -2.4, 0] } }
               ]
             }
           ],
           "cues": [
-            { "t": 0.16, "kind": "hud", "payload": { "element": "caption", "text": "Automatic Binding Bricks · 1949" } },
-            { "t": 0.92, "kind": "marker", "payload": { "event": "clutchSeated" } }
+            { "t": 0.12, "kind": "hud", "payload": { "element": "caption", "text": "Das Kupplungsrohr · 1958" } },
+            { "t": 0.9, "kind": "marker", "payload": { "event": "clutchSeated" } }
           ],
-          "note": "The title image of the work, and the longest shot in its act. A third brick joins the two, then all three go and the column arrives -- a rebuild, not a morph, the same grammar A2-S02 used for the bulla, because the whole thesis is that things are re-assembled rather than transformed. Then the camera goes to macro on one joint. THE CLEARANCE IS AUTHORED AND SAYS SO: LDraw's stud outer diameter and tube inner diameter are both nominally 12 LDU, so in a correct model they interpenetrate exactly and nothing can be seen entering anything. klemme.ldr lifts the top brick 6 LDU (2.4 mm) and the transform track on klemme/3001/2 puts it down over the last third of the shot, so the departure from real geometry is a starting condition the shot resolves rather than a permanent lie. OPEN: the screenplay asks for the monolith at the edge of frame here, as it does in A2-S02. It is not in the scene list because at this stage position (x = 8480 mm) the monolith at the origin is 8.5 m away and would not be in frame at a 20-degree field of view. Either the monolith gets a second, near copy for these two shots or the screenplay's note is retired; that decision has not been made."
+          "note": "THE CORRECTION, AND THE TITLE IMAGE. The tube inside the brick is the 1958 patent -- it is what made the clutch hold. Rev 3 put this macro under a 1949 lower third, which is a 1958 image with a pre-1958 caption and precisely the claim this act makes; splitting the shot in two fixes it and makes the argument stronger, because the clutch now ARRIVES rather than having always been there. The tubeless column dissolves and the official 3003 column takes its place -- a rebuild again, and the only difference between the two objects is the thing the shot is about. THE CLEARANCE IS AUTHORED AND SAYS SO: LDraw's stud outer diameter and tube inner diameter are both nominally 12 LDU, so in a correct model they interpenetrate exactly and nothing can be seen entering anything. klemme.ldr lifts the top brick 6 LDU (2.4 mm) and the transform track seats it, so the departure is a starting condition the shot resolves. At 28.6 mm from the joint with a 20-degree field of view the frame is 10 mm high and the gap is a quarter of it -- a framing that was impossible before the near plane started following the camera rather than the scene's diagonal."
         },
         {
           "id": "A3-S05",
@@ -949,7 +1012,7 @@
           "weight": 3,
           "scaling": "stretch",
           "durationBars": 5,
-          "minBars": 2,
+          "minBars": 1.5,
           "maxBars": 42,
           "tier": 1,
           "scenes": ["feld", "klemme"],
@@ -1048,7 +1111,7 @@
           "weight": 4,
           "scaling": "stretch",
           "durationBars": 6,
-          "minBars": 2,
+          "minBars": 1.5,
           "maxBars": 50,
           "tier": 1,
           "scenes": ["gitter"],

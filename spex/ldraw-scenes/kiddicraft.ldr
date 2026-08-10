@@ -1,13 +1,25 @@
-0 Kiddicraft - the second brick, beside the first (A3-S03)
+0 Kiddicraft Self-Locking Building Brick, 2 x 2 - the second brick (A3-S03)
 0 Name: kiddicraft.ldr
 0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
-0 // Kiddicraft Self-Locking Building Bricks, Hilary Fisher Page,
-0 // GB 529580, filed 17 April 1940 - not 1939, which is the date usually
-0 // quoted and is the date of neither the filing nor the publication.
+0 // Places `parts/brick-2x2-tubeless.dat`, which sits beside this file and is
+0 // NOT an official LDraw part. See that file's own header for the whole
+0 // derivation: 3003.dat and its two subparts, flattened, with the single
+0 // interior `stud4.dat` line removed.
 0 //
-0 // Same part, same colour, same ground plane as batima.ldr, offset by
-0 // 8 studs (160 LDU) in x - four studs of brick and four of gap, so the
-0 // two read as a pair at the framing A3-S02 already established. The
-0 // shot is a rhyme, and a rhyme is only a rhyme if nothing but the
-0 // caption changes.
-1 15 20160 -24 0 1 0 0 0 1 0 0 0 1 3001.dat
+0 // The tube inside a brick is the 1958 patent. A Kiddicraft Self-Locking
+0 // brick and a 1949 Automatic Binding Brick are hollow underneath - the grip
+0 // came from the studs against the walls, which is why they held so badly.
+0 // Building these three out of a modern 3001/3003 would put a 1958 feature
+0 // under a pre-1958 caption, which is exactly the claim this act makes.
+0 //
+0 // Colour 15 for all three: they ARE the same object, and that is the whole
+0 // content of Interlego v Tyco. Three colours would be an editorial claim
+0 // the act spends three shots arguing against.
+0 //
+0 // 2 x 2, because that is the classic Kiddicraft size. The Brighton Toy
+0 // Museum shows both 2 x 2 and 2 x 4, so size is not what identifies them -
+0 // the end slots are, and those are still missing (noted in the part file).
+0 //
+0 // Brick height 24 LDU, origin at the footprint centre, LDraw +Y down: a
+0 // brick standing on the ground plane is translated to y = -24.
+1 15 20120 -24 0 1 0 0 0 1 0 0 0 1 brick-2x2-tubeless.dat

@@ -219,6 +219,7 @@ export class CameraDirector {
     if (haveLook) {
       this.camera.lookAt(this.look);
       if (this.controls) this.controls.target.copy(this.look);
+      this.applyNear(this.pos.distanceTo(this.look));
     }
   }
 
@@ -226,6 +227,33 @@ export class CameraDirector {
     if (Math.abs(this.camera.fov - deg) < 1e-6) return;
     this.camera.fov = deg;
     this.camera.updateProjectionMatrix();
+  }
+
+  /** The near plane follows the camera's own working distance, downward only.
+   *
+   * The viewer picks `near = diag / 200` from the whole scene's diagonal,
+   * which is right for a scene and wrong for a piece that grew. Act I alone
+   * is about 300 mm across and gets a 1.5 mm near plane; four acts staged
+   * along one world plate are 11 320 mm across and get **56.6 mm**. Every
+   * macro in the work is closer than that, and the symptom is not a black
+   * frame — it is the *inside* of the brick, tubes and no wall, which reads
+   * as broken geometry rather than as a clipped one. A4-S01b lost an
+   * afternoon to it.
+   *
+   * So: `near = d / 100` whenever a shot names a look-at, and **never
+   * larger than the viewer's own**. Downward only is what makes this safe
+   * to apply everywhere — it can reveal geometry that was being clipped and
+   * it can never hide any. `far` is left alone for the same reason: pulling
+   * it in to track `d` would clip backgrounds the piece deliberately keeps
+   * (the monolith at the edge of frame is the whole point of three shots).
+   * The zoom mode still moves both, because at 10^4 it has to. */
+  private applyNear(distance: number) {
+    if (this.overrodeRange || !(distance > 0)) return;
+    const near = Math.min(this.baseNear, Math.max(distance * NEAR_FACTOR, 0.005));
+    if (Math.abs(this.camera.near - near) > 1e-9) {
+      this.camera.near = near;
+      this.camera.updateProjectionMatrix();
+    }
   }
 
   /** Track near/far to the zoom distance, and put them back afterwards. */

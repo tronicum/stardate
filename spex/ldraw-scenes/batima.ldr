@@ -1,29 +1,30 @@
-0 Batima - one brick, alone in a white studio (A3-S02)
+0 Batima, um 1924 - one brick, alone in a white studio (A3-S02)
 0 Name: batima.ldr
 0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
-0 // The Batima system, Le Batima Soc., FR 588985, c. 1924. The shot's
-0 // lower third carries that number and not BE 311029 / 1923, which could
-0 // not be confirmed.
+0 // Places `parts/brick-2x2-tubeless.dat`, which sits beside this file and is
+0 // NOT an official LDraw part. See that file's own header for the whole
+0 // derivation: 3003.dat and its two subparts, flattened, with the single
+0 // interior `stud4.dat` line removed.
 0 //
-0 // The geometry is deliberately the plainest thing in the piece: ONE
-0 // Brick 2 x 4 (3001.dat), the part every later claim is about. A
-0 // reconstruction of the Batima brick's own profile would be a drawing
-0 // of a patent, and this shot already has the drawing - it is an overlay,
-0 // not geometry. What the picture has to carry is that the object is
-0 // ordinary.
+0 // The tube inside a brick is the 1958 patent. A Kiddicraft Self-Locking
+0 // brick and a 1949 Automatic Binding Brick are hollow underneath - the grip
+0 // came from the studs against the walls, which is why they held so badly.
+0 // Building these three out of a modern 3001/3003 would put a 1958 feature
+0 // under a pre-1958 caption, which is exactly the claim this act makes.
 0 //
-0 // Colour 15 (White) for all three patent bricks - Batima, Kiddicraft and
-0 // 1949 - because they ARE the same object, and that is the whole content
-0 // of Interlego v Tyco. Giving them three colours would be an editorial
-0 // claim the piece spends three shots arguing against. The lower thirds
-0 // do the distinguishing.
+0 // Colour 15 for all three: they ARE the same object, and that is the whole
+0 // content of Interlego v Tyco. Three colours would be an editorial claim
+0 // the act spends three shots arguing against.
 0 //
-0 // Stage position: x = 20000 LDU (1000 studs), the third station of the
-0 // world plate after Act II's coin at 800. Instance translations in a
-0 // mesh bundle are i16 LDU, so the whole piece must stay inside
-0 // +/-32767 LDU; Act III ends at 23600 and leaves Act IV the rest.
+0 // 2 x 2, because that is the classic Kiddicraft size. The Brighton Toy
+0 // Museum shows both 2 x 2 and 2 x 4, so size is not what identifies them -
+0 // the end slots are, and those are still missing (noted in the part file).
 0 //
-0 // Brick 2 x 4 is 24 LDU tall and its origin is the centre of its
-0 // footprint, so a part sitting on the ground plane is translated to
-0 // y = -24 in LDraw's +Y-down frame.
-1 15 20000 -24 0 1 0 0 0 1 0 0 0 1 3001.dat
+0 // Brick height 24 LDU, origin at the footprint centre, LDraw +Y down: a
+0 // brick standing on the ground plane is translated to y = -24.
+0 //
+0 // PLACEHOLDER GEOMETRY. The Batima system (Le Batima Soc., FR 588985,
+0 // c. 1924) is not established to be this shape, and this stands in until
+0 // the published drawing is on hand. The shot must not claim otherwise on
+0 // screen while that is true.
+1 15 20000 -24 0 1 0 0 0 1 0 0 0 1 brick-2x2-tubeless.dat
