@@ -39,7 +39,29 @@ if (!url || !outDir) {
 }
 mkdirSync(outDir, { recursive: true });
 
-const browser = await chromium.launch();
+/** Headless Chromium does **not** use the GPU by default — it falls back to
+ * SwiftShader, which is a software rasteriser, and then a faster machine buys
+ * nothing at all. That is worth stating because the symptom is indistinguishable
+ * from "rendering is just slow": this script measured 0.4 frames a second on a
+ * GPU-less container at 640x360 and 0.2 on a real workstation at 1920x1080 —
+ * nine times the pixels for half the rate, i.e. the workstation was doing the
+ * same software rasterising, only better.
+ *
+ * So: ask for the GPU, and then **print which renderer actually answered**, so
+ * nobody has to infer it from a frame rate. `SPEX_HEADED=1` runs a visible
+ * window, which on macOS is the most reliable way to get hardware
+ * acceleration when the headless path refuses.
+ */
+const HEADED = !!process.env.SPEX_HEADED;
+const browser = await chromium.launch({
+  headless: !HEADED,
+  args: [
+    '--enable-gpu',
+    '--ignore-gpu-blocklist',
+    '--enable-webgl',
+    '--use-angle=default',
+  ],
+});
 const page = await browser.newPage({ viewport: { width: WIDTH, height: HEIGHT } });
 const errors = [];
 page.on('pageerror', (e) => errors.push(String(e)));
@@ -52,6 +74,19 @@ await page.waitForFunction(() => !!window.__spexShow, null, { timeout: 120000 })
 // below would be a photograph of the title card.
 await page.evaluate(() => window.__spexShow.begin());
 await page.waitForTimeout(3000);
+
+// Which rasteriser is actually doing the work. `UNMASKED_RENDERER_WEBGL` is
+// what the driver calls itself; "SwiftShader" or "llvmpipe" in that string
+// means every frame below is being drawn on the CPU.
+const renderer = await page.evaluate(() => {
+  const gl = document.createElement('canvas').getContext('webgl2')
+    || document.createElement('canvas').getContext('webgl');
+  if (!gl) return 'no WebGL context at all';
+  const ext = gl.getExtension('WEBGL_debug_renderer_info');
+  return ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER);
+});
+const software = /swiftshader|llvmpipe|software/i.test(renderer);
+console.log(`renderer: ${renderer}${software ? '  <-- SOFTWARE. The GPU is not being used; try SPEX_HEADED=1.' : ''}`);
 
 const durationSec = await page.evaluate(() => {
   const s = window.__spexShow;
