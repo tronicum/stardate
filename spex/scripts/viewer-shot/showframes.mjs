@@ -22,20 +22,44 @@ import { mkdirSync } from 'node:fs';
 
 const url = process.argv[2];
 const outDir = process.argv[3];
+/** Optional substring filter over the mark names. Documenting a 16-shot piece
+ * takes minutes on a software rasteriser, and re-checking one act should not
+ * cost the other two. */
+const only = process.argv[4] ?? '';
 if (!url || !outDir) {
-  console.error('usage: showframes.mjs <viewer-url> <out-dir>');
+  console.error('usage: showframes.mjs <viewer-url> <out-dir> [name-filter]');
   process.exit(2);
 }
 mkdirSync(outDir, { recursive: true });
 
+/** One frame per authored moment, at the seconds the 4:00 cut puts them at.
+ *
+ * These are timestamps into the canonical 240 s resolution and they move
+ * whenever `baseDurationBars` does — Act II pushed it from 17 to 37 and
+ * Act III from 37 to 57, and each time every number below changed. That is
+ * the cost of documenting a piece by wall-clock second rather than by bar,
+ * and it is paid here rather than in the document, which stays in bars.
+ */
 const MARKS = [
-  ['s01-point', 2.8],
-  ['s02-swarm', 15],
-  ['s03-crossfade', 45],
-  ['s04-assembly', 62],
-  ['s04-landed', 95],
-  ['s05-monolith', 130],
-  ['s06-dolly', 200],
+  ['a1s01-point', 2.8],
+  ['a1s02-swarm', 8],
+  ['a1s03-crossfade', 20],
+  ['a1s04-assembly', 40],
+  ['a1s05-monolith', 65],
+  ['a1s06-stonehenge', 82],
+  ['a2s01-uruk', 96],
+  ['a2s02-bulla', 108],
+  ['a2s03-tokens', 120],
+  ['a2s04-sardis', 137],
+  ['a2s05-face', 150],
+  ['a3s01-rom-weit', 168],
+  ['a3s01-stempel', 177],
+  ['a3s02-batima', 184],
+  ['a3s03-kiddicraft', 199],
+  ['a3s04-saeule', 210],
+  ['a3s04-senkt', 214],
+  ['a3s04-klemme', 218],
+  ['a3s05-feld', 236],
 ];
 
 const browser = await chromium.launch();
@@ -56,7 +80,7 @@ async function shoot(query, marks, prefix) {
   // below would be a photograph of the title card.
   await page.evaluate(() => window.__spexShow.begin());
   await page.waitForTimeout(3000);
-  for (const [name, t] of marks) {
+  for (const [name, t] of marks.filter(([n]) => n.includes(only))) {
     const info = await page.evaluate(async (sec) => {
       const s = window.__spexShow;
       s.setPlaying(false);

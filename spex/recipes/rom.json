@@ -1,0 +1,219 @@
+{
+  "version": 1,
+  "id": "rom-bipedalis",
+  "title": "Rom, um 110 n. Chr. - opus mixtum mit Ziegelbaendern und Ziegelstempel (A3-S01)",
+  "_note": [
+    "Upward is NEGATIVE yPlates. primitives.rs::course_bottom_plates is -(course+1)*3,",
+    "so a step stacked on a 21-plate wall sits at yPlates -21, and a Mosaic of 3005.dat",
+    "(a 1x1 BRICK, 3 plates tall - the footprint table has no 1x1 plate) sits at -3 to",
+    "rest on the ground rather than hang under it.",
+    "The wall is opus mixtum: grey stone facing courses with brick bonding courses",
+    "running through them. The bands are flush rather than proud, because a course",
+    "offset half a stud in z could not clutch to the course below and validate would",
+    "be right to say so."
+  ],
+  "scale": {
+    "studsPerMetre": 20,
+    "note": "A bipedalis is two Roman feet square, about 59 cm. One stud is 8 mm, so at 20 studs per metre the wall reads at roughly the height a person could stand beside. The stamp is deliberately enlarged: a real brick stamp is a few centimetres across and would be one stud here, which is a stamp nobody can read."
+  },
+  "palette": {
+    "stein": 72,
+    "ziegel": 70,
+    "eindruck": 0
+  },
+  "steps": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xStuds": 900,
+        "zStuds": 0,
+        "yPlates": 0
+      },
+      "params": {
+        "widthStuds": 40,
+        "heightPlates": 21,
+        "depthStuds": 3,
+        "bond": "Running",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xStuds": 900,
+        "zStuds": 0,
+        "yPlates": -21
+      },
+      "params": {
+        "widthStuds": 40,
+        "heightPlates": 3,
+        "depthStuds": 3,
+        "bond": "Stack",
+        "color": "ziegel"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xStuds": 900,
+        "zStuds": 0,
+        "yPlates": -24
+      },
+      "params": {
+        "widthStuds": 40,
+        "heightPlates": 21,
+        "depthStuds": 3,
+        "bond": "Running",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xStuds": 900,
+        "zStuds": 0,
+        "yPlates": -45
+      },
+      "params": {
+        "widthStuds": 40,
+        "heightPlates": 3,
+        "depthStuds": 3,
+        "bond": "Stack",
+        "color": "ziegel"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xStuds": 900,
+        "zStuds": 0,
+        "yPlates": -48
+      },
+      "params": {
+        "widthStuds": 40,
+        "heightPlates": 15,
+        "depthStuds": 3,
+        "bond": "Running",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Mosaic",
+      "at": {
+        "xStuds": 913,
+        "zStuds": 9,
+        "yPlates": -3
+      },
+      "params": {
+        "tilePart": "3005.dat",
+        "cells": [
+          [
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70
+          ],
+          [
+            70,
+            0,
+            0,
+            0,
+            70,
+            0,
+            0,
+            0,
+            70,
+            0,
+            0,
+            0,
+            70
+          ],
+          [
+            70,
+            0,
+            70,
+            70,
+            70,
+            0,
+            70,
+            0,
+            70,
+            0,
+            70,
+            70,
+            70
+          ],
+          [
+            70,
+            0,
+            70,
+            70,
+            70,
+            0,
+            70,
+            0,
+            70,
+            0,
+            0,
+            0,
+            70
+          ],
+          [
+            70,
+            0,
+            70,
+            70,
+            70,
+            0,
+            70,
+            0,
+            70,
+            70,
+            70,
+            0,
+            70
+          ],
+          [
+            70,
+            0,
+            0,
+            0,
+            70,
+            0,
+            0,
+            0,
+            70,
+            0,
+            0,
+            0,
+            70
+          ],
+          [
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70,
+            70
+          ]
+        ]
+      }
+    }
+  ]
+}

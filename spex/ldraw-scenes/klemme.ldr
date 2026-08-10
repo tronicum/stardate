@@ -1,0 +1,28 @@
+0 Die Klemme - three bricks becoming one column, with an authored clearance (A3-S04)
+0 Name: klemme.ldr
+0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
+0 // THE ONE AUTHORED DEPARTURE FROM REAL LDRAW GEOMETRY IN THIS PIECE,
+0 // and it is here because the shot is a macro of the joint itself.
+0 //
+0 // LDraw's stud outer diameter and its tube inner diameter are both
+0 // nominally 12 LDU. They therefore interpenetrate EXACTLY: in a
+0 // correctly stacked model the stud and the tube occupy the same
+0 // cylinder and nothing can be seen entering anything. That is right for
+0 // a model and useless for a shot whose whole subject is the entering.
+0 //
+0 // So the top brick is lifted 6 LDU (2.4 mm) above its seated position.
+0 // 6 LDU is a quarter of a brick course and half a plate - off the grid
+0 // on purpose, and small enough that at any framing wider than the macro
+0 // the column still reads as a column. The runtime lowers it to 0 over
+0 // the shot with a transform track on klemme/3001/2, so the clearance is
+0 // a starting condition rather than a permanent lie about the geometry.
+0 //
+0 // Seated positions, LDraw +Y-down, Brick 2 x 4 = 24 LDU tall:
+0 //   course 0  y = -24
+0 //   course 1  y = -48
+0 //   course 2  y = -72   <- authored here as -78
+0 //
+0 // Stage position x = 21200 LDU (1060 studs).
+1 15 21200 -24 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 15 21200 -48 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 15 21200 -78 0 1 0 0 0 1 0 0 0 1 3001.dat

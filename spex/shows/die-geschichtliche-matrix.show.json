@@ -5,7 +5,7 @@
   "subtitle": "Akt I — Archäologie der Fuge",
   "archiveSignature": "IA-2026-002",
   "tempo": { "bpm": 84, "beatsPerBar": 4 },
-  "baseDurationBars": 37,
+  "baseDurationBars": 57,
   "seed": 263865,
   "palette": {
     "terrakotta": [0.462077, 0.162029, 0.076185],
@@ -112,6 +112,36 @@
       "id": "stonehenge",
       "source": { "kind": "ldr", "path": "ldraw-scenes/stonehenge.ldr" },
       "prefix": "stonehenge"
+    },
+    {
+      "id": "rom",
+      "source": { "kind": "build", "recipe": "recipes/rom.json" },
+      "prefix": "rom"
+    },
+    {
+      "id": "batima",
+      "source": { "kind": "ldr", "path": "ldraw-scenes/batima.ldr" },
+      "prefix": "batima"
+    },
+    {
+      "id": "kiddicraft",
+      "source": { "kind": "ldr", "path": "ldraw-scenes/kiddicraft.ldr" },
+      "prefix": "kiddicraft"
+    },
+    {
+      "id": "lego",
+      "source": { "kind": "ldr", "path": "ldraw-scenes/lego.ldr" },
+      "prefix": "lego"
+    },
+    {
+      "id": "klemme",
+      "source": { "kind": "ldr", "path": "ldraw-scenes/klemme.ldr" },
+      "prefix": "klemme"
+    },
+    {
+      "id": "feld",
+      "source": { "kind": "build", "recipe": "recipes/feld.json" },
+      "prefix": "feld"
     }
   ],
   "movements": [
@@ -567,6 +597,333 @@
             { "t": 0.25, "kind": "hud", "payload": { "element": "caption", "text": "Nicht die erste Münze. Die erste, die man nicht prüfen musste." } }
           ],
           "note": "Macro, rotating, chrome reflections off M56's synthetic environment -- the one place in the piece where the metal finish is the subject. The fugue reaches its first full cadence here, which is why the shot is short and the camera arc small: nothing should compete with the cadence. The caption is the corrected claim -- early electrum varied in its gold-to-silver ratio and could be manipulated; fungibility arrives with Kroisos's bimetallic reform, which is a better fact for this thesis than the one rev 1 had."
+        }
+      ]
+    },
+    {
+      "id": "act-3",
+      "title": "Die Fuge",
+      "romanNumeral": "III",
+      "_note": "Bars 37-57. The music for this act was already written: the plan has an INVERTED entry at bar 37, an episode, an entry AUGMENTED x2 at 43, a long episode, and the stretto at 53. The shot boundaries are those bar numbers and not a rhythm invented for the picture -- A3-S01 opens on the inversion, A3-S02 carries the augmented entry at its midpoint, and A3-S05 is the stretto. Positions are in millimetres with +Y up (1 LDU = 0.4 mm); the act occupies the world plate from x=7200 to x=9440 mm, which leaves Act IV the rest of the i16 instance range.",
+      "shots": [
+        {
+          "id": "A3-S01",
+          "title": "Rom",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 21,
+          "tier": 1,
+          "scenes": ["coin", "rom"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 34,
+            "dolly": {
+              "from": [7360, 620, 1050],
+              "to": [7356, 150, 190],
+              "lookAt": [7356, 0, 100]
+            },
+            "motionBlur": 0.1
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "coin/**",
+              "keys": [
+                { "t": 0, "value": 0, "easing": "linear" },
+                { "t": 0.22, "value": 1, "easing": "cubicIn" }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 1, "range": "alt", "subject": "inversion", "target": { "scene": "rom" } }
+            },
+            { "t": 0.55, "kind": "hud", "payload": { "element": "caption", "text": "Rom · um 110 n. Chr. — das Modul mit Aktenzeichen." } }
+          ],
+          "note": "The screenplay offered two images here and rev 1 conflated them. This is the second: not the Pont du Gard (dry-laid limestone ashlar, no brick in it at all) but a Roman wall in opus mixtum -- grey stone facing courses with brick bonding courses running through them -- and, on the ground in front of it, a brick stamp. A standard module WITH AN AUDIT TRAIL is the thesis of this act, and it is what makes the three patent numbers in S02-S04 a continuation rather than a change of subject. The stamp reads COS, the abbreviation that dates a real Roman brick by consul, and it is enormously enlarged: at this scale a real stamp would be one stud, which is a stamp nobody can read. The camera descends from a wide framing of the wall onto the stamp, one dolly, one lookAt -- the wall is behind the stamp for the whole move rather than being cut away from. Voice 1 enters INVERTED on the first beat: the subject turned upside down, over a wall that is the same module turned into an industry."
+        },
+        {
+          "id": "A3-S02",
+          "title": "Batima",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 21,
+          "tier": 1,
+          "scenes": ["batima"],
+          "camera": {
+            "mode": "keyed",
+            "fovDeg": 30,
+            "keys": [
+              { "t": 0, "easing": "linear", "value": { "position": [8000, 22, 78], "lookAt": [8000, 5, 0] } },
+              { "t": 1, "easing": "linear", "value": { "position": [8000, 22, 78], "lookAt": [8000, 5, 0] } }
+            ]
+          },
+          "tracks": [
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 3.4, "easing": "step" },
+                { "t": 0.035, "value": 0.16, "easing": "step" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "bloomStrength",
+              "keys": [
+                { "t": 0, "value": 1.8, "easing": "step" },
+                { "t": 0.06, "value": 0.18, "easing": "cubicOut" }
+              ]
+            },
+            {
+              "kind": "transform",
+              "target": "batima/**",
+              "keys": [
+                { "t": 0.06, "easing": "linear", "value": { "rotation": [0, 0, 0] }, "snapToBeat": true },
+                { "t": 1, "easing": "linear", "value": { "rotation": [0, 360, 0] } }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.12, "kind": "hud", "payload": { "element": "caption", "text": "FR 588985 · Le Batima Soc. · um 1924" } },
+            {
+              "t": 0.5,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "augmentation", "target": { "scene": "batima" } }
+            }
+          ],
+          "note": "The one genuinely great cut in the piece, and it is protected by being the only shock of its magnitude. Patentweiss is authored as a THREE-FRAME BLANK rather than as a background colour: exposure steps to 3.4 and back to the grade's own 0.7, bloom to 1.8 and back, both on 'step' -- a ramp would read as an exposure drift and this is a cut. The piece's ground stays black; the white is the flash and the brick. The brick then turns once, at constant angular velocity, exactly as A1-S03's did -- the same shot at a different point in the argument. Voice 4 enters AUGMENTED at half speed on bar 43, which is t=0.5 of this shot: the subject stretched to twice its length under the first of the three patents. The patent number is FR 588985 and not BE 311029 / 1923, which could not be confirmed. The reference is set as 'caption' rather than a lower third because 'caption' is one of the four HUD names with real layout; inventing a fifth would put text at an unstyled origin."
+        },
+        {
+          "id": "A3-S03",
+          "title": "Kiddicraft",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 3,
+          "minBars": 2,
+          "maxBars": 16,
+          "tier": 1,
+          "scenes": ["batima", "kiddicraft"],
+          "camera": {
+            "mode": "keyed",
+            "fovDeg": 30,
+            "keys": [
+              { "t": 0, "easing": "cubicInOut", "value": { "position": [8000, 22, 78], "lookAt": [8000, 5, 0] } },
+              { "t": 0.4, "easing": "linear", "value": { "position": [8032, 22, 170], "lookAt": [8032, 5, 0] } },
+              { "t": 1, "easing": "linear", "value": { "position": [8032, 22, 170], "lookAt": [8032, 5, 0] } }
+            ]
+          },
+          "tracks": [
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.16, "easing": "linear" },
+                { "t": 1, "value": 0.16, "easing": "linear" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "bloomStrength",
+              "keys": [
+                { "t": 0, "value": 0.18, "easing": "linear" },
+                { "t": 1, "value": 0.18, "easing": "linear" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "kiddicraft/**",
+              "keys": [
+                { "t": 0, "value": 1, "easing": "linear" },
+                { "t": 0.35, "value": 0, "easing": "cubicOut" }
+              ]
+            },
+            {
+              "kind": "material",
+              "target": "kiddicraft/**",
+              "property": "transmission",
+              "keys": [
+                { "t": 0.55, "value": 0, "easing": "linear" },
+                { "t": 0.8, "value": 0.6, "easing": "cubicInOut" }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.1, "kind": "hud", "payload": { "element": "caption", "text": "GB 529580 · eingereicht 17. April 1940" } }
+          ],
+          "note": "A rhyme, and a rhyme must be shorter than what it rhymes with -- three bars against four. Same part, same colour, same ground plane, same lighting; the camera widens by 36 mm to hold two bricks where it held one, and nothing else changes. The 'cutaway' that reveals the anti-stud is a transmission ramp on the second brick's material rather than a clipped section: the tubes are real geometry already inside the part, and making the shell glassy is the honest way to look through a thing this piece insists is real. All three patent bricks are colour 15 because they ARE the same object, which is the entire content of Interlego v Tyco -- three colours would be an editorial claim the act spends three shots arguing against. 17 April 1940 is the filing date; 1939 is the date usually quoted and is the date of neither the filing nor the publication."
+        },
+        {
+          "id": "A3-S04",
+          "title": "Die Klemme",
+          "weight": 3,
+          "scaling": "stretch",
+          "durationBars": 5,
+          "minBars": 3,
+          "maxBars": 32,
+          "tier": 1,
+          "scenes": ["batima", "kiddicraft", "lego", "klemme"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 20,
+            "dolly": {
+              "from": [8032, 22, 170],
+              "to": [8508, 21, 48],
+              "lookAt": [8480, 20, 0]
+            },
+            "motionBlur": 0.12
+          },
+          "tracks": [
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.16, "easing": "linear" },
+                { "t": 0.5, "value": 0.16, "easing": "linear" },
+                { "t": 0.78, "value": 0.085, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "bloomStrength",
+              "keys": [
+                { "t": 0, "value": 0.18, "easing": "linear" },
+                { "t": 0.6, "value": 0.05, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "lego/**",
+              "keys": [
+                { "t": 0, "value": 1, "easing": "linear" },
+                { "t": 0.14, "value": 0, "easing": "cubicOut" },
+                { "t": 0.34, "value": 0, "easing": "linear" },
+                { "t": 0.5, "value": 1, "easing": "cubicIn" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "batima/**",
+              "keys": [
+                { "t": 0.28, "value": 0, "easing": "linear" },
+                { "t": 0.44, "value": 1, "easing": "cubicIn" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "kiddicraft/**",
+              "keys": [
+                { "t": 0.31, "value": 0, "easing": "linear" },
+                { "t": 0.47, "value": 1, "easing": "cubicIn" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "klemme/**",
+              "keys": [
+                { "t": 0.3, "value": 1, "easing": "linear" },
+                { "t": 0.52, "value": 0, "easing": "cubicOut" }
+              ]
+            },
+            {
+              "kind": "transform",
+              "target": "klemme/3001/2",
+              "keys": [
+                { "t": 0.6, "easing": "linear", "value": { "position": [0, 0, 0] } },
+                { "t": 0.92, "easing": "cubicInOut", "value": { "position": [0, -2.4, 0] } }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.16, "kind": "hud", "payload": { "element": "caption", "text": "Automatic Binding Bricks · 1949" } },
+            { "t": 0.92, "kind": "marker", "payload": { "event": "clutchSeated" } }
+          ],
+          "note": "The title image of the work, and the longest shot in its act. A third brick joins the two, then all three go and the column arrives -- a rebuild, not a morph, the same grammar A2-S02 used for the bulla, because the whole thesis is that things are re-assembled rather than transformed. Then the camera goes to macro on one joint. THE CLEARANCE IS AUTHORED AND SAYS SO: LDraw's stud outer diameter and tube inner diameter are both nominally 12 LDU, so in a correct model they interpenetrate exactly and nothing can be seen entering anything. klemme.ldr lifts the top brick 6 LDU (2.4 mm) and the transform track on klemme/3001/2 puts it down over the last third of the shot, so the departure from real geometry is a starting condition the shot resolves rather than a permanent lie. OPEN: the screenplay asks for the monolith at the edge of frame here, as it does in A2-S02. It is not in the scene list because at this stage position (x = 8480 mm) the monolith at the origin is 8.5 m away and would not be in frame at a 20-degree field of view. Either the monolith gets a second, near copy for these two shots or the screenplay's note is retired; that decision has not been made."
+        },
+        {
+          "id": "A3-S05",
+          "title": "Die Vervielfältigung",
+          "weight": 3,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 21,
+          "tier": 1,
+          "scenes": ["klemme", "feld"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 40,
+            "dolly": {
+              "from": [8508, 21, 48],
+              "to": [9000, 700, 1300],
+              "lookAt": [9000, 0, 0]
+            },
+            "motionBlur": 0.18
+          },
+          "tracks": [
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.16, "easing": "linear" },
+                { "t": 1, "value": 0.24, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "feld/**",
+              "keys": [
+                { "t": 0, "value": 1, "easing": "linear" },
+                { "t": 0.62, "value": 0, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "klemme/**",
+              "keys": [
+                { "t": 0.45, "value": 0, "easing": "linear" },
+                { "t": 0.75, "value": 1, "easing": "cubicIn" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "bloomStrength",
+              "keys": [
+                { "t": 0, "value": 0.18, "easing": "linear" },
+                { "t": 0.8, "value": 0.42, "easing": "cubicInOut" }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "stretto", "target": { "scene": "feld" } }
+            },
+            {
+              "t": 0.25,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 3, "range": "tenor", "subject": "stretto", "target": { "scene": "feld" } }
+            },
+            {
+              "t": 0.5,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 1, "range": "alt", "subject": "stretto", "target": { "scene": "feld" } }
+            },
+            {
+              "t": 0.75,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 2, "range": "sopran", "subject": "stretto", "target": { "scene": "feld" } }
+            },
+            { "t": 0.62, "kind": "hud", "payload": { "element": "caption", "text": "Interlego AG v Tyco Industries Inc · [1988] UKPC 3 — der Fall, der die Zeichnungen beendete." } }
+          ],
+          "note": "The stretto begins on bar 53, which is t=0 of this shot, and the four entries at t=0, 0.25, 0.5, 0.75 are the plan's own voices [3,2,1,0] one bar apart. That is the point of the shot: the visual multiplication and the contrapuntal multiplication are the same event, so they are the same four timestamps rather than two things that happen to look alike. The field is one Mosaic of 3600 modules with every eighth row and column in a second grey -- a white plane is a plane, and a ruled one is a grid, which is the shot's own word for what the column becomes. Four voices lighting four quarters of it is what M71's binder does with a voiceEntry cue's target. OPEN: 'marching outward' is currently a dissolve, which is a 3D-noise threshold and reads as materialising rather than as marching. A radial reveal keyed off distance from the column would be the true image and wants a track kind that does not exist yet."
         }
       ]
     }

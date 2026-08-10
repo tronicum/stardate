@@ -1,0 +1,12 @@
+0 1949 - the third brick (A3-S04)
+0 Name: lego.ldr
+0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
+0 // Automatic Binding Bricks, 1949. The third of three identical objects,
+0 // 8 studs further along the same line as batima.ldr and kiddicraft.ldr,
+0 // on the same ground plane, in the same colour.
+0 //
+0 // The clutch that makes this one different from the other two is not
+0 // visible from outside the brick, which is exactly why A3-S04 goes to
+0 // macro and why the geometry that carries the shot lives in
+0 // klemme.ldr rather than here.
+1 15 20320 -24 0 1 0 0 0 1 0 0 0 1 3001.dat
