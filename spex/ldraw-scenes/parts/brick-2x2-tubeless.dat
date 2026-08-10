@@ -1,45 +1,9 @@
-0 ~Brick 2 x 2 without Bottom Tube - the pre-1958 clutch
+0 ~Brick 2 x 2 without Bottom Tube, with End Slots - Hilary Page's brick
 0 Name: brick-2x2-tubeless.dat
 0 Author: spex project (derived geometry - see below)
 0 !LDRAW_ORG Unofficial_Part
 0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt
 
-0 BFC CERTIFY CCW
-
-0 // DERIVED FROM THE OFFICIAL LDRAW LIBRARY, MECHANICALLY AND VERIFIABLY.
-0 // 3003.dat, s\3003s01.dat and s\3003s02.dat (James Jessiman, Steffen,
-0 // Owen Burgoyne; CC BY 4.0, library updates 2022-05 / 2013-02) flattened in
-0 // reference order, with the ONE interior `stud4.dat` line removed. Every
-0 // other line is the library's own geometry, byte for byte. A one-line diff
-0 // against the flattened originals is the whole derivation.
-0 //
-0 // WHY: a Kiddicraft Self-Locking brick and a 1949 Automatic Binding Brick
-0 // have no tube inside. The tube is the 1958 patent and it is what made the
-0 // clutch hold. Building a 1924, 1940 or 1949 brick from a modern 3001/3003
-0 // puts a 1958 feature under a pre-1958 caption -- which is exactly the
-0 // claim Act III makes, so it cannot be a stand-in there. External
-0 // dimensions are deliberately untouched: the Brighton Toy Museum's own
-0 // comparison of a ~1947 Kiddicraft against a 2012 LEGO brick finds the
-0 // difference "undetectable with a micrometer". What differs is the slots,
-0 // the rounded vertical edges, the bobbled tops and the hollow underside.
-0 //
-0 // STILL MISSING: Hilary Page's END SLOTS in the walls, and the rounded
-0 // edges and bobbled tops. Those are the visible signature and they want
-0 // real geometry rather than a subtraction.
-0 //
-0 // NOT YET USED BY THE SHOW. `spex show-build` reads a scene as a list of
-0 // PART INSTANCES: loose polygons in a scene file are dropped, and a scene's
-0 // references are resolved against the LDraw library only, never against the
-0 // scene's own directory. So this file cannot be reached yet from
-0 // ldraw-scenes/*.ldr. Real LDraw resolvers search the model directory
-0 // first; giving spex the same search is what makes Act III's three bricks
-0 // buildable, and it is a change to spex-ldraw rather than to a document.
-0 //
-0 // LDraw is a trademark of the LDraw Organization. Part geometry used under
-0 // the Creative Commons Attribution 4.0 licence.
-
-4 16 -20 24 -20 20 24 -20 20 0 -20 -20 0 -20
-4 16 20 24 20 -20 24 20 -20 0 20 20 0 20
 0 BFC INVERTNEXT
 1 16 0 24 0 16 0 0 0 -20 0 0 0 16 box5.dat
 4 16 20 24 20 16 24 16 -16 24 16 -20 24 20
@@ -48,5 +12,17 @@
 4 16 20 24 -20 16 24 -16 16 24 16 20 24 20
 2 24 20 24 20 -20 24 20
 2 24 20 24 -20 -20 24 -20
-1 16 0 24 0 0 0 20 0 -24 0 -20 0 0 box3u2p.dat
 1 16 0 0 0 1 0 0 0 1 0 0 0 1 stug-2x2.dat
+4 16 -20 0 20 20 0 20 20 0 -20 -20 0 -20
+4 16 -20 24 -20 -3 24 -20 -3 0 -20 -20 0 -20
+4 16 3 24 -20 20 24 -20 20 0 -20 3 0 -20
+4 16 -3 11 -20 3 11 -20 3 0 -20 -3 0 -20
+4 16 20 24 20 3 24 20 3 0 20 20 0 20
+4 16 -3 24 20 -20 24 20 -20 0 20 -3 0 20
+4 16 3 11 20 -3 11 20 -3 0 20 3 0 20
+4 16 20 24 20 20 24 3 20 0 3 20 0 20
+4 16 20 24 -3 20 24 -20 20 0 -20 20 0 -3
+4 16 20 11 3 20 11 -3 20 0 -3 20 0 3
+4 16 -20 24 -20 -20 24 -3 -20 0 -3 -20 0 -20
+4 16 -20 24 3 -20 24 20 -20 0 20 -20 0 3
+4 16 -20 11 -3 -20 11 3 -20 0 3 -20 0 -3

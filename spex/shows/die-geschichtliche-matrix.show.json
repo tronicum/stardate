@@ -681,8 +681,8 @@
             "mode": "keyed",
             "fovDeg": 30,
             "keys": [
-              { "t": 0, "easing": "linear", "value": { "position": [8000, 14, 42], "lookAt": [8000, 5, 0] } },
-              { "t": 1, "easing": "linear", "value": { "position": [8000, 14, 42], "lookAt": [8000, 5, 0] } }
+              { "t": 0, "easing": "linear", "value": { "position": [8000, 15, 52], "lookAt": [8000, 5, 0] } },
+              { "t": 1, "easing": "linear", "value": { "position": [8000, 15, 52], "lookAt": [8000, 5, 0] } }
             ]
           },
           "tracks": [
@@ -735,9 +735,9 @@
             "mode": "keyed",
             "fovDeg": 30,
             "keys": [
-              { "t": 0, "easing": "cubicInOut", "value": { "position": [8000, 14, 42], "lookAt": [8000, 5, 0] } },
-              { "t": 0.4, "easing": "linear", "value": { "position": [8024, 14, 78], "lookAt": [8024, 5, 0] } },
-              { "t": 1, "easing": "linear", "value": { "position": [8024, 14, 78], "lookAt": [8024, 5, 0] } }
+              { "t": 0, "easing": "cubicInOut", "value": { "position": [8000, 15, 52], "lookAt": [8000, 5, 0] } },
+              { "t": 0.4, "easing": "linear", "value": { "position": [8024, 15, 100], "lookAt": [8024, 5, 0] } },
+              { "t": 1, "easing": "linear", "value": { "position": [8024, 15, 100], "lookAt": [8024, 5, 0] } }
             ]
           },
           "tracks": [
@@ -794,7 +794,7 @@
             "mode": "dolly",
             "fovDeg": 28,
             "dolly": {
-              "from": [8024, 14, 78],
+              "from": [8024, 15, 100],
               "to": [8288, 26, 80],
               "lookAt": [8288, 17, 0]
             },
