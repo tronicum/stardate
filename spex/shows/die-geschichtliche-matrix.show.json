@@ -157,6 +157,12 @@
       "id": "gitter",
       "source": { "kind": "build", "recipe": "recipes/gitter.json" },
       "prefix": "gitter"
+    },
+    {
+      "id": "begleiter",
+      "source": { "kind": "ldr", "path": "ldraw-scenes/monolith.ldr" },
+      "prefix": "begleiter",
+      "_note": "THE SAME FILE as the `monolith` scene, on purpose. The screenplay asks for the monolith at the edge of frame in A2-S02, A3-S04 and A4-S01 -- three shots, in three acts, staged between 2.4 and 9.5 metres from the origin the real monolith stands on. A second bundle costs nine instances and makes the piece's only continuity object reachable by a transform track; a second .ldr would be nine placements that could disagree with the first nine, silently, for ever. The piece is a montage and not a simulation: this object is CARRIED, and the document says so here rather than implying it walked. Each shot places it with a two-key constant transform at a lateral offset computed from that shot's own field of view, so it sits AT the frame edge rather than merely near it."
     }
   ],
   "movements": [
@@ -477,7 +483,7 @@
           "minBars": 2,
           "maxBars": 25,
           "tier": 1,
-          "scenes": ["uruk", "bulla", "monolith"],
+          "scenes": ["uruk", "bulla"],
           "camera": {
             "mode": "dolly",
             "fovDeg": 34,
@@ -502,7 +508,7 @@
               ]
             }
           ],
-          "note": "The module becomes a container. The dome does not morph out of the brick, it is BUILT while the brick goes -- two dissolves crossing, not one shape becoming another, because the whole thesis is that the thing is re-assembled rather than transformed. The monolith is in the shot's scene list so it can sit at the edge of frame; the screenplay asks for that in both A2-S02 and A3-S04."
+          "note": "The module becomes a container. The dome does not morph out of the brick, it is BUILT while the brick goes -- two dissolves crossing, not one shape becoming another, because the whole thesis is that the thing is re-assembled rather than transformed. MEASURED AND DECIDED, not left open: the monolith cannot be at the edge of THIS frame. At the dolly's end the camera stands 127 mm from a bulla about 80 mm across, in a 78 mm frame -- the dome overfills it and there is no edge left to put anything at. Putting the monolith here means re-framing an approved shot, which is a bigger change than the note it would satisfy. The continuity object is carried in A4-S01 instead, where it works."
         },
         {
           "id": "A2-S03",
@@ -849,7 +855,7 @@
           "cues": [
             { "t": 0.2, "kind": "hud", "payload": { "element": "caption", "text": "Automatic Binding Bricks · 1949" } }
           ],
-          "note": "A third brick joins the two, then all three go and the column arrives -- a rebuild, not a morph, the same grammar A2-S02 used for the bulla, because the whole thesis is that things are re-assembled rather than transformed. THE COLUMN IS TUBELESS. `saeule.ldr` stacks three of `parts/brick-2x2-tubeless.dat`: studs on top, hollow underneath, nothing inside to grip them. It stands because it is stacked, not because it is clutched, and that is the reason the next shot exists. OPEN: the screenplay asks for the monolith at the edge of frame here, as it does in A2-S02 and A4-S01. It stands at the origin, 8.3 m from this camera. Three shots have now asked; a near second copy is probably the answer."
+          "note": "A third brick joins the two, then all three go and the column arrives -- a rebuild, not a morph, the same grammar A2-S02 used for the bulla, because the whole thesis is that things are re-assembled rather than transformed. THE COLUMN IS TUBELESS. `saeule.ldr` stacks three of `parts/brick-2x2-tubeless.dat`: studs on top, hollow underneath, nothing inside to grip them. It stands because it is stacked, not because it is clutched, and that is the reason the next shot exists. THE MONOLITH IS NOT HERE, AND THAT IS NOW A DECISION RATHER THAN AN OMISSION. A second copy exists as the `begleiter` scene and was placed here -- 400 mm behind the column, 122 mm to the side, geometrically inside the 21.7-degree half-field. It is invisible anyway, and the reason is the exposure: this shot is stopped to 0.16 for a white brick, and Steingrau is linear 0.15. A stone object at that stop is black on black. The white-studio shots and the continuity object are incompatible requirements in one frame -- the same shape as PR #42's third finding about the monolith and Stonehenge. It is carried in A4-S01 instead, where the exposure runs 0.24 to 0.9 and it reads."
         },
         {
           "id": "A3-S04b",
@@ -1015,7 +1021,7 @@
           "minBars": 1.5,
           "maxBars": 42,
           "tier": 1,
-          "scenes": ["feld", "klemme"],
+          "scenes": ["feld", "klemme", "begleiter"],
           "camera": {
             "mode": "dolly",
             "fovDeg": 40,
@@ -1027,6 +1033,22 @@
             "motionBlur": 0.2
           },
           "tracks": [
+            {
+              "kind": "transform",
+              "target": "begleiter/**",
+              "keys": [
+                { "t": 0, "easing": "linear", "value": { "position": [8900, 0, 260] } },
+                { "t": 1, "easing": "linear", "value": { "position": [8900, 0, 260] } }
+              ]
+            },
+            {
+              "kind": "pointCloud",
+              "target": "begleiter/**",
+              "keys": [
+                { "t": 0.3, "value": 0, "easing": "linear" },
+                { "t": 0.95, "value": 1, "easing": "cubicInOut" }
+              ]
+            },
             {
               "kind": "pointCloud",
               "target": "feld/**",
