@@ -14,7 +14,10 @@ fn standard_footprints_match_the_real_cached_ldraw_geometry() {
     let cache = LdrawCache::new(".ldraw-cache");
     let table = FootprintTable::standard();
 
-    for part in ["3005.dat", "3004.dat", "3010.dat", "3710.dat", "2431.dat", "3009.dat", "3022.dat", "3020.dat"] {
+    for part in [
+        "3005.dat", "3004.dat", "3010.dat", "3710.dat", "2431.dat", "3009.dat", "3022.dat", "3020.dat", "3037.dat",
+        "3039.dat", "3040.dat", "3045.dat",
+    ] {
         let geometry = resolve_part_full(&cache, part).unwrap_or_else(|e| panic!("resolving real part {part}: {e:?}"));
         let mut min = [f64::MAX; 3];
         let mut max = [f64::MIN; 3];
