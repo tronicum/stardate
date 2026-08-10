@@ -8,7 +8,20 @@
 0 // albums: "BATIMA - Le Jeu de Construction ideal - ALBUM des Numeros
 0 // 1-2-3-4-5-6-7 (le numero 6 = 750 blocs; le numero 7 = 900 blocs) -
 0 // Brevete", with Dutch text on the same sheets, so Belgian and French/Dutch
-0 // - consistent with Le Batima Soc. and FR 588985, c. 1924.
+0 // - consistent with Le Batima Soc. and FR 588985, granted 1924.
+0 //
+0 // THE DATE 1924 IS THE PATENT'S, NOT THE OBJECT'S, and the sources do not
+0 // agree on the object: architoys.net says 1900-10, a PBA Galleries lot says
+0 // c. 1905, MoDIP's image says c. 1930, and the Belgian MOT catalogues the
+0 // albums as 1900-1949. The film should therefore label the number as a
+0 // patent and not as a birthday.
+0 //
+0 // AND THERE IS A SECOND, DIFFERENT BATIMA. Focus on Belgium describes
+0 // Batima building bricks introduced in 1954 by Nazaire Beeusaert of Deinze,
+0 // made of WOOD, with studs on top and TUBES underneath - thirty years
+0 // later, another material, and the very mechanism this act says arrives in
+0 // 1958. Same name, different toy. Recorded here because a caption is
+0 // exactly where that confusion would land.
 0 //
 0 // WHAT THE PHOTOGRAPHS SHOW, and why the previous placeholder was wrong in
 0 // every particular:
@@ -23,10 +36,16 @@
 0 //   entering a cone. It is a different mechanism from 1940 and 1949, not a
 0 //   worse version of the same one.
 0 //
-0 //   IT IS CAST STONE, not plastic. Cream and terracotta, speckled and
-0 //   weathered. `batima.ldr` binds 503 Very_Light_Grey for the cream, which
-0 //   is dE 10.1 from the photographed colour; 422 Sienna_Brown (dE 7.7) is
-0 //   the terracotta if the shot ever wants it.
+0 //   THE MATERIAL IS DISPUTED AND THIS FILE DOES NOT SETTLE IT. Cream and
+0 //   terracotta, speckled and weathered, and in the photographs it reads as
+0 //   porous cast stone. But the Museum of Design in Plastics' own image and
+0 //   a PBA Galleries lot both call Batima "the earliest known plastic
+0 //   construction toy", compression moulded from CASEIN FORMALDEHYDE -
+0 //   Galalith. architoys.net says "composition, wood, card"; one dealer
+0 //   says "terre cuite". Four sources, three materials. Whatever else, the
+0 //   colour is what it is: `batima.ldr` binds 503 Very_Light_Grey, dE 10.1
+0 //   from the photographed cream; 422 Sienna_Brown (dE 7.7) is the
+0 //   terracotta if the shot ever wants it.
 0 //
 0 // PROPORTIONS ARE MEASURED OFF THE PHOTOGRAPHS AS RATIOS OF THE STUD
 0 // PITCH, which is the one number a caliper still has to supply. The
