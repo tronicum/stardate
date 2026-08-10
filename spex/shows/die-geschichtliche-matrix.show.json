@@ -681,8 +681,8 @@
             "mode": "keyed",
             "fovDeg": 30,
             "keys": [
-              { "t": 0, "easing": "linear", "value": { "position": [8000, 15, 52], "lookAt": [8000, 5, 0] } },
-              { "t": 1, "easing": "linear", "value": { "position": [8000, 15, 52], "lookAt": [8000, 5, 0] } }
+              { "t": 0, "easing": "linear", "value": { "position": [8000, 26, 40], "lookAt": [8000, 3, 0] } },
+              { "t": 1, "easing": "linear", "value": { "position": [8000, 26, 40], "lookAt": [8000, 3, 0] } }
             ]
           },
           "tracks": [
@@ -691,7 +691,7 @@
               "property": "exposure",
               "keys": [
                 { "t": 0, "value": 3.4, "easing": "step" },
-                { "t": 0.035, "value": 0.16, "easing": "step" }
+                { "t": 0.035, "value": 0.22, "easing": "step" }
               ]
             },
             {
@@ -699,7 +699,7 @@
               "property": "bloomStrength",
               "keys": [
                 { "t": 0, "value": 1.8, "easing": "step" },
-                { "t": 0.06, "value": 0.18, "easing": "cubicOut" }
+                { "t": 0.06, "value": 0.20, "easing": "cubicOut" }
               ]
             },
             {
@@ -719,7 +719,7 @@
               "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "augmentation", "target": { "scene": "batima" } }
             }
           ],
-          "note": "The one genuinely great cut in the piece, and it is protected by being the only shock of its magnitude. Patentweiss is authored as a THREE-FRAME BLANK rather than as a background colour: exposure steps to 3.4 and back to the grade's own 0.7, bloom to 1.8 and back, both on 'step' -- a ramp would read as an exposure drift and this is a cut. The piece's ground stays black; the white is the flash and the brick. The brick then turns once, at constant angular velocity, exactly as A1-S03's did -- the same shot at a different point in the argument. Voice 4 enters AUGMENTED at half speed on bar 43, which is t=0.5 of this shot: the subject stretched to twice its length under the first of the three patents. The patent number is FR 588985 and not BE 311029 / 1923, which could not be confirmed. The reference is set as 'caption' rather than a lower third because 'caption' is one of the four HUD names with real layout; inventing a fifth would put text at an unstyled origin."
+          "note": "The one genuinely great cut in the piece, and it is protected by being the only shock of its magnitude. Patentweiss is authored as a THREE-FRAME BLANK rather than as a background colour: exposure steps to 3.4 and back to the grade's own 0.7, bloom to 1.8 and back, both on 'step' -- a ramp would read as an exposure drift and this is a cut. The piece's ground stays black; the white is the flash and the brick. The block then turns once, at constant angular velocity, exactly as A1-S03's brick did -- the same shot at a different point in the argument. THE GEOMETRY IS NOW THE REAL OBJECT, from photographs of Stefan's own set: hollow studs with a bore through each, a body flatter than a brick, cast stone rather than plastic, and an underside of sockets. The camera looks DOWN on it at 26 mm rather than across at 14, because the bore in the stud is the whole difference and it cannot be seen edge-on. Exposure 0.22 rather than the 0.16 the white bricks want: 503 Very_Light_Grey is not colour 15. Voice 4 enters AUGMENTED at half speed on bar 43, which is t=0.5 of this shot: the subject stretched to twice its length under the first of the three patents. The patent number is FR 588985 and not BE 311029 / 1923, which could not be confirmed. The reference is set as 'caption' rather than a lower third because 'caption' is one of the four HUD names with real layout; inventing a fifth would put text at an unstyled origin."
         },
         {
           "id": "A3-S03",
@@ -735,7 +735,7 @@
             "mode": "keyed",
             "fovDeg": 30,
             "keys": [
-              { "t": 0, "easing": "cubicInOut", "value": { "position": [8000, 15, 52], "lookAt": [8000, 5, 0] } },
+              { "t": 0, "easing": "cubicInOut", "value": { "position": [8000, 26, 40], "lookAt": [8000, 3, 0] } },
               { "t": 0.4, "easing": "linear", "value": { "position": [8024, 15, 100], "lookAt": [8024, 5, 0] } },
               { "t": 1, "easing": "linear", "value": { "position": [8024, 15, 100], "lookAt": [8024, 5, 0] } }
             ]
@@ -778,7 +778,7 @@
           "cues": [
             { "t": 0.1, "kind": "hud", "payload": { "element": "caption", "text": "GB 529580 · eingereicht 17. April 1940" } }
           ],
-          "note": "A rhyme, and a rhyme must be shorter than what it rhymes with -- three bars against four. Same part, same colour, same ground plane, same lighting; the camera widens by 36 mm to hold two bricks where it held one, and nothing else changes. The 'cutaway' that reveals the anti-stud is a transmission ramp on the second brick's material rather than a clipped section: the tubes are real geometry already inside the part, and making the shell glassy is the honest way to look through a thing this piece insists is real. All three patent bricks are colour 15 because they ARE the same object, which is the entire content of Interlego v Tyco -- three colours would be an editorial claim the act spends three shots arguing against. 17 April 1940 is the filing date; 1939 is the date usually quoted and is the date of neither the filing nor the publication."
+          "note": "A rhyme, and a rhyme must be shorter than what it rhymes with -- three bars against four. Same part, same colour, same ground plane, same lighting; the camera widens by 36 mm to hold two bricks where it held one, and nothing else changes. The 'cutaway' that reveals the anti-stud is a transmission ramp on the second brick's material rather than a clipped section: the tubes are real geometry already inside the part, and making the shell glassy is the honest way to look through a thing this piece insists is real. Kiddicraft's brick and the 1949 one are colour 15 and the same part because they ARE the same object, which is the entire content of Interlego v Tyco. BATIMA IS NOT, and the photographs settle it: hollow studs into conical sockets, in cast stone. So the act now says something better than 'three of the same' -- 1924 is a different system that already had the idea, and 1940 and 1949 are one object twice. The rhyme is between the second and the third, which is also why this shot is the shorter one. 17 April 1940 is the filing date; 1939 is the date usually quoted and is the date of neither the filing nor the publication."
         },
         {
           "id": "A3-S04",

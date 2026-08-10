@@ -1,30 +1,26 @@
-0 Batima, um 1924 - one brick, alone in a white studio (A3-S02)
+0 Batima, um 1924 - one block, alone in the studio (A3-S02)
 0 Name: batima.ldr
 0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
-0 // Places `parts/brick-2x2-tubeless.dat`, which sits beside this file and is
-0 // NOT an official LDraw part. See that file's own header for the whole
-0 // derivation: 3003.dat and its two subparts, flattened, with the single
-0 // interior `stud4.dat` line removed.
+0 // Places `parts/batima-2x2.dat`, which is modelled from PHOTOGRAPHS OF THE
+0 // REAL OBJECT - Stefan's own set, with its albums ("BATIMA - Le Jeu de
+0 // Construction ideal ... Brevete", French and Dutch, so Belgian; consistent
+0 // with Le Batima Soc. and FR 588985, c. 1924). See that file for what the
+0 // photographs show and for the four measurements that would replace its
+0 // estimated proportions.
 0 //
-0 // The tube inside a brick is the 1958 patent. A Kiddicraft Self-Locking
-0 // brick and a 1949 Automatic Binding Brick are hollow underneath - the grip
-0 // came from the studs against the walls, which is why they held so badly.
-0 // Building these three out of a modern 3001/3003 would put a 1958 feature
-0 // under a pre-1958 caption, which is exactly the claim this act makes.
+0 // COLOUR 503 Very_Light_Grey, not 15 White. These blocks are CAST STONE,
+0 // cream and terracotta, speckled and weathered - not plastic. 503 is dE
+0 // 10.1 from the cream in the photographs; 422 Sienna_Brown (dE 7.7) is the
+0 // terracotta if the shot ever wants it.
 0 //
-0 // Colour 15 for all three: they ARE the same object, and that is the whole
-0 // content of Interlego v Tyco. Three colours would be an editorial claim
-0 // the act spends three shots arguing against.
+0 // AND THIS BLOCK IS NOT THE SAME OBJECT AS THE OTHER TWO. Its studs are
+0 // hollow rings and its underside is a field of conical sockets: a cone
+0 // entering a cone. Kiddicraft's brick and the 1949 one are the same object
+0 // as each other, which is what Interlego v Tyco is about - Batima is the
+0 // ancestor that already had the idea, in another material and with another
+0 // joint. The act is stronger for the difference being visible: 1924 is a
+0 // different system, 1940 and 1949 are one object twice.
 0 //
-0 // 2 x 2, because that is the classic Kiddicraft size. The Brighton Toy
-0 // Museum shows both 2 x 2 and 2 x 4, so size is not what identifies them -
-0 // the end slots are, and those are still missing (noted in the part file).
-0 //
-0 // Brick height 24 LDU, origin at the footprint centre, LDraw +Y down: a
-0 // brick standing on the ground plane is translated to y = -24.
-0 //
-0 // PLACEHOLDER GEOMETRY. The Batima system (Le Batima Soc., FR 588985,
-0 // c. 1924) is not established to be this shape, and this stands in until
-0 // the published drawing is on hand. The shot must not claim otherwise on
-0 // screen while that is true.
-1 15 20000 -24 0 1 0 0 0 1 0 0 0 1 brick-2x2-tubeless.dat
+0 // Block height 20 LDU here, origin at the footprint centre, LDraw +Y down,
+0 // so a block standing on the ground plane is translated to y = -20.
+1 503 20000 -20 0 1 0 0 0 1 0 0 0 1 batima-2x2.dat

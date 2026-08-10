@@ -1,0 +1,22 @@
+0 ~Batima stud - a raised ring with a bore through it
+0 Name: batima-stud.dat
+0 Author: spex project (geometry read off photographs of the real object)
+0 !LDRAW_ORG Unofficial_Part
+0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt
+0 // Origin at the top face of the block, LDraw +Y down, so the stud rises to
+0 // y = -5. Outer radius 5, bore radius 2, height 5. Built the way the
+0 // official `stud2.dat` builds an open stud - outer wall, inverted inner
+0 // wall, an annulus closing the top - but with a much narrower bore, which
+0 // is what the photographs show: a thick ring with a small hole, not a tube.
+0 // The bore runs 3 LDU into the body and stops; on the real block it goes
+0 // all the way through to the socket below, and that is invisible from
+0 // outside at any framing this piece uses.
+1 16 0 0 0 5 0 0 0 1 0 0 0 5 4-4edge.dat
+1 16 0 -5 0 5 0 0 0 1 0 0 0 5 4-4edge.dat
+1 16 0 -5 0 2 0 0 0 1 0 0 0 2 4-4edge.dat
+1 16 0 0 0 5 0 0 0 -5 0 0 0 5 4-4cyli.dat
+0 BFC INVERTNEXT
+1 16 0 3 0 2 0 0 0 -8 0 0 0 2 4-4cyli.dat
+1 16 0 -5 0 2 0 0 0 1 0 0 0 2 4-4ring1.dat
+1 16 0 -5 0 1 0 0 0 1 0 0 0 1 4-4ring4.dat
+1 16 0 3 0 2 0 0 0 1 0 0 0 2 4-4disc.dat

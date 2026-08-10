@@ -1,0 +1,30 @@
+0 ~Batima socket - the cup a stud enters
+0 Name: batima-socket.dat
+0 Author: spex project (geometry read off photographs of the real object)
+0 !LDRAW_ORG Unofficial_Part
+0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt
+0 // Origin at the block's BOTTOM face, LDraw +Y down, so the cup runs upward
+0 // into the body from y = 0 to y = -7, then a narrower bore to y = -11.
+0 //
+0 // THE REAL SOCKET IS CONICAL - a countersunk cup - and this one is
+0 // CYLINDRICAL. Stated because it is a real difference in how the joint
+0 // works: a cone locates a block by sliding on a taper, a cylinder does not.
+0 // Nothing in this piece ever sees the underside of a Batima block, so the
+0 // cost today is zero and the debt is recorded rather than forgotten.
+0 //
+0 // A LESSON PAID FOR TWICE IN ONE SITTING: `4-4conN` and `4-4ringN` scale
+0 // their RADII with the matrix, so `4-4ring3` scaled by 7 is not an annulus
+0 // from 3 to 7 - it is one from 21 to 28, four times wider than the block,
+0 // and it renders as a flat wing sticking out of the object. The radii here
+0 // are therefore chosen to be expressible: the cup is 5, so its floor is
+0 // ring3 + ring4 at scale 1, spanning exactly 3 to 5.
+0 //
+0 // Inverted: these faces are seen from inside the cup.
+0 BFC INVERTNEXT
+1 16 0 -7 0 5 0 0 0 7 0 0 0 5 4-4cyli.dat
+1 16 0 -7 0 1 0 0 0 1 0 0 0 1 4-4ring3.dat
+1 16 0 -7 0 1 0 0 0 1 0 0 0 1 4-4ring4.dat
+0 BFC INVERTNEXT
+1 16 0 -11 0 3 0 0 0 4 0 0 0 3 4-4cyli.dat
+1 16 0 -11 0 3 0 0 0 1 0 0 0 3 4-4disc.dat
+1 16 0 0 0 5 0 0 0 1 0 0 0 5 4-4edge.dat
