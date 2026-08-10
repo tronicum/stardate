@@ -1,0 +1,74 @@
+0 Der Tokenstrom - the glyphs A4-S03 emits, travels and absorbs
+0 Name: token-strom.ldr
+0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
+0 // Forty-eight 1x1 bricks in 84 Medium_Nougat - THE SAME PART AND THE SAME
+0 // COLOUR AS A2-S03's TOKENS. `recipes/tokens.json` builds Uruk's clay
+0 // counters out of 3005.dat in 84 ("lehm"), and what crosses the lattice in
+0 // the last act is not a new object: it is that counter, 5300 years later, in
+0 // a net that calls it a token for the same reason Uruk did.
+0 //
+0 // TWO COLOURS WERE TRIED AND MEASURED FIRST, and both failed for reasons
+0 // worth keeping. 10 Bright_Green was invisible: `recipes/gitter.json` gives
+0 // the lattice's NODES that exact colour and only its edges the translucent
+0 // 35, so a green token travelling a lattice of green nodes is a lattice of
+0 // green nodes - forty-eight things moved, the probe measured it, and no eye
+0 // could see it. 15 White was the opposite failure: at the act's exposure of
+0 // 0.6 with bloom on it, every token became a small sun and took the lattice's
+0 // colour with it. Clay reads because it differs in HUE rather than in
+0 // brightness, which is the one axis this act has spare.
+0 //
+0 // THESE PLACEMENTS ARE NEVER SEEN. The `tokens` generator overwrites every
+0 // position each frame from the lattice's own node grid; this file exists to
+0 // say how MANY tokens there are and what they are made of. They are laid out
+0 // in a row here purely so the bundle has sane bounds.
+0 //
+0 // Stage: alongside the lattice at x = 27000 LDU (1350 studs).
+
+1 84 27000 -24 -940 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -900 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -860 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -820 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -780 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -740 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -700 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -660 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -620 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -580 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -540 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -500 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -460 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -420 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -380 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -340 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -300 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -260 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -220 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -180 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -140 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -100 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -60 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 -20 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 20 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 60 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 100 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 140 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 180 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 220 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 260 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 300 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 340 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 380 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 420 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 460 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 500 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 540 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 580 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 620 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 660 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 700 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 740 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 780 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 820 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 860 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 900 1 0 0 0 1 0 0 0 1 3005.dat
+1 84 27000 -24 940 1 0 0 0 1 0 0 0 1 3005.dat

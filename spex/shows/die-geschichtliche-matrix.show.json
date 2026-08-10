@@ -159,6 +159,11 @@
       "prefix": "gitter"
     },
     {
+      "id": "tokenStrom",
+      "source": { "kind": "ldr", "path": "ldraw-scenes/token-strom.ldr" },
+      "prefix": "tokenStrom"
+    },
+    {
       "id": "begleiter",
       "source": { "kind": "ldr", "path": "ldraw-scenes/monolith.ldr" },
       "prefix": "begleiter",
@@ -1179,7 +1184,7 @@
           "minBars": 2,
           "maxBars": 50,
           "tier": 1,
-          "scenes": ["gitter"],
+          "scenes": ["gitter", "tokenStrom"],
           "camera": {
             "mode": "dolly",
             "fovDeg": 34,
@@ -1196,16 +1201,24 @@
               "property": "bloomStrength",
               "keys": [
                 { "t": 0, "value": 0.6, "easing": "linear" },
-                { "t": 0.25, "value": 1.1, "easing": "cubicOut" },
-                { "t": 0.4, "value": 0.6, "easing": "cubicInOut" },
-                { "t": 0.6, "value": 1.1, "easing": "cubicOut" },
-                { "t": 0.75, "value": 0.6, "easing": "cubicInOut" },
-                { "t": 0.9, "value": 1.1, "easing": "cubicOut" },
-                { "t": 1, "value": 0.7, "easing": "cubicInOut" }
+                { "t": 1, "value": 0.75, "easing": "cubicInOut" }
               ]
             }
           ],
           "cues": [
+            {
+              "t": 0,
+              "kind": "seed",
+              "payload": {
+                "generator": "tokens",
+                "scene": "tokenStrom",
+                "originMm": [10804, 12, -252],
+                "pitchMm": 32,
+                "nodes": 17,
+                "hops": 14,
+                "arcMm": 26
+              }
+            },
             { "t": 0.3, "kind": "hud", "payload": { "element": "caption", "text": "2017 — das Jahr, in dem das Modul die einzige Einheit wurde." } },
             {
               "t": 0,

@@ -64,6 +64,7 @@ import { ShowClock } from './clock';
 import { Timeline, type TrackSinks } from './timeline';
 import { CameraDirector } from './camera';
 import { AssemblyChoreography, assemblyFromCue } from './choreography';
+import { tokenFlowFromCue, type TokenFlow } from './tokens';
 import { DissolveController } from './dissolve';
 import { buildPointClouds, fetchPartPoints, PointCloudRenderer } from './points';
 import { ShowHud, linearToCss } from './hud';
@@ -114,7 +115,10 @@ interface SceneRuntime {
   /** Instance index -> which material index it draws with, so a `material`
    * track can find the shared materials its target actually touches. */
   materialOf: Uint16Array;
-  assembly: AssemblyChoreography | null;
+  /** The shot's generator, whichever kind it is. Both satisfy the same
+   * `positionAt(i, t01, out)` contract, which is the whole reason a second
+   * generator needed no change to the frame loop. */
+  assembly: AssemblyChoreography | TokenFlow | null;
   /** Which shot's `seed` cue built `assembly`, so it is rebuilt on a seek
    * rather than surviving into a shot it does not belong to. */
   assemblyShot: string | null;
@@ -890,11 +894,9 @@ export async function runShowViewer(
     }
     if (s.assemblyShot === cue.shotId && s.assembly) return;
     const steps = (s.bundle as unknown as { instanceBuildSteps?: number[] }).instanceBuildSteps;
-    s.assembly = assemblyFromCue(
-      payload,
-      { ids: s.instanceIds, finals: s.homePos, order: steps },
-      seed,
-    );
+    s.assembly =
+      assemblyFromCue(payload, { ids: s.instanceIds, finals: s.homePos, order: steps }, seed) ??
+      tokenFlowFromCue(payload, s.instanceIds, seed);
     s.assemblyShot = s.assembly ? cue.shotId : null;
     if (!s.assembly) warnings.push(`${cue.shotId}: unknown generator ${String(payload.generator)}`);
   }
