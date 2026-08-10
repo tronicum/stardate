@@ -1,0 +1,6 @@
+{
+  "version": 1, "id": "slab-test", "title": "Slab test",
+  "scale": { "studsPerMetre": 0.5, "note": "a fixture for the real 2D footprint round trip" },
+  "palette": { "stone": 71 },
+  "steps": [{ "primitive": "Slab", "params": { "widthStuds": 8, "depthStuds": 6, "color": "stone" } }]
+}

@@ -4,7 +4,7 @@
 //! circle) -> collect real placements -> `validate()` -> serialise with
 //! provenance (acceptance criterion 5).
 use crate::grid::{self, FootprintTable, GridPos, Illegality, Orientation, Placement};
-use crate::primitives::{Arch, Bond, Colonnade, Column, Dome, Mosaic, PartSet, Primitive, Pyramid, Stair, Trilithon, Wall, Ziggurat};
+use crate::primitives::{Arch, Bond, Colonnade, Column, Dome, Mosaic, PartSet, Primitive, Pyramid, Slab, Stair, Trilithon, Wall, Ziggurat};
 use anyhow::{bail, Context, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -156,6 +156,11 @@ fn build_primitive(name: &str, params: &Value, palette: &HashMap<String, u32>) -
         "Column" => Box::new(Column {
             height_plates: get_u32(params, "heightPlates")?,
             diameter_studs: get_u32(params, "diameterStuds")?,
+            color: color("color")?,
+        }),
+        "Slab" => Box::new(Slab {
+            width_studs: get_u32(params, "widthStuds")?,
+            depth_studs: get_u32(params, "depthStuds")?,
             color: color("color")?,
         }),
         "Arch" => Box::new(Arch {
