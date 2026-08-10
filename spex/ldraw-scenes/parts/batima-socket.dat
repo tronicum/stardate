@@ -16,15 +16,15 @@
 0 // their RADII with the matrix, so `4-4ring3` scaled by 7 is not an annulus
 0 // from 3 to 7 - it is one from 21 to 28, four times wider than the block,
 0 // and it renders as a flat wing sticking out of the object. The radii here
-0 // are therefore chosen to be expressible: the cup is 5, so its floor is
-0 // ring3 + ring4 at scale 1, spanning exactly 3 to 5.
+0 // are therefore chosen to be expressible: the cup is 6 and its bore 2, so
+0 // its floor is ring1 + ring2 at scale 2, spanning exactly 2 to 6.
 0 //
 0 // Inverted: these faces are seen from inside the cup.
 0 BFC INVERTNEXT
-1 16 0 -7 0 5 0 0 0 7 0 0 0 5 4-4cyli.dat
-1 16 0 -7 0 1 0 0 0 1 0 0 0 1 4-4ring3.dat
-1 16 0 -7 0 1 0 0 0 1 0 0 0 1 4-4ring4.dat
+1 16 0 -7 0 6 0 0 0 7 0 0 0 6 4-4cyli.dat
+1 16 0 -7 0 2 0 0 0 1 0 0 0 2 4-4ring1.dat
+1 16 0 -7 0 2 0 0 0 1 0 0 0 2 4-4ring2.dat
 0 BFC INVERTNEXT
-1 16 0 -11 0 3 0 0 0 4 0 0 0 3 4-4cyli.dat
-1 16 0 -11 0 3 0 0 0 1 0 0 0 3 4-4disc.dat
-1 16 0 0 0 5 0 0 0 1 0 0 0 5 4-4edge.dat
+1 16 0 -11 0 2 0 0 0 4 0 0 0 2 4-4cyli.dat
+1 16 0 -11 0 2 0 0 0 1 0 0 0 2 4-4disc.dat
+1 16 0 0 0 6 0 0 0 1 0 0 0 6 4-4edge.dat

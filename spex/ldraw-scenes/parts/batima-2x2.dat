@@ -28,7 +28,8 @@
 0 //   is dE 10.1 from the photographed colour; 422 Sienna_Brown (dE 7.7) is
 0 //   the terracotta if the shot ever wants it.
 0 //
-0 // PROPORTIONS ARE READ OFF THE PHOTOGRAPHS AND ARE NOT MEASUREMENTS. The
+0 // PROPORTIONS ARE MEASURED OFF THE PHOTOGRAPHS AS RATIOS OF THE STUD
+0 // PITCH, which is the one number a caliper still has to supply. The
 0 // pitch is kept at LDraw's 20 LDU so this block stands beside the other two
 0 // at a comparable size, which is what A3-S02 and A3-S03 compare. The height
 0 // is 20 LDU rather than a brick's 24, because the real block reads flatter
@@ -42,25 +43,28 @@
 0 // LDraw primitives used under the Creative Commons Attribution 4.0 licence.
 0 // LDraw is a trademark of the LDraw Organization.
 
-0 // ---- body: a plain block, 40 x 40 LDU footprint, 20 LDU tall.
-0 //      LDraw +Y down, so the top face is y = 0 and the bottom is y = 20.
+0 // ---- body: a plain block, 40 x 40 LDU footprint, 14 LDU tall.
+0 //      LDraw +Y down, so the top face is y = 0 and the bottom is y = 14.
 4 16 -20 0 -20 20 0 -20 20 0 20 -20 0 20
-4 16 -20 20 -20 20 20 -20 20 20 20 -20 20 20
-4 16 -20 20 -20 20 20 -20 20 0 -20 -20 0 -20
-4 16 20 20 20 -20 20 20 -20 0 20 20 0 20
-4 16 20 20 -20 20 20 20 20 0 20 20 0 -20
-4 16 -20 20 20 -20 20 -20 -20 0 -20 -20 0 20
+4 16 -20 14 -20 20 14 -20 20 14 20 -20 14 20
+4 16 -20 14 -20 20 14 -20 20 0 -20 -20 0 -20
+4 16 20 14 20 -20 14 20 -20 0 20 20 0 20
+4 16 20 14 -20 20 14 20 20 0 20 20 0 -20
+4 16 -20 14 20 -20 14 -20 -20 0 -20 -20 0 20
 
-0 // ---- four hollow studs, 5 LDU tall, outer radius 5, bore radius 2.
-0 //      Outer wall, bore wall, and the annulus that closes the top between
-0 //      them (ring2 scaled 2 spans 4..6, ring1 scaled 2 spans 2..4).
+0 // ---- four hollow studs, outer radius 6, bore radius 2, 4 LDU tall.
+0 //      MEASURED as ratios of the stud pitch off the photographs:
+0 //      stud 0.60, bore 0.19. At the 20 LDU pitch this file keeps, that is
+0 //      12 and 3.8 - rounded to 12 and 4 so the top annulus is expressible
+0 //      as ring1 + ring2 at scale 2, spanning exactly 2 to 6.
 1 16 -10 0 -10 1 0 0 0 1 0 0 0 1 batima-stud.dat
 1 16 10 0 -10 1 0 0 0 1 0 0 0 1 batima-stud.dat
 1 16 -10 0 10 1 0 0 0 1 0 0 0 1 batima-stud.dat
 1 16 10 0 10 1 0 0 0 1 0 0 0 1 batima-stud.dat
 
-0 // ---- four conical sockets in the underside, aligned with the studs above.
-1 16 -10 20 -10 1 0 0 0 1 0 0 0 1 batima-socket.dat
-1 16 10 20 -10 1 0 0 0 1 0 0 0 1 batima-socket.dat
-1 16 -10 20 10 1 0 0 0 1 0 0 0 1 batima-socket.dat
-1 16 10 20 10 1 0 0 0 1 0 0 0 1 batima-socket.dat
+0 // ---- four sockets in the underside, aligned with the studs above.
+0 //      Mouth 0.65 of the pitch = 13 LDU, rounded to 12 for the same reason.
+1 16 -10 14 -10 1 0 0 0 1 0 0 0 1 batima-socket.dat
+1 16 10 14 -10 1 0 0 0 1 0 0 0 1 batima-socket.dat
+1 16 -10 14 10 1 0 0 0 1 0 0 0 1 batima-socket.dat
+1 16 10 14 10 1 0 0 0 1 0 0 0 1 batima-socket.dat

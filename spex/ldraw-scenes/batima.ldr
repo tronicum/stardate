@@ -23,4 +23,4 @@
 0 //
 0 // Block height 20 LDU here, origin at the footprint centre, LDraw +Y down,
 0 // so a block standing on the ground plane is translated to y = -20.
-1 503 20000 -20 0 1 0 0 0 1 0 0 0 1 batima-2x2.dat
+1 503 20000 -14 0 1 0 0 0 1 0 0 0 1 batima-2x2.dat
