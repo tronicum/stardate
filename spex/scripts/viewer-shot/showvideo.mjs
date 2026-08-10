@@ -96,8 +96,38 @@ const durationSec = await page.evaluate(() => {
 const step = durationSec / (FRAMES - 1);
 console.log(`${cut}: ${durationSec.toFixed(3)} s in ${FRAMES} frames (${step.toFixed(3)} s/frame), played at ${FPS} fps = ${(FRAMES / FPS).toFixed(1)} s of video, ${(durationSec / (FRAMES / FPS)).toFixed(2)}x real time`);
 
+/** PNG or JPEG — and this is **not** where the time goes. Measured, because
+ * the guess was wrong.
+ *
+ * The guess was that a 1920x1080 screenshot is two million pixels being
+ * PNG-compressed on the CPU, and that JPEG would therefore be much faster.
+ * Measured on this project's GPU-less container at 1920x1080: **22.4 s per
+ * capture as JPEG, 22.7 s as PNG.** Within noise of each other. The encoder
+ * is not the cost — `Page.captureScreenshot` makes the browser *produce a
+ * fresh frame* and hand it over, so a capture is a second render, and on a
+ * software rasteriser that is the whole bill.
+ *
+ * So `SPEX_JPEG=1` buys **disk, not time**: 7200 frames at 1080p is 6-10 GB
+ * as PNG and under one as JPEG, and they are h264-encoded immediately
+ * afterwards anyway, so quality 92 loses nothing that survives the mux.
+ * Default stays PNG, the honest archival format.
+ *
+ * If the time is what you want back, `showlive.mjs` is the answer: it records
+ * the piece playing instead of photographing it frame by frame, and on a
+ * machine with a real GPU that is four minutes rather than an hour.
+ */
+const JPEG = !!process.env.SPEX_JPEG;
+const shotOpts = JPEG ? { type: 'jpeg', quality: 92 } : { type: 'png' };
+const ext = JPEG ? 'jpg' : 'png';
+
 const t0 = Date.now();
+// Where the time actually goes, split at the seam that matters: driving the
+// show and waiting for frames, against getting the pixels out. Guessing which
+// half dominates is how an hour gets spent on the wrong one.
+let msDrive = 0;
+let msShot = 0;
 for (let i = 0; i < FRAMES; i++) {
+  const a = Date.now();
   await page.evaluate(async (sec) => {
     const s = window.__spexShow;
     s.seek(sec);
@@ -107,11 +137,23 @@ for (let i = 0; i < FRAMES; i++) {
       await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     }
   }, i * step);
-  await page.screenshot({ path: `${outDir}/f${String(i).padStart(4, '0')}.png` });
+  const b = Date.now();
+  await page.screenshot({ path: `${outDir}/f${String(i).padStart(4, '0')}.${ext}`, ...shotOpts });
+  const c = Date.now();
+  msDrive += b - a;
+  msShot += c - b;
   if (i % 50 === 0) {
     const rate = (i + 1) / ((Date.now() - t0) / 1000);
-    console.log(`  ${i}/${FRAMES}  ${rate.toFixed(1)} frames/s  eta ${((FRAMES - i) / rate / 60).toFixed(1)} min`);
+    const n = i + 1;
+    console.log(
+      `  ${i}/${FRAMES}  ${rate.toFixed(1)} frames/s  eta ${((FRAMES - i) / rate / 60).toFixed(1)} min` +
+        `  [render+settle ${(msDrive / n).toFixed(0)} ms, capture ${(msShot / n).toFixed(0)} ms/frame]`,
+    );
   }
 }
-console.log(`captured ${FRAMES} frames in ${((Date.now() - t0) / 1000 / 60).toFixed(1)} min; console errors ${errors.length}`);
+console.log(
+  `captured ${FRAMES} ${ext.toUpperCase()} frames in ${((Date.now() - t0) / 1000 / 60).toFixed(1)} min ` +
+    `(render+settle ${(msDrive / FRAMES).toFixed(0)} ms, capture ${(msShot / FRAMES).toFixed(0)} ms per frame); ` +
+    `console errors ${errors.length}`,
+);
 await browser.close();
