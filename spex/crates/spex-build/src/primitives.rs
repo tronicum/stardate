@@ -34,16 +34,20 @@
 //! - `Arch` is a real, historically-attested **post-and-lintel** span (the
 //!   same technique `Trilithon` uses), not a voussoir/corbel arch closing
 //!   to a point — a smaller, buildable, honestly-scoped first cut.
-//! - `Pyramid { stepped: false }` currently emits the same stepped
-//!   construction as `stepped: true`: a smooth-sided pyramid needs real
-//!   slope-part footprints not yet measured/cited. The flag is accepted
-//!   and threaded through so a later milestone can differentiate without
-//!   an API change.
+//! - `Pyramid { stepped: false }` is a real smooth-sided pyramid — real
+//!   45-degree slope parts (`SLOPE_STRAIGHT`/`SLOPE_CORNER_PART`) replace
+//!   each tier's exposed ledge instead of leaving it a flat step. Uses a
+//!   real 2-stud setback (not `stepped: true`'s 1) because the real
+//!   outside-corner slope this kit cites is itself a 2-stud part — see
+//!   `smooth_ring`'s doc comment. `Dome`, which shares `Ziggurat`'s
+//!   corbelling, does not get this treatment (a real round dome's smooth
+//!   surface is a different, curved-part problem, not a square-pyramid
+//!   one) — still corbelled/stepped regardless of any future `Dome` API.
 //! - `Dome` is a **solid** corbelled square stack (see its own doc comment
 //!   for why a hollow-ring first attempt was rejected: it was not a real
 //!   self-supporting structure), not a hollow circular corbelled vault.
 
-use crate::grid::{mat_mul, mat_vec, GridPos, Orientation, Placement, BRICK_PLATES, HALF_STUD_LDU, STUD_LDU};
+use crate::grid::{mat_mul, mat_vec, GridPos, Orientation, Placement, BRICK_PLATES, HALF_STUD_LDU, PLATE_LDU, STUD_LDU};
 
 /// The kit's current working real part set. See the module doc comment.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -416,6 +420,131 @@ impl Primitive for Ziggurat {
     }
 }
 
+/// Real 45-degree slope parts for a smooth pyramid's outer ring, measured
+/// against the real LDraw cache the same way `grid::FootprintTable` is
+/// (bounding box / `PLATE_LDU`, real center = `(min+max)/2` per axis) —
+/// not typed from memory. All three straight slopes share the same real
+/// cross-section (a real 2-stud taper run, 3-plate height), differing
+/// only in real tileable length; the corner is a real *outside* (convex)
+/// corner, the shape a pyramid's real corner needs — confirmed by an
+/// actual rendered screenshot, not inferred from raw vertex winding
+/// (BFC-uncorrected triangle normals came out ambiguous in sign).
+///
+/// | part | real name | studs (tileable x taper-run) | real local center (LDU) |
+/// |---|---|---|---|
+/// | `3037.dat` | Slope 45 4 x 2 | 4 x 2 | (0, -10) |
+/// | `3039.dat` | Slope 45 2 x 2 | 2 x 2 | (0, -10) |
+/// | `3040.dat` | Slope 45 1 x 2 | 1 x 2 | (0, -10) |
+/// | `3045.dat` | Slope 45 2 x 2 Double Convex Corner | 2 x 2 | (10, -10) |
+///
+/// The real corner-slope footprint (2 studs) is *why* a smooth pyramid
+/// uses a real 2-stud setback, not the stepped variant's 1 — no real
+/// 1-stud outside-corner slope exists in this kit's part set.
+const SLOPE_STRAIGHT: &[(&str, u32)] = &[("3037.dat", 4), ("3039.dat", 2), ("3040.dat", 1)];
+const SLOPE_STRAIGHT_CENTER_LDU: [f64; 2] = [0.0, -10.0];
+const SLOPE_CORNER_PART: &str = "3045.dat";
+const SLOPE_CORNER_CENTER_LDU: [f64; 2] = [10.0, -10.0];
+const SLOPE_RING_WIDTH_STUDS: u32 = 2;
+
+/// Greedily tiles a run of `len_studs` studs with real slope parts,
+/// longest first — same real pattern as `tile_length`, using
+/// `SLOPE_STRAIGHT` instead of a `PartSet`'s bricks.
+fn tile_length_slopes(len_studs: u32) -> Vec<(&'static str, u32)> {
+    let mut remaining = len_studs;
+    let mut out = Vec::new();
+    for (part, w) in SLOPE_STRAIGHT {
+        while remaining >= *w {
+            out.push((*part, *w));
+            remaining -= *w;
+        }
+    }
+    debug_assert_eq!(remaining, 0, "SLOPE_STRAIGHT's real 1-stud slope must always finish the remainder");
+    out
+}
+
+/// Places one real slope part so its real geometric center lands at
+/// `world_center_studs` (in the ring's own local X/Z, studs from the
+/// tier's front-bottom-left corner) — the part's own real local center
+/// (`local_center_ldu`, see `SLOPE_STRAIGHT`'s doc comment) is rotated by
+/// `orientation` before being subtracted back out, the same real
+/// local-to-world relationship `transform_local` uses everywhere else in
+/// this module (`translation = target - rotated(local_offset)`).
+fn place_slope(part: &str, orientation: Orientation, world_center_studs: [f64; 2], local_center_ldu: [f64; 2], y_plates: i32, color: u32) -> Placement {
+    let m = orientation.matrix();
+    let rotated = mat_vec(m, [local_center_ldu[0], 0.0, local_center_ldu[1]]);
+    Placement {
+        part: part.to_string(),
+        color,
+        translation_ldu: [
+            world_center_studs[0] * STUD_LDU - rotated[0],
+            y_plates as f64 * PLATE_LDU,
+            world_center_studs[1] * STUD_LDU - rotated[2],
+        ],
+        matrix: m,
+        declared_off_grid: false,
+        build_step: 0,
+    }
+}
+
+/// Real smooth outer ring for one tier of a smooth-sided pyramid: the
+/// exposed real 2-stud ledge that would otherwise be flat bricks (see
+/// `Ziggurat`), replaced with real slope parts so the tier-to-tier
+/// transition reads as one continuous taper instead of a stepped shelf.
+/// `size` is the tier's own full real footprint in studs. Local space:
+/// origin at the tier's own front-bottom-left corner (matching every
+/// other primitive in this module), ring at course 0 (the tier's own
+/// single course, since every `Pyramid` tier is exactly one real brick
+/// tall — `tier_height_plates: BRICK_PLATES`).
+fn smooth_ring(size: u32, color: u32) -> Vec<Placement> {
+    let rw = SLOPE_RING_WIDTH_STUDS;
+    let run = size.saturating_sub(2 * rw);
+    let y_plates = course_bottom_plates(0);
+    let mut out = Vec::new();
+
+    // Real yaw per edge: the direction the slope's real tall/stud end
+    // faces (outward, away from the pyramid's own center) — found by an
+    // actual rendered screenshot at identity orientation, then composing
+    // the real 90-degree-yaw members of the 24 orientations
+    // (`Orientation::nearest_yaw`) for the other three edges, not derived
+    // from raw vertex winding.
+    let half = size as f64 / 2.0;
+    let edge_specs: [(f64, [f64; 2]); 4] = [
+        (0.0, [half, rw as f64 / 2.0]),                       // south: taper faces -Z (outward)
+        (180.0, [half, size as f64 - rw as f64 / 2.0]),        // north: taper faces +Z (outward)
+        (90.0, [rw as f64 / 2.0, half]),                       // west: taper faces -X (outward)
+        (270.0, [size as f64 - rw as f64 / 2.0, half]),        // east: taper faces +X (outward)
+    ];
+    for (yaw, fixed_center) in edge_specs {
+        let orientation = Orientation::nearest_yaw(yaw);
+        // South/north tile along real X (the run axis); west/east tile
+        // along real Z instead — a 90-degree yaw swaps which world axis a
+        // part's own local (X-tileable) axis lands on.
+        let along_x = yaw == 0.0 || yaw == 180.0;
+        let mut cursor = rw as f64;
+        for (part, w) in tile_length_slopes(run) {
+            let center = cursor + w as f64 / 2.0;
+            let world_center = if along_x { [center, fixed_center[1]] } else { [fixed_center[0], center] };
+            out.push(place_slope(part, orientation, world_center, SLOPE_STRAIGHT_CENTER_LDU, y_plates, color));
+            cursor += w as f64;
+        }
+    }
+
+    // Real corners: one `SLOPE_CORNER_PART` each, same real yaw-rotation
+    // technique as the edges above.
+    let corner_specs: [(f64, [f64; 2]); 4] = [
+        (0.0, [rw as f64 / 2.0, rw as f64 / 2.0]),                                   // SW
+        (270.0, [size as f64 - rw as f64 / 2.0, rw as f64 / 2.0]),                   // SE
+        (180.0, [size as f64 - rw as f64 / 2.0, size as f64 - rw as f64 / 2.0]),     // NE
+        (90.0, [rw as f64 / 2.0, size as f64 - rw as f64 / 2.0]),                    // NW
+    ];
+    for (yaw, world_center) in corner_specs {
+        let orientation = Orientation::nearest_yaw(yaw);
+        out.push(place_slope(SLOPE_CORNER_PART, orientation, world_center, SLOPE_CORNER_CENTER_LDU, y_plates, color));
+    }
+
+    out
+}
+
 /// How many 1-brick-tall tiers it takes a `base_studs` square footprint to
 /// shrink to a closed point, losing `2*setback_studs` per tier (inset on
 /// every side). Shared by `Pyramid` and `Dome`, both of which corbel a
@@ -443,7 +572,9 @@ pub struct Pyramid {
 
 impl Primitive for Pyramid {
     fn emit(&self, origin: GridPos, orientation: Orientation) -> Vec<Placement> {
-        let _ = self.stepped; // see module doc comment: both settings emit stepped construction today
+        if !self.stepped {
+            return self.emit_smooth(origin, orientation);
+        }
         let zig = Ziggurat {
             base_studs: self.base_studs,
             tiers: tiers_to_close(self.base_studs, 1),
@@ -455,7 +586,52 @@ impl Primitive for Pyramid {
     }
 
     fn extent(&self) -> (u32, u32, u32) {
-        (self.base_studs, self.base_studs, tiers_to_close(self.base_studs, 1) * BRICK_PLATES)
+        let setback = if self.stepped { 1 } else { SLOPE_RING_WIDTH_STUDS };
+        (self.base_studs, self.base_studs, tiers_to_close(self.base_studs, setback) * BRICK_PLATES)
+    }
+}
+
+impl Pyramid {
+    /// A real smooth-sided pyramid: each tier's exposed real ledge (the
+    /// ring `smooth_ring` builds) is real slope parts instead of flat
+    /// bricks, so the structure reads as one continuous taper instead of
+    /// stepped shelves. Real setback is `SLOPE_RING_WIDTH_STUDS` (2), not
+    /// `stepped: true`'s 1 — see `SLOPE_STRAIGHT`'s doc comment for why.
+    /// The topmost tier (nothing above it to smooth into) stays a plain
+    /// solid cap, same real choice `stepped: true`'s own top tier makes.
+    fn emit_smooth(&self, origin: GridPos, orientation: Orientation) -> Vec<Placement> {
+        let setback = SLOPE_RING_WIDTH_STUDS;
+        let mut local = Vec::new();
+        let mut cumulative_plates = 0i32;
+        let mut size = self.base_studs.max(1);
+        let mut tier = 0u32;
+        loop {
+            let is_last = size <= 2 * setback;
+            let inner = size.saturating_sub(2 * setback).max(1);
+            let mut tier_placements = if is_last {
+                let wall = Wall { width_studs: size, height_plates: BRICK_PLATES, depth_studs: size, bond: Bond::Stack, color: self.color, part_set: PartSet::Classic };
+                wall.emit(GridPos::new(0, -cumulative_plates, 0), Orientation::IDENTITY)
+            } else {
+                let core_origin = GridPos::new(studs(setback), -cumulative_plates, studs(setback));
+                let core = Wall { width_studs: inner, height_plates: BRICK_PLATES, depth_studs: inner, bond: Bond::Stack, color: self.color, part_set: PartSet::Classic };
+                let mut placements = core.emit(core_origin, Orientation::IDENTITY);
+                let ring = smooth_ring(size, self.color);
+                let mut ring = transform_local(ring, GridPos::new(0, -cumulative_plates, 0), Orientation::IDENTITY);
+                placements.append(&mut ring);
+                placements
+            };
+            for p in &mut tier_placements {
+                p.build_step = tier;
+            }
+            local.extend(tier_placements);
+            cumulative_plates += BRICK_PLATES as i32;
+            if is_last {
+                break;
+            }
+            size = inner;
+            tier += 1;
+        }
+        transform_local(local, origin, orientation)
     }
 }
 
@@ -823,13 +999,38 @@ mod tests {
     }
 
     #[test]
-    fn pyramid_stepped_and_unstepped_currently_agree_and_both_validate_clean() {
+    fn pyramid_stepped_validates_clean() {
         let a = Pyramid { base_studs: 6, color: 4, stepped: true };
-        let b = Pyramid { base_studs: 6, color: 4, stepped: false };
-        assert_eq!(a.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY).len(), b.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY).len());
         let placements = a.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
         let problems = validate(&placements, &FootprintTable::standard());
         assert_eq!(problems, vec![]);
+    }
+
+    #[test]
+    fn pyramid_smooth_uses_real_slope_parts_and_validates_clean() {
+        let b = Pyramid { base_studs: 6, color: 4, stepped: false };
+        let placements = b.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
+        // Real proof this is actually the smooth path, not a silent
+        // no-op: real slope parts (straight + the real outside corner)
+        // must be present, not just the flat PartSet::Classic bricks.
+        assert!(placements.iter().any(|p| p.part == "3045.dat"), "expected the real corner slope");
+        assert!(
+            placements.iter().any(|p| SLOPE_STRAIGHT.iter().any(|(sp, _)| *sp == p.part)),
+            "expected at least one real straight slope part"
+        );
+        let problems = validate(&placements, &FootprintTable::standard());
+        assert_eq!(problems, vec![], "{problems:?}");
+    }
+
+    #[test]
+    fn pyramid_smooth_has_exactly_four_real_corner_slopes_per_non_apex_tier() {
+        // base_studs=10: setback 2 gives tiers 10 -> inner 6 (real ring) ->
+        // is_last (6 <= 4? no -> inner 2, another real ring) -> is_last (2
+        // <= 4, real solid cap). 2 real rings, so 2 * 4 = 8 real corners.
+        let p = Pyramid { base_studs: 10, color: 4, stepped: false };
+        let placements = p.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
+        let corners = placements.iter().filter(|p| p.part == "3045.dat").count();
+        assert_eq!(corners, 8, "2 real rings x 4 real corners each");
     }
 
     #[test]

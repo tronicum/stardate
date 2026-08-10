@@ -202,11 +202,24 @@ fn orientation_table() -> &'static Vec<[f64; 9]> {
 /// A part's real footprint: width/depth in whole studs, height in whole
 /// plates — what `validate()` needs to check overlap and support, and what
 /// `Wall`/`Column`/etc need to know how far to advance between placements.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+///
+/// `center_offset_ldu`: real X/Z offset, in the part's own local frame,
+/// from its LDraw placement origin (`Placement.translation_ldu`) to its
+/// actual geometric bounding-box center. Zero for every part this kit used
+/// before real slope parts (`smooth_ring` in `primitives.rs`) — a plain
+/// brick/plate/tile's real LDraw origin already sits at its own bbox
+/// center, so `world_aabb` could assume `translation_ldu` *is* the center
+/// outright. A real 45-degree slope's origin does not: measured the same
+/// way (`(min+max)/2` per axis against the live cache), it sits a real 10
+/// LDU off-center on at least one axis. `world_aabb` rotates this offset
+/// by the placement's own orientation before adding it, the same real
+/// local-to-world relationship every other rotation in this crate uses.
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Footprint {
     pub studs_w: u32,
     pub studs_d: u32,
     pub height_plates: u32,
+    pub center_offset_ldu: [f64; 2],
 }
 
 /// Real part footprints for the kit's working part set.
@@ -221,7 +234,8 @@ pub struct Footprint {
 /// depth of the underside tube (max Y in LDraw's down-positive frame),
 /// which is exactly the real brick/plate height. Measured 2026-08 against
 /// the real cached `parts/3005.dat`, `3004.dat`, `3010.dat`, `3710.dat`,
-/// `2431.dat`, `3009.dat`, `3022.dat`, `3020.dat` (see
+/// `2431.dat`, `3009.dat`, `3022.dat`, `3020.dat`, `3037.dat`, `3039.dat`,
+/// `3040.dat`, `3045.dat` (see
 /// `crates/spex-build/tests/footprint_provenance.rs`, `#[ignore]`d because
 /// it needs the real LDraw cache, same convention as `spex-ldraw`'s own
 /// network-dependent tests):
@@ -236,6 +250,10 @@ pub struct Footprint {
 /// | `2431.dat` Tile 1 x 4   | 4 x 1 | 1 plate            | 8.0  |
 /// | `3022.dat` Plate 2 x 2  | 2 x 2 | 1 plate            | 8.0  |
 /// | `3020.dat` Plate 2 x 4  | 4 x 2 | 1 plate            | 8.0  |
+/// | `3037.dat` Slope 45 4 x 2 | 4 x 2 | 3 plates (1 brick) | 24.0 |
+/// | `3039.dat` Slope 45 2 x 2 | 2 x 2 | 3 plates (1 brick) | 24.0 |
+/// | `3040.dat` Slope 45 1 x 2 | 1 x 2 | 3 plates (1 brick) | 24.0 |
+/// | `3045.dat` Slope 45 2 x 2 Double Convex Corner | 2 x 2 | 3 plates (1 brick) | 24.0 |
 ///
 /// These also match this repo's own established real numbers
 /// (`BRICKs.md`'s "brick height 9.6mm = 24 LDU = 3 plates").
@@ -269,14 +287,23 @@ impl FootprintTable {
     /// the type doc comment above for the measurement).
     pub fn standard() -> Self {
         let mut t = FootprintTable::new();
-        t.insert("3005.dat", Footprint { studs_w: 1, studs_d: 1, height_plates: BRICK_PLATES });
-        t.insert("3004.dat", Footprint { studs_w: 2, studs_d: 1, height_plates: BRICK_PLATES });
-        t.insert("3010.dat", Footprint { studs_w: 4, studs_d: 1, height_plates: BRICK_PLATES });
-        t.insert("3710.dat", Footprint { studs_w: 4, studs_d: 1, height_plates: 1 });
-        t.insert("2431.dat", Footprint { studs_w: 4, studs_d: 1, height_plates: 1 });
-        t.insert("3009.dat", Footprint { studs_w: 6, studs_d: 1, height_plates: BRICK_PLATES });
-        t.insert("3022.dat", Footprint { studs_w: 2, studs_d: 2, height_plates: 1 });
-        t.insert("3020.dat", Footprint { studs_w: 4, studs_d: 2, height_plates: 1 });
+        t.insert("3005.dat", Footprint { studs_w: 1, studs_d: 1, height_plates: BRICK_PLATES, center_offset_ldu: [0.0, 0.0] });
+        t.insert("3004.dat", Footprint { studs_w: 2, studs_d: 1, height_plates: BRICK_PLATES, center_offset_ldu: [0.0, 0.0] });
+        t.insert("3010.dat", Footprint { studs_w: 4, studs_d: 1, height_plates: BRICK_PLATES, center_offset_ldu: [0.0, 0.0] });
+        t.insert("3710.dat", Footprint { studs_w: 4, studs_d: 1, height_plates: 1, center_offset_ldu: [0.0, 0.0] });
+        t.insert("2431.dat", Footprint { studs_w: 4, studs_d: 1, height_plates: 1, center_offset_ldu: [0.0, 0.0] });
+        t.insert("3009.dat", Footprint { studs_w: 6, studs_d: 1, height_plates: BRICK_PLATES, center_offset_ldu: [0.0, 0.0] });
+        t.insert("3022.dat", Footprint { studs_w: 2, studs_d: 2, height_plates: 1, center_offset_ldu: [0.0, 0.0] });
+        t.insert("3020.dat", Footprint { studs_w: 4, studs_d: 2, height_plates: 1, center_offset_ldu: [0.0, 0.0] });
+        // Real 45-degree slopes for a smooth Pyramid (see
+        // `crates/spex-build/src/primitives.rs`'s `smooth_ring`) — the
+        // footprint here is each part's real bounding box (used for
+        // overlap/support only), not its visible sloped silhouette, same
+        // as every other entry in this table.
+        t.insert("3037.dat", Footprint { studs_w: 4, studs_d: 2, height_plates: BRICK_PLATES, center_offset_ldu: [0.0, -10.0] });
+        t.insert("3039.dat", Footprint { studs_w: 2, studs_d: 2, height_plates: BRICK_PLATES, center_offset_ldu: [0.0, -10.0] });
+        t.insert("3040.dat", Footprint { studs_w: 1, studs_d: 2, height_plates: BRICK_PLATES, center_offset_ldu: [0.0, -10.0] });
+        t.insert("3045.dat", Footprint { studs_w: 2, studs_d: 2, height_plates: BRICK_PLATES, center_offset_ldu: [10.0, -10.0] });
         t
     }
 }
@@ -343,6 +370,12 @@ pub enum Illegality {
 fn world_aabb(p: &Placement, fp: Footprint) -> ([f64; 3], [f64; 3]) {
     let half = [fp.studs_w as f64 * STUD_LDU / 2.0, 0.0, fp.studs_d as f64 * STUD_LDU / 2.0];
     let height = fp.height_plates as f64 * PLATE_LDU;
+    // The box's own real center, in the part's local frame — zero for
+    // every symmetric part (plain bricks/plates/tiles), real and nonzero
+    // for a real 45-degree slope, whose LDraw origin does not sit at its
+    // own geometric center (see `Footprint::center_offset_ldu`'s doc
+    // comment).
+    let center = [fp.center_offset_ldu[0], 0.0, fp.center_offset_ldu[1]];
     // 8 local corners of the part's own box, local Y from 0 (top ref) to
     // height (bottom of tube, LDraw down-positive).
     let mut min = [f64::MAX; 3];
@@ -350,7 +383,7 @@ fn world_aabb(p: &Placement, fp: Footprint) -> ([f64; 3], [f64; 3]) {
     for &sx in &[-1.0, 1.0] {
         for &sz in &[-1.0, 1.0] {
             for &sy in &[0.0, 1.0] {
-                let local = [sx * half[0], sy * height, sz * half[2]];
+                let local = [center[0] + sx * half[0], sy * height, center[2] + sz * half[2]];
                 let world = [
                     p.matrix[0] * local[0] + p.matrix[1] * local[1] + p.matrix[2] * local[2] + p.translation_ldu[0],
                     p.matrix[3] * local[0] + p.matrix[4] * local[1] + p.matrix[5] * local[2] + p.translation_ldu[1],
