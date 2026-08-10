@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://spex.local/spec/ankerstein-sets.schema.json",
+  "title": "Ankerstein set/inventory catalog (ankerstein-sets.json)",
+  "description": "The real 'set inventory' layer — which stones, and how many of each, make up a given historical or modern Ankerstein set (e.g. 'Nr. 5A', 'GK 2', '2A'). Distinct from ankerstein-shapes.schema.json (the stone/part library itself, set-independent) and from a scene (one specific build, see spex-ankerstein's scene.rs) — mirrors LDraw/Rebrickable's own part-vs-set-vs-model split (see BRICKs.md's 'Set number' entry). Every entry's sourceCitation is mandatory, same rule as the shape catalog. Field names are camelCase, matching AnkersteinSet's #[serde(rename_all = \"camelCase\")] Rust serialization.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["setId", "displayName", "caliber", "contents", "sourceCitation"],
+    "additionalProperties": false,
+    "properties": {
+      "setId": {
+        "type": "string",
+        "description": "The set's own historical/commercial designation, e.g. '5A', 'GK2', '2A'. Not necessarily unique across GK/KK — pair with `caliber` to disambiguate."
+      },
+      "displayName": {
+        "type": "string",
+        "description": "Human-readable name/description of the set, e.g. 'Ergänzungskasten Nr. 5A'."
+      },
+      "caliber": {
+        "type": "string",
+        "enum": ["gk", "kk"]
+      },
+      "isSupplementSet": {
+        "type": ["boolean", "null"],
+        "description": "True for an Ergänzungskasten/supplement set (extends a lower-numbered base set rather than standing alone). Serializes as `null` (not an absent key) when unknown, via Rust's `Option<bool>` + `#[serde(default)]`."
+      },
+      "contents": {
+        "type": "array",
+        "description": "Which stones this set contains, and how many of each.",
+        "items": {
+          "type": "object",
+          "required": ["shapeId", "quantity"],
+          "additionalProperties": false,
+          "properties": {
+            "shapeId": {
+              "type": "string",
+              "description": "References an `id` in ankerstein-shapes.json — not enforced by this schema alone (no cross-file $ref, per this project's self-contained-schema convention); checked instead by spex_ankerstein::sets::validate_against_catalog at load time."
+            },
+            "quantity": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      },
+      "sourceCitation": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Mandatory: where this set's real composition was sourced from — a CVA catalog entry, a manufacturer's page, or a real box/Bauanleitung actually in hand."
+      }
+    }
+  }
+}

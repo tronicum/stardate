@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "id": "test-column",
+  "title": "M72 round-trip fixture: a column",
+  "palette": { "stone": 71 },
+  "steps": [
+    { "primitive": "Column",
+      "params": { "heightPlates": 9, "diameterStuds": 2, "color": "stone" } }
+  ]
+}

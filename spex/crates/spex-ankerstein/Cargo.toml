@@ -1,0 +1,15 @@
+[package]
+name = "spex-ankerstein"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+spex-core = { workspace = true }
+spex-ldraw = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3"
+jsonschema = { version = "0.48", default-features = false }

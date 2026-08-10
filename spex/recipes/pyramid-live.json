@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "id": "pyramid-live",
+  "title": "A real grid-legal pyramid, animated stone by stone",
+  "scale": { "studsPerMetre": 0.5, "note": "an illustrative demo" },
+  "palette": { "stone": 71 },
+  "steps": [
+    { "primitive": "Pyramid", "params": { "baseStuds": 16, "color": "stone", "stepped": true } }
+  ]
+}
