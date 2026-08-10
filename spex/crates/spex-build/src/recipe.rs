@@ -224,14 +224,24 @@ fn build_primitive(name: &str, params: &Value, palette: &HashMap<String, u32>) -
     })
 }
 
-fn resolve_cell_color(v: &Value, palette: &HashMap<String, u32>) -> Result<u32> {
+/// `null` is a real, empty cell — a hole in the mosaic. Anything else must
+/// resolve to a real colour, so a typo in a palette name is still an error
+/// rather than a quietly missing brick.
+fn resolve_cell_color(v: &Value, palette: &HashMap<String, u32>) -> Result<Option<u32>> {
+    if v.is_null() {
+        return Ok(None);
+    }
     if let Some(n) = v.as_u64() {
-        return Ok(n as u32);
+        return Ok(Some(n as u32));
     }
     if let Some(name) = v.as_str() {
-        return palette.get(name).copied().with_context(|| format!("palette has no entry {name:?} needed by a mosaic cell"));
+        return palette
+            .get(name)
+            .copied()
+            .map(Some)
+            .with_context(|| format!("palette has no entry {name:?} needed by a mosaic cell"));
     }
-    bail!("a mosaic cell must be a real LDraw color code (integer) or a palette name (string)")
+    bail!("a mosaic cell must be a real LDraw color code (integer), a palette name (string), or null for an empty cell")
 }
 
 fn snap_half_studs(studs: f64) -> i32 {

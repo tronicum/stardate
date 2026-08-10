@@ -151,6 +151,17 @@ void main() {
 }
 `;
 
+/** Most sprites the whole scene's clouds may draw at once. Two million is
+ * about half a modern GPU's comfortable transparent-fragment budget at 1080p
+ * and roughly 140x what A1-S02 — one brick, ~4 000 points — actually uses, so
+ * nothing authored before Act IV is touched by it. */
+export const POINT_BUDGET = 2_000_000;
+
+/** Below this a swarm stops being a swarm and starts being confetti, so a
+ * group is allowed to exceed the budget rather than be thinned into
+ * nonsense. A scene that hits this floor is one the budget cannot help. */
+export const MIN_POINTS_PER_INSTANCE = 96;
+
 export interface PointCloudGroup {
   source: InstanceGroup;
   points: THREE.Points;
@@ -212,6 +223,34 @@ export function buildPointClouds(
     for (let i = 0; i < brick.length; i++) brick[i] = i;
     geometry.setAttribute('aBrick', new THREE.InstancedBufferAttribute(brick, 1));
     geometry.instanceCount = group.ids.length;
+    // THE BUDGET, and it thins rather than drops.
+    //
+    // One instance's cloud is whatever `sample_surface` wrote — about 4 000
+    // points for a brick. That is right for A1-S02, which is one brick. Act
+    // IV asks the same crossfade of a 3 600-instance field and a 1 921-brick
+    // lattice, which is 14.7 M and 7.9 M **alpha-blended, depth-write-off**
+    // sprites: measured, a single `page.screenshot` of that frame exceeded a
+    // 30 s timeout on this project's software rasteriser, where every
+    // neighbouring frame takes one to three seconds.
+    //
+    // Dropping the cloud for such a group would silently delete the shot, so
+    // instead the per-instance count is cut until the whole group fits. The
+    // sample is already uniform over the part's surface, so the first `k` of
+    // it is still a uniform sample — a sparser swarm of the same object,
+    // which is what a distant swarm looks like anyway. The same shape as the
+    // edge pass's quad budget, and for the same reason.
+    const perInstance = Math.max(
+      MIN_POINTS_PER_INSTANCE,
+      Math.min(n, Math.floor(POINT_BUDGET / Math.max(1, group.ids.length))),
+    );
+    if (perInstance < n) {
+      geometry.setDrawRange(0, perInstance);
+      console.warn(
+        `[spex show] point budget: ${group.ids.length} instances x ${n} points is ` +
+          `${((group.ids.length * n) / 1e6).toFixed(1)} M sprites; thinned to ${perInstance} each ` +
+          `(${((group.ids.length * perInstance) / 1e6).toFixed(2)} M)`,
+      );
+    }
     // The cloud occupies the part's own bounds plus however far it may drift.
     const part = bundle.parts[group.part];
     geometry.boundingSphere = new THREE.Box3(
@@ -250,7 +289,7 @@ export function buildPointClouds(
         // library rather than a fudge factor, it is the same one M57's outline
         // pass uses, and it keeps the cloud recognisably the object's own
         // colour for every colour that has one.
-        uColor: { value: new THREE.Color().copy(materials.edgeColor(group.material)) },
+        uColor: { value: new THREE.Color().copy(materials.pointColor(group.material)) },
       },
     });
 
@@ -262,7 +301,7 @@ export function buildPointClouds(
       source: group,
       points,
       material,
-      pointsPerInstance: n,
+      pointsPerInstance: perInstance,
       radiusMm: geometry.boundingSphere.radius,
     });
   }

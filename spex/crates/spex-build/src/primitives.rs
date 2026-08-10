@@ -589,18 +589,24 @@ impl Primitive for Colonnade {
 }
 
 pub struct Mosaic {
-    pub cells: Vec<Vec<u32>>,
+    /// `None` is a real cell that is deliberately **empty** — a hole, not a
+    /// colour. A mosaic without holes can only ever be a plane; with them it
+    /// is a lattice, and stacking several at different `yPlates` makes that
+    /// lattice three-dimensional without a second primitive that would
+    /// duplicate every one of this one's decisions.
+    pub cells: Vec<Vec<Option<u32>>>,
     pub tile_part: String,
 }
 
 impl Primitive for Mosaic {
-    /// One `tile_part` per cell, colored by the cell's own real LDraw
-    /// color code, laid flat (a single 1-plate-tall course) on a 1-stud
-    /// grid. `cells[row][col]`: row runs along local Z, col along local X.
+    /// One `tile_part` per **filled** cell, colored by the cell's own real
+    /// LDraw color code, laid flat (a single course) on a 1-stud grid.
+    /// `cells[row][col]`: row runs along local Z, col along local X.
     fn emit(&self, origin: GridPos, orientation: Orientation) -> Vec<Placement> {
         let mut local = Vec::new();
         for (row, cols) in self.cells.iter().enumerate() {
-            for (col, &color) in cols.iter().enumerate() {
+            for (col, &cell) in cols.iter().enumerate() {
+                let Some(color) = cell else { continue };
                 let x_center = (col as f64 + 0.5) * STUD_LDU;
                 let z_center = (row as f64 + 0.5) * STUD_LDU;
                 local.push(Placement::on_grid(
@@ -751,11 +757,28 @@ mod tests {
 
     #[test]
     fn mosaic_places_one_real_tile_per_cell_with_the_cells_own_color() {
-        let mosaic = Mosaic { cells: vec![vec![4, 1], vec![15, 71]], tile_part: "3005.dat".to_string() };
+        let cells = vec![vec![Some(4), Some(1)], vec![Some(15), Some(71)]];
+        let mosaic = Mosaic { cells, tile_part: "3005.dat".to_string() };
         let placements = mosaic.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
         assert_eq!(placements.len(), 4);
         assert_eq!(placements[0].color, 4);
         assert_eq!(placements[3].color, 71);
+        assert_eq!(mosaic.extent(), (2, 2, 1));
+    }
+
+    #[test]
+    fn a_null_mosaic_cell_is_a_real_hole_and_does_not_change_the_extent() {
+        // The lattice case: a mosaic with holes still spans its full grid,
+        // because `extent` describes the footprint the recipe asked for and
+        // not the bricks that happened to land in it. A caller placing a
+        // second layer above this one is stacking on the grid, not on the
+        // bricks.
+        let cells = vec![vec![Some(4), None], vec![None, Some(71)]];
+        let mosaic = Mosaic { cells, tile_part: "3005.dat".to_string() };
+        let placements = mosaic.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
+        assert_eq!(placements.len(), 2, "two filled cells, two placements");
+        assert_eq!(placements[0].color, 4);
+        assert_eq!(placements[1].color, 71);
         assert_eq!(mosaic.extent(), (2, 2, 1));
     }
 

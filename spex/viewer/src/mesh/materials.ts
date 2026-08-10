@@ -231,6 +231,34 @@ export class MaterialLibrary {
     return linearColor(entry.edgeColor);
   }
 
+  /** The colour a **point** of this material should draw at, linear.
+   *
+   * A point is not lit: it has no normal that matters at one pixel and no
+   * shading model behind it, so it draws at whatever colour it is given.
+   * M65 gave it LDraw's EDGE value, because Black's base is linear 0.011 and
+   * A1-S02's two bars of swarm were rendering perfectly and could not be
+   * seen, while Black's edge is a mid grey.
+   *
+   * Act IV showed the same rule failing the other way round. White's base is
+   * 1.0 and its EDGE is #333333 — so a field of white bricks poured a swarm
+   * darker than the ground it stood on, and the inkpour, which is the whole
+   * of A4-S01, was a grey haze.
+   *
+   * Neither value is right on its own. What the shot needs is the one that
+   * can be *seen*, and LDConfig publishes both, so this takes whichever has
+   * the greater relative luminance. Black keeps its grey edge, White keeps
+   * its white base, and every colour in between keeps whichever of its own
+   * two published values reads against a dark ground. Still two real numbers
+   * from the library, still no fudge factor. */
+  pointColor(index: number): THREE.Color {
+    const entry = this.materials[index];
+    if (!entry) throw new Error(`mesh bundle references material ${index}, which it does not define`);
+    const base = linearColor(entry.baseColor);
+    const edge = linearColor(entry.edgeColor);
+    const luma = (c: THREE.Color) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;
+    return luma(base) >= luma(edge) ? base : edge;
+  }
+
   /** Materials for one part's geometry groups, in submesh order, with
    * `null` submeshes resolved to the instance's own colour. */
   resolve(part: MeshPart, instanceMaterial: number): THREE.MeshPhysicalMaterial[] {

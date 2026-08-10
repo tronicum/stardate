@@ -1,0 +1,22 @@
+0 Der letzte Stein - one brick, Terrakotta, alone in black (A4-S01b)
+0 Name: letzter-stein.ldr
+0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
+0 // The shot rev 1 did not have, and the one that converts the argument into
+0 // an arc. Everything else on screen has already gone to points; this brick
+0 // is held still, alone, and goes LAST. The network arrives after it is gone,
+0 // not as its continuation - so the piece stops saying "the module became a
+0 // token", which is monotonic and costless and cannot be felt, and starts
+0 // saying "the thing we could hold became a thing we can't."
+0 //
+0 // Colour 84 (Medium_Nougat), the same code Uruk's wall is laid in. Measured
+0 // against LDConfig.ldr, 128 Dark_Nougat is the closer match to the
+0 // screenplay's Terrakotta (dE 6.4 against 84's larger distance) - but this
+0 // brick's whole job is to be the SAME brick the wall was made of, three
+0 // thousand years and two acts earlier, and continuity beats two units of
+0 // dE. It is the piece's last physical object.
+0 //
+0 // Brick 2 x 4, 24 LDU tall, origin at the centre of its own footprint, so
+0 // a part on the ground plane sits at y = -24 in LDraw's +Y-down frame.
+0 // Stage position x = 25000 LDU (1250 studs = 10000 mm), the first station
+0 // of Act IV.
+1 84 25000 -24 0 1 0 0 0 1 0 0 0 1 3001.dat

@@ -5,7 +5,7 @@
   "subtitle": "Akt I — Archäologie der Fuge",
   "archiveSignature": "IA-2026-002",
   "tempo": { "bpm": 84, "beatsPerBar": 4 },
-  "baseDurationBars": 57,
+  "baseDurationBars": 84,
   "seed": 263865,
   "palette": {
     "terrakotta": [0.462077, 0.162029, 0.076185],
@@ -142,6 +142,16 @@
       "id": "feld",
       "source": { "kind": "build", "recipe": "recipes/feld.json" },
       "prefix": "feld"
+    },
+    {
+      "id": "letzterStein",
+      "source": { "kind": "ldr", "path": "ldraw-scenes/letzter-stein.ldr" },
+      "prefix": "letzterStein"
+    },
+    {
+      "id": "gitter",
+      "source": { "kind": "build", "recipe": "recipes/gitter.json" },
+      "prefix": "gitter"
     }
   ],
   "movements": [
@@ -612,7 +622,7 @@
           "weight": 2,
           "scaling": "stretch",
           "durationBars": 4,
-          "minBars": 2,
+          "minBars": 1.5,
           "maxBars": 21,
           "tier": 1,
           "scenes": ["coin", "rom"],
@@ -652,7 +662,7 @@
           "weight": 2,
           "scaling": "stretch",
           "durationBars": 4,
-          "minBars": 2,
+          "minBars": 1.5,
           "maxBars": 21,
           "tier": 1,
           "scenes": ["batima"],
@@ -706,7 +716,7 @@
           "weight": 2,
           "scaling": "stretch",
           "durationBars": 3,
-          "minBars": 2,
+          "minBars": 1.5,
           "maxBars": 16,
           "tier": 1,
           "scenes": ["batima", "kiddicraft"],
@@ -765,7 +775,7 @@
           "weight": 3,
           "scaling": "stretch",
           "durationBars": 5,
-          "minBars": 3,
+          "minBars": 2,
           "maxBars": 32,
           "tier": 1,
           "scenes": ["batima", "kiddicraft", "lego", "klemme"],
@@ -852,7 +862,7 @@
           "weight": 3,
           "scaling": "stretch",
           "durationBars": 4,
-          "minBars": 2,
+          "minBars": 1.5,
           "maxBars": 21,
           "tier": 1,
           "scenes": ["klemme", "feld"],
@@ -924,6 +934,307 @@
             { "t": 0.62, "kind": "hud", "payload": { "element": "caption", "text": "Interlego AG v Tyco Industries Inc · [1988] UKPC 3 — der Fall, der die Zeichnungen beendete." } }
           ],
           "note": "The stretto begins on bar 53, which is t=0 of this shot, and the four entries at t=0, 0.25, 0.5, 0.75 are the plan's own voices [3,2,1,0] one bar apart. That is the point of the shot: the visual multiplication and the contrapuntal multiplication are the same event, so they are the same four timestamps rather than two things that happen to look alike. The field is one Mosaic of 3600 modules with every eighth row and column in a second grey -- a white plane is a plane, and a ruled one is a grid, which is the shot's own word for what the column becomes. Four voices lighting four quarters of it is what M71's binder does with a voiceEntry cue's target. OPEN: 'marching outward' is currently a dissolve, which is a 3D-noise threshold and reads as materialising rather than as marching. A radial reveal keyed off distance from the column would be the true image and wants a track kind that does not exist yet."
+        }
+      ]
+    },
+    {
+      "id": "act-4",
+      "title": "Der Token",
+      "romanNumeral": "IV",
+      "_note": "Bars 63-84. The plan's last three sections are here: a thirteen-bar episode on the countersubject tail from 63, the subject in the bass quantised to quarter length at 76, and a three-and-a-half-bar pedal from 80 into the final cadence at 83.5 — which is DER KICK. The pulse enters at 180 s and the final accent is at 238.571 s, which is exactly where the Kick's two beats begin, because `pulse.finalAccentAtSec` and a half-bar fixed shot at the end of a 240 s cut are the same instant by construction. Positions are in millimetres, +Y up; Act IV occupies 10000-11320 mm.",
+      "shots": [
+        {
+          "id": "A4-S01",
+          "title": "Der Inkpour",
+          "weight": 3,
+          "scaling": "stretch",
+          "durationBars": 5,
+          "minBars": 2,
+          "maxBars": 42,
+          "tier": 1,
+          "scenes": ["feld", "klemme"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 40,
+            "dolly": {
+              "from": [9000, 700, 1300],
+              "to": [9700, 380, 820],
+              "lookAt": [9200, 0, 0]
+            },
+            "motionBlur": 0.2
+          },
+          "tracks": [
+            {
+              "kind": "pointCloud",
+              "target": "feld/**",
+              "keys": [
+                { "t": 0.1, "value": 0, "easing": "linear" },
+                { "t": 0.75, "value": 1, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "pointCloud",
+              "target": "klemme/**",
+              "keys": [
+                { "t": 0.2, "value": 0, "easing": "linear" },
+                { "t": 0.85, "value": 1, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.24, "easing": "linear" },
+                { "t": 0.3, "value": 0.7, "easing": "cubicInOut" },
+                { "t": 1, "value": 0.9, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "bloomStrength",
+              "keys": [
+                { "t": 0, "value": 0.42, "easing": "linear" },
+                { "t": 1, "value": 0.6, "easing": "cubicInOut" }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.12, "kind": "marker", "payload": { "event": "pulseEnters" } }
+          ],
+          "note": "Everything on screen becomes its own swarm. The crossfade is the SAME mechanism A1-S03 used to make a swarm into a brick, run the other way — one pointCloud track per scene, staggered so the field goes before the column rather than with it. The pulse enters underneath at half time; `audio.pulse.enterAtSec` is 180 and this shot contains it. OPEN, and the same open item as A3-S04: the screenplay wants the monolith 'held in the background all along' dissolving here too. It stands at the origin, nine metres from this camera, and adding it to the scene list would load a bundle that renders nothing. It needs a near copy or the note needs retiring — and after three shots asking for it, a near copy is probably the answer."
+        },
+        {
+          "id": "A4-S01b",
+          "title": "Der letzte Stein",
+          "weight": 0,
+          "scaling": "fixed",
+          "durationBars": 2,
+          "tier": 1,
+          "scenes": ["letzterStein"],
+          "camera": {
+            "mode": "keyed",
+            "fovDeg": 28,
+            "keys": [
+              { "t": 0, "easing": "linear", "value": { "position": [10000, 22, 76], "lookAt": [10000, 5, 0] } },
+              { "t": 1, "easing": "linear", "value": { "position": [10000, 22, 76], "lookAt": [10000, 5, 0] } }
+            ]
+          },
+          "tracks": [
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.9, "easing": "linear" },
+                { "t": 1, "value": 0.9, "easing": "linear" }
+              ]
+            },
+            {
+              "kind": "pointCloud",
+              "target": "letzterStein/**",
+              "keys": [
+                { "t": 0.55, "value": 0, "easing": "linear" },
+                { "t": 1, "value": 1, "easing": "cubicIn" }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.05, "kind": "hud", "payload": { "element": "caption", "text": "Der letzte Stein." } }
+          ],
+          "note": "FIXED in every cut, like the Kick, and weight 0 — this shot is two bars at 4:00 and two bars at 60:00, because it is a held breath and a held breath does not scale. One brick, Terrakotta, alone in black, no camera move at all, going to points LAST of everything on screen. OPEN: the screenplay also asks for the colour to drain out of it before it goes. There is no colour track in this format — `material` can set opacity, roughness, metalness, emissiveIntensity, transmission and edgeOpacity, and none of those is hue — so the going-to-points carries the whole shot today. A drain would want either a per-scene tint uniform or a second bundle in grey to cross-dissolve to."
+        },
+        {
+          "id": "A4-S02",
+          "title": "Das Feld formt sich",
+          "weight": 4,
+          "scaling": "stretch",
+          "durationBars": 6,
+          "minBars": 2,
+          "maxBars": 50,
+          "tier": 1,
+          "scenes": ["gitter"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 38,
+            "dolly": {
+              "from": [10000, 22, 76],
+              "to": [11060, 520, 980],
+              "lookAt": [11060, 0, 4]
+            },
+            "motionBlur": 0.16
+          },
+          "tracks": [
+            {
+              "kind": "pointCloud",
+              "target": "gitter/**",
+              "keys": [
+                { "t": 0, "value": 1, "easing": "linear" },
+                { "t": 0.7, "value": 0, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.9, "easing": "linear" },
+                { "t": 1, "value": 0.6, "easing": "cubicInOut" }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.78, "kind": "hud", "payload": { "element": "caption", "text": "1 921 Module · 289 Knoten · ein Stücklistenverzeichnis" } }
+          ],
+          "note": "The points reorganise into a lattice, and the shot's whole job is to make 'neuronales Netz' and 'Noppenraster' the same picture — so it is rendered as an INVENTORY, counted, and not as science fiction. The caption is the recipe's own two numbers. The crossfade runs points-to-mesh, which is A1-S03's direction again: the piece's two legibility events are the first brick and the last field, and they are the same shot."
+        },
+        {
+          "id": "A4-S03",
+          "title": "Tokens",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 50,
+          "tier": 1,
+          "scenes": ["gitter"],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 34,
+            "dolly": {
+              "from": [11060, 520, 980],
+              "to": [11330, 300, 560],
+              "lookAt": [11060, 0, 4]
+            },
+            "motionBlur": 0.1
+          },
+          "tracks": [
+            {
+              "kind": "post",
+              "property": "bloomStrength",
+              "keys": [
+                { "t": 0, "value": 0.6, "easing": "linear" },
+                { "t": 0.25, "value": 1.1, "easing": "cubicOut" },
+                { "t": 0.4, "value": 0.6, "easing": "cubicInOut" },
+                { "t": 0.6, "value": 1.1, "easing": "cubicOut" },
+                { "t": 0.75, "value": 0.6, "easing": "cubicInOut" },
+                { "t": 0.9, "value": 1.1, "easing": "cubicOut" },
+                { "t": 1, "value": 0.7, "easing": "cubicInOut" }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 0.3, "kind": "hud", "payload": { "element": "caption", "text": "2017 — das Jahr, in dem das Modul die einzige Einheit wurde." } },
+            {
+              "t": 0,
+              "kind": "audio",
+              "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "diminution", "target": { "scene": "gitter" } }
+            }
+          ],
+          "note": "The fugue's subject is in the bass here, quantised to a quarter of its length — same intervals, different century — and `audio.plan` puts that entry at bar 76, which is where this shot sits. No paper title on screen: it would date the day it renders, and subword tokenisation predates that paper anyway. OPEN: the screenplay asks for a glyph emitted by each node, travelling an edge, and absorbed. Nothing in this format can move a thing along an edge — there is no per-node emitter and no path — so what carries the shot today is three bloom pulses on the beat over the whole lattice. That is an accent, not a token, and it should be replaced rather than defended: the honest fix is a small emitter track kind that takes a target glob and a path, which does not exist."
+        },
+        {
+          "id": "A4-S04",
+          "title": "Sättigung",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 3.5,
+          "minBars": 1.5,
+          "maxBars": 20,
+          "tier": 1,
+          "scenes": ["gitter"],
+          "camera": {
+            "mode": "keyed",
+            "fovDeg": 34,
+            "keys": [
+              { "t": 0, "easing": "linear", "value": { "position": [11330, 300, 560], "lookAt": [11060, 0, 4] } },
+              { "t": 1, "easing": "linear", "value": { "position": [11330, 300, 560], "lookAt": [11060, 0, 4] } }
+            ]
+          },
+          "tracks": [
+            {
+              "kind": "post",
+              "property": "bloomStrength",
+              "keys": [
+                { "t": 0, "value": 0.7, "easing": "linear" },
+                { "t": 1, "value": 1.45, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.6, "easing": "linear" },
+                { "t": 1, "value": 0.95, "easing": "cubicInOut" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "vignette",
+              "keys": [
+                { "t": 0, "value": 0.35, "easing": "linear" },
+                { "t": 1, "value": 0.1, "easing": "cubicInOut" }
+              ]
+            }
+          ],
+          "cues": [],
+          "note": "The camera stops moving, and it is the only shot in the piece where that is the point rather than a consequence: everything else in Act IV is a move, so stillness under a rising bloom reads as saturation rather than as a pause. A pedal point in the bass under all four voices — `audio.plan` has it at bar 80 for three and a half bars, which is this shot exactly. The vignette opens as the bloom rises, so the frame gets brighter at the edges as well as the centre; that is what keeps it from reading as a spotlight."
+        },
+        {
+          "id": "A4-KICK",
+          "title": "Der Kick",
+          "weight": 0,
+          "scaling": "fixed",
+          "durationBars": 0.5,
+          "tier": 1,
+          "scenes": ["gitter"],
+          "camera": {
+            "mode": "exponentialZoom",
+            "fovDeg": 34,
+            "exponentialZoom": {
+              "from": 690,
+              "to": 6900000,
+              "lookAt": [11060, 0, 4]
+            },
+            "motionBlur": 0.9
+          },
+          "tracks": [
+            {
+              "kind": "post",
+              "property": "bloomStrength",
+              "keys": [
+                { "t": 0, "value": 1.45, "easing": "linear" },
+                { "t": 0.8, "value": 0.2, "easing": "cubicIn" },
+                { "t": 1, "value": 0, "easing": "linear" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.95, "easing": "linear" },
+                { "t": 1, "value": 0.7, "easing": "cubicIn" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "vignette",
+              "keys": [
+                { "t": 0, "value": 0.1, "easing": "linear" },
+                { "t": 1, "value": 0.55, "easing": "cubicIn" }
+              ]
+            },
+            {
+              "kind": "hud",
+              "element": "seed-point",
+              "keys": [
+                { "t": 0, "value": 0, "easing": "step" },
+                { "t": 0.82, "value": 0, "easing": "step" },
+                { "t": 0.86, "value": 0.55, "easing": "step" }
+              ]
+            }
+          ],
+          "cues": [
+            { "t": 1, "kind": "marker", "payload": { "event": "KICK" } }
+          ],
+          "note": "Two beats, 1.429 s, `fixed` in every cut — 800 ms would be neither one beat nor two and could not be frame-exact against its own accent, and at 10000x zoom it is a flash where the collapse should be SEEN collapsing. The distance runs 690 mm to 6900 m, which is the screenplay's 10^4 stated as the two numbers rather than as a factor. The last thing on screen is the `seed-point` HUD element at 0.55, which is the value A1-S01's own track opens on: the closing frame is not a picture of the opening frame, it is the same element at the same value, so the loop closes on one device pixel rather than on one projected millimetre. `finalAccentAtSec` is 238.571 and a half-bar fixed shot at the end of a 240 s cut begins at 238.571 — the accent and the zoom are one event by construction and not by a number anybody typed twice."
         }
       ]
     }

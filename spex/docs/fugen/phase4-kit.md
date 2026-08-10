@@ -80,7 +80,7 @@ pub struct Pyramid  { pub base_studs: u32, pub color: u32, pub stepped: bool }
 pub struct Dome     { pub radius_studs: u32, pub color: u32 }   // corbelled approximation, documented as such
 pub struct Trilithon{ pub post_height_plates: u32, pub gap_studs: u32, pub color: u32 }
 pub struct Colonnade{ pub columns: u32, pub spacing_studs: u32, pub column: Column, pub architrave: bool }
-pub struct Mosaic   { pub cells: Vec<Vec<u32>>, pub tile_part: String }  // color codes per cell
+pub struct Mosaic   { pub cells: Vec<Vec<Option<u32>>>, pub tile_part: String }  // color per cell; None = a real hole (lattice)
 
 pub trait Primitive {
     /// Emits real placements at the given grid origin/orientation.

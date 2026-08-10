@@ -35,31 +35,39 @@ mkdirSync(outDir, { recursive: true });
 /** One frame per authored moment, at the seconds the 4:00 cut puts them at.
  *
  * These are timestamps into the canonical 240 s resolution and they move
- * whenever `baseDurationBars` does — Act II pushed it from 17 to 37 and
- * Act III from 37 to 57, and each time every number below changed. That is
+ * whenever `baseDurationBars` does — Act II pushed it from 17 to 37, Act III
+ * to 57 and Act IV to 84, and each time every number below changed. That is
  * the cost of documenting a piece by wall-clock second rather than by bar,
  * and it is paid here rather than in the document, which stays in bars.
  */
 const MARKS = [
   ['a1s01-point', 2.8],
-  ['a1s02-swarm', 8],
-  ['a1s03-crossfade', 20],
-  ['a1s04-assembly', 40],
-  ['a1s05-monolith', 65],
-  ['a1s06-stonehenge', 82],
-  ['a2s01-uruk', 96],
-  ['a2s02-bulla', 108],
-  ['a2s03-tokens', 120],
-  ['a2s04-sardis', 137],
-  ['a2s05-face', 150],
-  ['a3s01-rom-weit', 168],
-  ['a3s01-stempel', 177],
-  ['a3s02-batima', 184],
-  ['a3s03-kiddicraft', 199],
-  ['a3s04-saeule', 210],
-  ['a3s04-senkt', 214],
-  ['a3s04-klemme', 218],
-  ['a3s05-feld', 236],
+  ['a1s02-swarm', 10],
+  ['a1s03-crossfade', 24],
+  ['a1s04-assembly', 38],
+  ['a1s05-monolith', 55],
+  ['a1s06-stonehenge', 72],
+  ['a2s01-uruk', 80],
+  ['a2s02-bulla', 92],
+  ['a2s03-tokens', 103],
+  ['a2s04-sardis', 114],
+  ['a2s05-face', 123],
+  ['a3s01-rom-weit', 129],
+  ['a3s01-stempel', 135],
+  ['a3s02-batima', 140],
+  ['a3s03-kiddicraft', 152],
+  ['a3s04-saeule', 160],
+  ['a3s04-klemme', 167],
+  ['a3s05-feld', 180],
+  ['a4s01-inkpour', 192],
+  ['a4s01b-letzterstein', 197.5],
+  ['a4s02-punkte', 205],
+  ['a4s02-gitter', 218],
+  ['a4s03-tokens', 226],
+  ['a4s04-saettigung', 237],
+  ['a4kick-mitte', 239.3],
+  ['a4kick-ende', 239.95],
+  ['loop-erster', 0.05],
 ];
 
 const browser = await chromium.launch();
