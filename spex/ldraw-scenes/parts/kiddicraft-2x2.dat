@@ -28,9 +28,14 @@
 0 // cut, 13 deep. It takes the guillotine windows and the card inserts, which
 0 // is what the slots are FOR.
 0 //
-0 // BOTH BRICKS ARE HOLLOW AND HAVE NO TUBE. The tube inside a brick is the
-0 // 1958 patent; a Self-Locking brick and an Automatic Binding Brick grip by
-0 // their studs against the walls alone, which is why they held so badly.
+0 // BOTH BRICKS ARE HOLLOW AND HAVE NO TUBE, and that is Page's own sentence
+0 // rather than an inference. GB 529580, "Improvements in toy building blocks",
+0 // H. F. Page, filed 17 April 1939: a hollow cube with "four circular bosses on
+0 // its upper face, so that the walls of a superimposed block will contact the
+0 // bosses tangentially so preventing lateral movement" - and, on the material,
+0 // "conveniently moulded from synthetic resin or other plastic". The grip is
+0 // studs against walls, which is also why they held so badly. The tube inside a
+0 // brick is the 1958 patent.
 0 // `ldraw-scenes/klemme.ldr` is the real 3003 with its tubes, and that shot
 0 // is the difference.
 0 //
