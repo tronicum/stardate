@@ -1,25 +1,32 @@
 0 Kiddicraft Self-Locking Building Brick, 2 x 2 - the second brick (A3-S03)
 0 Name: kiddicraft.ldr
 0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
-0 // Places `parts/brick-2x2-tubeless.dat`, which sits beside this file and is
-0 // NOT an official LDraw part. See that file's own header for the whole
-0 // derivation: 3003.dat and its two subparts, flattened, with the single
-0 // interior `stud4.dat` line removed.
+0 // Places `parts/kiddicraft-2x2.dat`, which sits beside this file and is NOT
+0 // an official LDraw part. See that file's own header: it is modelled, not
+0 // derived, and it carries Page's two locating features - mildly rounded
+0 // vertical edges and bobbled stud tops - because the Brighton Toy and Model
+0 // Index names exactly those two as what tells a Kiddicraft brick apart.
 0 //
 0 // The tube inside a brick is the 1958 patent. A Kiddicraft Self-Locking
 0 // brick and a 1949 Automatic Binding Brick are hollow underneath - the grip
 0 // came from the studs against the walls, which is why they held so badly.
-0 // Building these three out of a modern 3001/3003 would put a 1958 feature
-0 // under a pre-1958 caption, which is exactly the claim this act makes.
+0 // Building these out of a modern 3001/3003 would put a 1958 feature under a
+0 // pre-1958 caption, which is exactly the claim this act makes.
 0 //
-0 // Colour 15 for all three: they ARE the same object, and that is the whole
-0 // content of Interlego v Tyco. Three colours would be an editorial claim
-0 // the act spends three shots arguing against.
+0 // THE THREE SHOTS USED TO SHARE ONE PART, on the argument that the bricks
+0 // ARE the same object and three shapes would be an editorial claim. They are
+0 // the same object in the sense Interlego v Tyco is about - the system, the
+0 // dimensions, the slots - and they are NOT the same shape: 1949 dropped the
+0 // rounded edge and flattened the stud. A3-S04 now shows `abb-2x2.dat`, and
+0 // showing the difference is a better way of showing the sameness than
+0 // asserting it with one mesh.
+0 //
+0 // Colour 15 for both, unchanged: the colour is not where the argument is.
 0 //
 0 // 2 x 2, because that is the classic Kiddicraft size. The Brighton Toy
 0 // Museum shows both 2 x 2 and 2 x 4, so size is not what identifies them -
-0 // the end slots are, and those are still missing (noted in the part file).
+0 // the slots and the two locating features are, and all three are here now.
 0 //
 0 // Brick height 24 LDU, origin at the footprint centre, LDraw +Y down: a
 0 // brick standing on the ground plane is translated to y = -24.
-1 15 20120 -24 0 1 0 0 0 1 0 0 0 1 brick-2x2-tubeless.dat
+1 15 20120 -24 0 1 0 0 0 1 0 0 0 1 kiddicraft-2x2.dat

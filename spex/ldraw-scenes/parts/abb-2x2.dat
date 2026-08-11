@@ -1,0 +1,97 @@
+0 ~Automatic Binding Brick 2 x 2, 1949 - the copy, with two things missing
+0 Name: abb-2x2.dat
+0 Author: spex project (hand-modelled; see below)
+0 !LDRAW_ORG Unofficial_Part
+0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt
+0 // THIS FILE EXISTS BECAUSE THE COPY WAS NOT IDENTICAL, and finding that out
+0 // made the act better rather than worse.
+0 //
+0 // The Brighton Toy and Model Index on the 1949 brick: "Like the Page bricks,
+0 // the first Lego bricks had slotted ends with a tapered slot, and their
+0 // dimensions were pretty much indistinguishable from Page's - they were quite
+0 // clearly copies." And then, in the same breath: Lego dropped Page's rounded
+0 // vertical edges and flattened the stud tops, which "some years later" became
+0 // the space for the logo.
+0 //
+0 // So the two features the copy left behind are exactly the two that were
+0 // about the HAND - the rounded edge and the bobbled stud are what make a
+0 // brick findable by feel - and everything that was about the SYSTEM was kept
+0 // to the millimetre. This brick is `kiddicraft-2x2.dat` with sharp corners
+0 // and `stud.dat`, and it is identical in every other number, because that is
+0 // what the sentence says.
+0 //
+0 // Until now A3-S03 and A3-S04 showed one part twice under two captions, on
+0 // the argument that they ARE the same object. They are the same object in
+0 // the sense Interlego v Tyco is about, and they are not the same shape, and
+0 // showing the second is a better way of showing the first.
+0 //
+0 // BOTH BRICKS ARE HOLLOW AND HAVE NO TUBE. The tube inside a brick is the
+0 // 1958 patent; a Self-Locking brick and an Automatic Binding Brick grip by
+0 // their studs against the walls alone, which is why they held so badly.
+0 // `ldraw-scenes/klemme.ldr` is the real 3003 with its tubes, and that shot
+0 // is the difference.
+0 //
+0 // Brick 2 x 2: 40 x 40 x 24 LDU, origin at the footprint centre and at the
+0 // TOP of the part, LDraw +Y down - a brick on the ground plane is translated
+0 // to y = -24. No `BFC CERTIFY`: the walls are single-sided quads and the
+0 // renderer draws them from both faces.
+0 //
+0 // Generated geometry, not a flattened 3003.dat. The previous version of this
+0 // file WAS a flattened 3003 with the one interior tube line deleted, which
+0 // made both pre-1958 bricks a modern LEGO brick with a hole in it - the exact
+0 // claim the act spends three shots arguing against.
+
+0 BFC INVERTNEXT
+1 16 0 24 0 16 0 0 0 -20 0 0 0 16 box5.dat
+
+0 // top face (y=0)
+4 16 -20 0 -20 20 0 -20 20 0 20 -20 0 20
+
+0 // sharp vertical edges: four hard lines, and no fillet at all
+2 24 20 0 20 20 24 20
+2 24 20 0 -20 20 24 -20
+2 24 -20 0 20 -20 24 20
+2 24 -20 0 -20 -20 24 -20
+
+0 // the four walls, each with its tapered end slot: 6 LDU across at the
+0 // open end, 4 at the top of the cut, 13 deep.
+4 16 -20 24 -20 -3 24 -20 -3 0 -20 -20 0 -20
+4 16 3 24 -20 20 24 -20 20 0 -20 3 0 -20
+4 16 -3 11 -20 3 11 -20 3 0 -20 -3 0 -20
+3 16 -3 11 -20 -3 24 -20 -2 11 -20
+3 16 3 11 -20 2 11 -20 3 24 -20
+2 24 -20 0 -20 20 0 -20
+2 24 -20 24 -20 20 24 -20
+4 16 -20 0 -20 -20 0 -3 -20 24 -3 -20 24 -20
+4 16 -20 0 3 -20 0 20 -20 24 20 -20 24 3
+4 16 -20 0 -3 -20 0 3 -20 11 3 -20 11 -3
+3 16 -20 11 -2 -20 24 -3 -20 11 -3
+3 16 -20 24 3 -20 11 2 -20 11 3
+2 24 -20 0 -20 -20 0 20
+2 24 -20 24 -20 -20 24 20
+4 16 -20 0 20 -3 0 20 -3 24 20 -20 24 20
+4 16 3 0 20 20 0 20 20 24 20 3 24 20
+4 16 -3 0 20 3 0 20 3 11 20 -3 11 20
+3 16 -2 11 20 -3 24 20 -3 11 20
+3 16 3 24 20 2 11 20 3 11 20
+2 24 -20 0 20 20 0 20
+2 24 -20 24 20 20 24 20
+4 16 20 24 -20 20 24 -3 20 0 -3 20 0 -20
+4 16 20 24 3 20 24 20 20 0 20 20 0 3
+4 16 20 11 -3 20 11 3 20 0 3 20 0 -3
+3 16 20 11 -3 20 24 -3 20 11 -2
+3 16 20 11 3 20 11 2 20 24 3
+2 24 20 0 -20 20 0 20
+2 24 20 24 -20 20 24 20
+
+0 // bottom rim (y=24), tiled to match the top minus the cavity
+4 16 -20 24 -16 20 24 -16 20 24 -20 -20 24 -20
+4 16 -20 24 20 20 24 20 20 24 16 -20 24 16
+4 16 -20 24 16 -16 24 16 -16 24 -16 -20 24 -16
+4 16 16 24 16 20 24 16 20 24 -16 16 24 -16
+
+0 // the studs
+1 16 -10 0 -10 1 0 0 0 1 0 0 0 1 stud.dat
+1 16 -10 0 10 1 0 0 0 1 0 0 0 1 stud.dat
+1 16 10 0 -10 1 0 0 0 1 0 0 0 1 stud.dat
+1 16 10 0 10 1 0 0 0 1 0 0 0 1 stud.dat

@@ -1,0 +1,34 @@
+0 ~Stud with a Bobbled Top - Hilary Page's brick
+0 Name: kiddicraft-stud.dat
+0 Author: spex project (hand-modelled; see below)
+0 !LDRAW_ORG Unofficial_Primitive
+0 !LICENSE Licensed under CC BY 4.0 : see CAreadme.txt
+0 // `stud.dat` is a cylinder of radius 6 and height 4 with a FLAT disc on top.
+0 // Page's is not flat. The Brighton Toy and Model Index: "The Kiddicraft
+0 // bricks have mildly rounded vertical edges and BOBBLED TOPS to make it
+0 // easier to locate the bricks with their neighbours."
+0 //
+0 // So the top is a spherical cap, and its size is chosen rather than eyeballed:
+0 // base radius 6, rise 1.5 LDU (0.6 mm), which is the cap of a sphere of
+0 // radius (6^2 + 1.5^2) / (2 x 1.5) = 12.75. Sampling that sphere every half
+0 // LDU of rise gives radii 6.000, 4.950, 3.536, 0 - and the LDraw cone
+0 // primitives, whose radii are the integer pair (N, N+1) scaled by the matrix,
+0 // land on 6.0, 4.8, 3.6, 0 with `4-4con4` and `4-4con3` at scale 1.2 and
+0 // `4-4con0` at 3.6. Within a tenth of an LDU of the sphere at every band,
+0 // which is four hundredths of a millimetre on the real object.
+0 //
+0 // A bobble is not a dome for its own sake: a stud with a curved top finds the
+0 // hole in the brick above it as the two are pushed together, which is what
+0 // "easier to locate" means and why this is a feature and not a finish.
+0 //
+0 // LDraw +Y is down. The stud sits ON the brick's top face, so it grows in
+0 // NEGATIVE y: cylinder 0 to -4, cap -4 to -5.5.
+
+0 BFC CERTIFY CCW
+
+1 16 0 0 0 6 0 0 0 1 0 0 0 6 4-4edge.dat
+1 16 0 0 0 6 0 0 0 -4 0 0 0 6 4-4cyli.dat
+1 16 0 -4 0 6 0 0 0 1 0 0 0 6 4-4edge.dat
+1 16 0 -4 0 1.2 0 0 0 -0.5 0 0 0 1.2 4-4con4.dat
+1 16 0 -4.5 0 1.2 0 0 0 -0.5 0 0 0 1.2 4-4con3.dat
+1 16 0 -5 0 3.6 0 0 0 -0.5 0 0 0 3.6 4-4con0.dat

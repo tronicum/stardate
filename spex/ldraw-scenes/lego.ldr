@@ -1,25 +1,23 @@
 0 Automatic Binding Brick, 1949, 2 x 2 - the third brick (A3-S04)
 0 Name: lego.ldr
 0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
-0 // Places `parts/brick-2x2-tubeless.dat`, which sits beside this file and is
-0 // NOT an official LDraw part. See that file's own header for the whole
-0 // derivation: 3003.dat and its two subparts, flattened, with the single
-0 // interior `stud4.dat` line removed.
+0 // Places `parts/abb-2x2.dat` - the SAME brick as A3-S03's in every dimension
+0 // and in its tapered end slots, with sharp vertical edges and flat stud tops.
 0 //
-0 // The tube inside a brick is the 1958 patent. A Kiddicraft Self-Locking
-0 // brick and a 1949 Automatic Binding Brick are hollow underneath - the grip
-0 // came from the studs against the walls, which is why they held so badly.
-0 // Building these three out of a modern 3001/3003 would put a 1958 feature
-0 // under a pre-1958 caption, which is exactly the claim this act makes.
+0 // That is not a modelling shortcut, it is the finding. The Brighton Toy and
+0 // Model Index: "Like the Page bricks, the first Lego bricks had slotted ends
+0 // with a tapered slot, and their dimensions were pretty much indistinguishable
+0 // from Page's - they were quite clearly copies" - and Lego dropped the
+0 // rounded vertical edges and flattened the stud tops, which years later
+0 // became the space for the logo.
 0 //
-0 // Colour 15 for all three: they ARE the same object, and that is the whole
-0 // content of Interlego v Tyco. Three colours would be an editorial claim
-0 // the act spends three shots arguing against.
+0 // So the copy kept everything that was about the SYSTEM and left behind the
+0 // two things that were about the HAND. A macro of this brick beside a macro
+0 // of Page's is the whole of A3-S03 and A3-S04 without a caption having to
+0 // say it.
 0 //
-0 // 2 x 2, because that is the classic Kiddicraft size. The Brighton Toy
-0 // Museum shows both 2 x 2 and 2 x 4, so size is not what identifies them -
-0 // the end slots are, and those are still missing (noted in the part file).
+0 // Still hollow, still no tube: 1958 is the next shot.
 0 //
 0 // Brick height 24 LDU, origin at the footprint centre, LDraw +Y down: a
 0 // brick standing on the ground plane is translated to y = -24.
-1 15 20240 -24 0 1 0 0 0 1 0 0 0 1 brick-2x2-tubeless.dat
+1 15 20240 -24 0 1 0 0 0 1 0 0 0 1 abb-2x2.dat

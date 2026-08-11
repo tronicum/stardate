@@ -1,7 +1,8 @@
 0 Die Säule, 1949 - three tubeless bricks stacked, and it does not hold (A3-S04)
 0 Name: saeule.ldr
 0 Author: spex project (hand-authored placement data; not sourced from an official ldraw.org models/ release)
-0 // Three of `parts/brick-2x2-tubeless.dat`, stacked. This is the 1949 object:
+0 // Three of `parts/abb-2x2.dat`, stacked. This is the 1949 object:
+0 // sharp-cornered and flat-studded, where Page's was rounded and bobbled;
 0 // studs on top, hollow underneath, and nothing inside to grip them. The
 0 // column stands because it is stacked, not because it is clutched - which
 0 // is the whole reason the next shot exists.
@@ -12,6 +13,6 @@
 0 //
 0 // Stage position x = 20720 LDU (1036 studs). Brick 24 LDU tall, origin at
 0 // the footprint centre, LDraw +Y down.
-1 15 20720 -24 0 1 0 0 0 1 0 0 0 1 brick-2x2-tubeless.dat
-1 15 20720 -48 0 1 0 0 0 1 0 0 0 1 brick-2x2-tubeless.dat
-1 15 20720 -72 0 1 0 0 0 1 0 0 0 1 brick-2x2-tubeless.dat
+1 15 20720 -24 0 1 0 0 0 1 0 0 0 1 abb-2x2.dat
+1 15 20720 -48 0 1 0 0 0 1 0 0 0 1 abb-2x2.dat
+1 15 20720 -72 0 1 0 0 0 1 0 0 0 1 abb-2x2.dat
