@@ -685,7 +685,8 @@ export async function runShowViewer(
       applyPost(post, property, value);
     },
 
-    hud(element, value) {
+    hud(element, value, shot) {
+      hudOwner.set(element, shot.id);
       hud.setValue(element, value);
     },
 
@@ -795,6 +796,13 @@ export async function runShowViewer(
   };
 
   function resetSharedState() {
+    // The HUD goes with it. Same argument as the post chain's: A1-S05 raises a
+    // line and nothing at t=0 has any reason to mention it.
+    for (const element of hudOwner.keys()) {
+      hud.setValue(element, 0);
+      hud.setText(element, '');
+    }
+    hudOwner.clear();
     post.exposure = defaults.exposure;
     post.vignette = defaults.vignette;
     post.gradeStrength = defaults.gradeStrength;
@@ -851,7 +859,10 @@ export async function runShowViewer(
     switch (cue.kind) {
       case 'hud': {
         const element = typeof payload.element === 'string' ? payload.element : null;
-        if (element && typeof payload.text === 'string') hud.setText(element, payload.text);
+        if (element && typeof payload.text === 'string') {
+          hudOwner.set(element, cue.shotId);
+          hud.setText(element, payload.text);
+        }
         return;
       }
       case 'audio': {
@@ -936,6 +947,35 @@ export async function runShowViewer(
   let prevShowTime = 0;
 
   const activeSceneIds = new Set<string>();
+  /** Scratch for the HUD ownership sweep; reused, never reallocated. */
+  const activeShotIds = new Set<string>();
+  /** Which shot last addressed each HUD element, so the element can be taken
+   * down when that shot ends.
+   *
+   * A1-S05's `monolith-metrics` is why this exists. Its own track fades the
+   * line back out — 0 -> 1 -> 1 -> 0 across the shot — and the line was
+   * nevertheless on screen over Uruk, over the coin, over Rome and over both
+   * patents, right through to the last act. Two separate reasons, and each one
+   * alone is enough:
+   *
+   *   - A TRACK ONLY WRITES WHILE ITS OWN SHOT IS LIVE. The closing key is at
+   *     t=1 and the last frame inside the shot lands short of it, so playback
+   *     leaves the element at whatever that frame sampled — a fifth of the way
+   *     down the ramp, not zero — and nothing ever writes it again.
+   *   - A SEEK RE-APPLIES `hud` CUES BY KIND, because they are state. Seeking
+   *     to 1:43 re-runs A1-S05's text cue and does not re-run its track, since
+   *     that shot is not live at 1:43. The text comes back at full strength.
+   *
+   * This is the same defect `resetSharedState` was built for, one layer up, and
+   * it is invisible in exactly the way that argument predicts: nothing errors,
+   * every number is right, and a hairline of type sits over two thirds of the
+   * piece. Found by measuring the lower-right corner of all 27 documentation
+   * frames rather than by looking at them.
+   *
+   * Ownership rather than a blanket clear, because `seed-point` is legitimately
+   * addressed by three shots an act and a half apart and must keep what the
+   * last of them left. */
+  const hudOwner = new Map<string, string>();
 
   statusEl.style.display = 'none';
   const seekTo = (sec: number) => {
@@ -999,6 +1039,7 @@ export async function runShowViewer(
     );
   }
 
+
   function frame() {
     requestAnimationFrame(frame);
     const nowMs = performance.now();
@@ -1032,6 +1073,19 @@ export async function runShowViewer(
     timeline.fireCues(prevShowTime, t, fireCue);
     prevShowTime = t;
     timeline.evaluate(t, sinks);
+
+    // Take down any HUD element whose shot has ended. After `evaluate`, so a
+    // shot that is still live has already rewritten its own element this frame.
+    if (hudOwner.size) {
+      activeShotIds.clear();
+      for (const a of active) activeShotIds.add(a.shot.id);
+      for (const [element, shotId] of hudOwner) {
+        if (activeShotIds.has(shotId)) continue;
+        hud.setValue(element, 0);
+        hud.setText(element, '');
+        hudOwner.delete(element);
+      }
+    }
 
     // Generators run after the tracks, because a generator writes positions
     // and a transform track writes positions, and the shot that has both means
