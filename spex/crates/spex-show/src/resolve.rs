@@ -195,6 +195,8 @@ pub enum ResolvedTrack {
     Transform { target: TargetBinding, keys: Vec<ResolvedKey<TransformValue>> },
     Dissolve { target: TargetBinding, keys: Vec<ResolvedKey<f64>> },
     Material { target: TargetBinding, property: MaterialProperty, keys: Vec<ResolvedKey<f64>> },
+    /// Linear RGB. See `Track::Color`.
+    Color { target: TargetBinding, keys: Vec<ResolvedKey<[f64; 3]>> },
     Post { property: PostProperty, keys: Vec<ResolvedKey<f64>> },
     Hud { element: String, keys: Vec<ResolvedKey<f64>> },
     PointCloud { target: TargetBinding, keys: Vec<ResolvedKey<f64>> },
@@ -208,6 +210,7 @@ impl ResolvedTrack {
             ResolvedTrack::Transform { target, .. }
             | ResolvedTrack::Dissolve { target, .. }
             | ResolvedTrack::Material { target, .. }
+            | ResolvedTrack::Color { target, .. }
             | ResolvedTrack::PointCloud { target, .. } => Some(target),
             ResolvedTrack::Post { .. } | ResolvedTrack::Hud { .. } => None,
         }
@@ -571,6 +574,14 @@ fn absolutise(c: &Candidate, start: f64, bar: f64, beat: f64) -> ResolvedShot {
             .map(|k| ResolvedKey { time_sec: at(k.t, k.snap_to_beat), value: k.value, easing: k.easing })
             .collect()
     };
+    // The same three lines for a triple. A closure cannot be generic, and one
+    // generic helper would have to take `at` as a parameter — which is where
+    // this got interesting enough to be worth a comment rather than a rewrite.
+    let map_rgb_keys = |keys: &[Keyframe<[f64; 3]>]| -> Vec<ResolvedKey<[f64; 3]>> {
+        keys.iter()
+            .map(|k| ResolvedKey { time_sec: at(k.t, k.snap_to_beat), value: k.value, easing: k.easing })
+            .collect()
+    };
 
     let tracks = shot
         .tracks
@@ -595,6 +606,9 @@ fn absolutise(c: &Candidate, start: f64, bar: f64, beat: f64) -> ResolvedShot {
                 property: *property,
                 keys: map_keys(keys),
             },
+            Track::Color { target, keys } => {
+                ResolvedTrack::Color { target: TargetBinding::unbound(target), keys: map_rgb_keys(keys) }
+            }
             Track::Post { property, keys } => {
                 ResolvedTrack::Post { property: *property, keys: map_keys(keys) }
             }

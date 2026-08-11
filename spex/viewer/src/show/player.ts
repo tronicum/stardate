@@ -663,6 +663,24 @@ export async function runShowViewer(
       applyMaterial(b, property, value);
     },
 
+    color(target, value) {
+      const b = resolveTarget(target);
+      if (!b.scene) return;
+      for (const mi of b.materials) {
+        // `LinearSRGBColorSpace` spelled out, exactly as `materials.ts` binds
+        // `mesh.json`'s own colours — the document's numbers are already
+        // linear. Letting this default, or going through `set()`/`setStyle()`,
+        // would decode numbers that were never encoded and darken every brick
+        // by about 2.2.
+        (b.scene.materials.get(mi) as THREE.MeshPhysicalMaterial).color.setRGB(
+          value[0],
+          value[1],
+          value[2],
+          THREE.LinearSRGBColorSpace,
+        );
+      }
+    },
+
     post(property, value) {
       applyPost(post, property, value);
     },
@@ -767,6 +785,10 @@ export async function runShowViewer(
           emissiveIntensity: m.pbr.emissiveIntensity,
           transmission: m.pbr.transmission,
           transparent: mat.transparent,
+          // Read off the bound material rather than off `m.color`, so this is
+          // whatever `materials.ts` decided the brick's colour is — including
+          // any future adjustment there — and not a second opinion about it.
+          color: (mat as THREE.MeshPhysicalMaterial).color.clone(),
         };
       }),
     ),
@@ -791,6 +813,7 @@ export async function runShowViewer(
         mat.metalness = d.metalness;
         mat.emissiveIntensity = d.emissiveIntensity;
         mat.transmission = d.transmission;
+        (mat as THREE.MeshPhysicalMaterial).color.copy(d.color);
       });
       s.dissolve.set(s.writer, s.instanceIds, 0);
       // The generator is shot-scoped too: A1-S04's assembly must be rebuilt

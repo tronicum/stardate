@@ -704,7 +704,7 @@
               "property": "bloomStrength",
               "keys": [
                 { "t": 0, "value": 1.8, "easing": "step" },
-                { "t": 0.06, "value": 0.20, "easing": "cubicOut" }
+                { "t": 0.06, "value": 0.20, "easing": "cubicOut", "snapToBeat": true }
               ]
             },
             {
@@ -1114,8 +1114,16 @@
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.9, "easing": "linear" },
-                { "t": 1, "value": 0.9, "easing": "linear" }
+                { "t": 0, "value": 0.25, "easing": "linear" },
+                { "t": 1, "value": 0.25, "easing": "linear" }
+              ]
+            },
+            {
+              "kind": "color",
+              "target": "letzterStein/**",
+              "keys": [
+                { "t": 0, "value": [0.40197787, 0.2050787, 0.09084173], "easing": "linear" },
+                { "t": 0.6, "value": [0.238692, 0.238692, 0.238692], "easing": "cubicIn" }
               ]
             },
             {
@@ -1130,7 +1138,7 @@
           "cues": [
             { "t": 0.05, "kind": "hud", "payload": { "element": "caption", "text": "Der letzte Stein." } }
           ],
-          "note": "FIXED in every cut, like the Kick, and weight 0 — this shot is two bars at 4:00 and two bars at 60:00, because it is a held breath and a held breath does not scale. One brick, Terrakotta, alone in black, no camera move at all, going to points LAST of everything on screen. OPEN: the screenplay also asks for the colour to drain out of it before it goes. There is no colour track in this format — `material` can set opacity, roughness, metalness, emissiveIntensity, transmission and edgeOpacity, and none of those is hue — so the going-to-points carries the whole shot today. A drain would want either a per-scene tint uniform or a second bundle in grey to cross-dissolve to."
+          "note": "FIXED in every cut, like the Kick, and weight 0 — this shot is two bars at 4:00 and two bars at 60:00, because it is a held breath and a held breath does not scale. One brick, Terrakotta, alone in black, no camera move at all, going to points LAST of everything on screen. The colour drains first, over the opening 0.6, and only then does it go to points: 84 Medium_Nougat's own linear [0.402, 0.205, 0.091] to the GREY OF THE SAME LUMINANCE, 0.2387 — Rec. 709 weights on the same linear numbers. Draining to black would be the brick dying; draining to a grey of its own brightness is the brick keeping exactly the light it had and losing only what colour it was, which is what the screenplay asks for and is a thing that can be measured off a frame. This needed the `color` track, which the format did not have until it was the only way to shoot the shot as written."
         },
         {
           "id": "A4-S02",

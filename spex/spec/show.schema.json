@@ -83,11 +83,19 @@
         "beatsPerBar": { "type": "integer", "minimum": 1 }
       }
     },
+    "note": {
+      "description": "An authoring note the format carries and the model ignores. `recipes/*.json` have used `_note` since M72 for exactly this — the reasoning behind a decision, kept beside the decision instead of in a document nobody opens next to the data. It was already in this show and the schema simply had not been told, which is how three tests came to be red for two acts.",
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" } }
+      ]
+    },
     "sceneRef": {
       "type": "object",
       "required": ["id", "source", "prefix"],
       "additionalProperties": false,
       "properties": {
+        "_note": { "$ref": "#/$defs/note" },
         "id": { "type": "string", "minLength": 1 },
         "prefix": {
           "type": "string",
@@ -161,6 +169,7 @@
       "required": ["id", "title", "romanNumeral", "shots"],
       "additionalProperties": false,
       "properties": {
+        "_note": { "$ref": "#/$defs/note" },
         "id": { "type": "string", "minLength": 1 },
         "title": { "type": "string" },
         "romanNumeral": { "type": "string" },
@@ -266,6 +275,24 @@
         "value": { "type": "number" }
       }
     },
+    "colorKeyframe": {
+      "allOf": [{ "$ref": "#/$defs/keyframeCommon" }],
+      "type": "object",
+      "required": ["t", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "t": true,
+        "easing": true,
+        "snapToBeat": true,
+        "value": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "number", "minimum": 0, "maximum": 16 },
+          "description": "LINEAR RGB, on the same footing as mesh.json's own colours — not sRGB, and not 0..255. The ceiling is generous rather than 1.0 because an emissive brick is legitimately brighter than white; a component of 255 is an sRGB byte somebody forgot to divide."
+        }
+      }
+    },
     "transformKeyframe": {
       "allOf": [{ "$ref": "#/$defs/keyframeCommon" }],
       "type": "object",
@@ -350,6 +377,17 @@
             },
             "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKeyframe" } }
           }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "target", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "color" },
+            "target": { "type": "string" },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/colorKeyframe" } }
+          },
+          "description": "The one material property that is not a scalar, and therefore not a `material` track: every key there is one number. Addresses a MATERIAL, like `material` does, so it colours every instance drawing with that material rather than the instances the glob picked out."
         },
         {
           "type": "object",

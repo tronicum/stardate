@@ -158,6 +158,22 @@
         "easing": { "$ref": "#/$defs/easing" }
       }
     },
+    "colorKey": {
+      "type": "object",
+      "required": ["timeSec", "value", "easing"],
+      "additionalProperties": false,
+      "properties": {
+        "timeSec": { "$ref": "#/$defs/keyTime" },
+        "value": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "number", "minimum": 0, "maximum": 16 },
+          "description": "Linear RGB. See show.schema.json's colorKeyframe."
+        },
+        "easing": { "$ref": "#/$defs/easing" }
+      }
+    },
     "transformKey": {
       "type": "object",
       "required": ["timeSec", "value", "easing"],
@@ -258,6 +274,16 @@
             "target": { "$ref": "#/$defs/targetBinding" },
             "property": { "enum": ["opacity", "roughness", "metalness", "emissiveIntensity", "transmission", "edgeOpacity"] },
             "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKey" } }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["kind", "target", "keys"],
+          "additionalProperties": false,
+          "properties": {
+            "kind": { "const": "color" },
+            "target": { "$ref": "#/$defs/targetBinding" },
+            "keys": { "type": "array", "items": { "$ref": "#/$defs/colorKey" } }
           }
         },
         {

@@ -95,6 +95,9 @@ export type ResolvedTrack =
   | { kind: 'transform'; target: TargetBinding; keys: ResolvedKey<TransformValue>[] }
   | { kind: 'dissolve'; target: TargetBinding; keys: ResolvedKey<number>[] }
   | { kind: 'material'; target: TargetBinding; property: MaterialProperty; keys: ResolvedKey<number>[] }
+  /** Linear RGB, not sRGB — the same numbers `mesh.json` already carries, on
+   * the same footing. See `Track::Color` in `crates/spex-show/src/model.rs`. */
+  | { kind: 'color'; target: TargetBinding; keys: ResolvedKey<Vec3>[] }
   | { kind: 'post'; property: PostProperty; keys: ResolvedKey<number>[] }
   | { kind: 'hud'; element: string; keys: ResolvedKey<number>[] }
   | { kind: 'pointCloud'; target: TargetBinding; keys: ResolvedKey<number>[] };

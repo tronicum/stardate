@@ -41,6 +41,7 @@ import type {
   ResolvedTrack,
   TargetBinding,
   TransformValue,
+  Vec3,
 } from './resolved';
 
 /** The transform state of one target at one instant. Reused between calls. */
@@ -71,6 +72,9 @@ export interface TrackSinks {
   transform?(target: TargetBinding, value: Readonly<TransformOut>, shot: ResolvedShot): void;
   dissolve?(target: TargetBinding, value: number, shot: ResolvedShot): void;
   material?(target: TargetBinding, property: MaterialProperty, value: number, shot: ResolvedShot): void;
+  /** Linear RGB. The array is scratch and is reused every frame — a sink that
+   * keeps it must copy it, exactly like the camera's. */
+  color?(target: TargetBinding, value: Readonly<Vec3>, shot: ResolvedShot): void;
   post?(property: PostProperty, value: number, shot: ResolvedShot): void;
   hud?(element: string, value: number, shot: ResolvedShot): void;
   pointCloud?(target: TargetBinding, value: number, shot: ResolvedShot): void;
@@ -104,6 +108,7 @@ export class Timeline {
     scale: 1,
     hasScale: false,
   };
+  private readonly colorOut: Vec3 = [0, 0, 0];
   private readonly cameraOut: CameraOut = {
     position: [0, 0, 0],
     hasPosition: false,
@@ -221,6 +226,11 @@ export class Timeline {
         sinks.material(track.target, track.property, this.sampleNumber(track.keys, t), shot);
         return;
       }
+      case 'color': {
+        if (!sinks.color) return;
+        sinks.color(track.target, this.sampleColor(track.keys, t), shot);
+        return;
+      }
       case 'post': {
         if (!sinks.post) return;
         sinks.post(track.property, this.sampleNumber(track.keys, t), shot);
@@ -272,6 +282,38 @@ export class Timeline {
     const i = this.leftIndex(keys, t);
     const u = this.segment(keys, i, t);
     return keys[i].value + (keys[i + 1].value - keys[i].value) * u;
+  }
+
+  /** Linear-RGB lerp between the surrounding keys, into reused scratch.
+   *
+   * Component-wise, which is a decision and not the only one available: a lerp
+   * in linear RGB is a lerp in radiance, and draining a colour IS the light
+   * going away. Interpolating in sRGB or through a perceptual space would
+   * take the same two endpoints along a different set of intermediate
+   * colours, for no reason this piece can state. */
+  sampleColor(keys: readonly ResolvedKey<Vec3>[], t: number): Readonly<Vec3> {
+    const out = this.colorOut;
+    if (keys.length === 0) {
+      out[0] = out[1] = out[2] = 0;
+      return out;
+    }
+    const first = keys[0];
+    const last = keys[keys.length - 1];
+    const pick = t <= first.timeSec ? first.value : t >= last.timeSec ? last.value : null;
+    if (pick) {
+      out[0] = pick[0];
+      out[1] = pick[1];
+      out[2] = pick[2];
+      return out;
+    }
+    const i = this.leftIndex(keys, t);
+    const u = this.segment(keys, i, t);
+    const a = keys[i].value;
+    const b = keys[i + 1].value;
+    out[0] = a[0] + (b[0] - a[0]) * u;
+    out[1] = a[1] + (b[1] - a[1]) * u;
+    out[2] = a[2] + (b[2] - a[2]) * u;
+    return out;
   }
 
   /** Fills `transformOut`. Each component is independent: a track may key

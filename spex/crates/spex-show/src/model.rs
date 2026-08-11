@@ -321,6 +321,32 @@ pub enum Track {
     Transform { target: String, keys: Vec<Keyframe<TransformValue>> },
     Dissolve { target: String, keys: Vec<Keyframe<f64>> },
     Material { target: String, property: MaterialProperty, keys: Vec<Keyframe<f64>> },
+    /// The one material property that is not a scalar, and therefore not a
+    /// `MaterialProperty`.
+    ///
+    /// A3's screenplay asks for this in as many words, twice: A4-S01 drains
+    /// terracotta and stone-grey *from the palette*, and A4-S01b holds one
+    /// brick still "while the colour drains out of it". Until now the format
+    /// could animate how rough a brick was, how transparent, how much light it
+    /// gave off — and not what colour it was, which is the one thing those two
+    /// shots are about. `material` could not carry it: every key there is one
+    /// `f64`, and widening that to a value type would change every existing
+    /// track's shape to express one new one.
+    ///
+    /// **Linear RGB, not sRGB**, on exactly the same footing as `mesh.json`'s
+    /// own colours — the manifest's numbers are already linear and `materials.ts`
+    /// binds them without converting. A ramp between two linear colours is a
+    /// ramp in radiance, which is what draining is: the light the brick sends
+    /// back goes away. Interpolating the sRGB encodings instead would bend the
+    /// same journey through a different set of intermediate colours for no
+    /// physical reason.
+    ///
+    /// It addresses a *material*, like `material` does, and so it colours every
+    /// instance that draws with that material — not the instances the glob
+    /// picked out. That is the existing limitation of every material track and
+    /// this one does not escape it: a scene wanting two colours out of one part
+    /// needs two materials, which is what a colour is in a brick anyway.
+    Color { target: String, keys: Vec<Keyframe<[f64; 3]>> },
     Post { property: PostProperty, keys: Vec<Keyframe<f64>> },
     Hud { element: String, keys: Vec<Keyframe<f64>> },
     /// The mesh↔point crossfade. A1-S03 is the centre of the whole piece and
@@ -520,6 +546,24 @@ fn keys_ordered<T>(where_: &str, keys: &[Keyframe<T>]) -> Vec<String> {
 fn track_errors(where_: &str, track: &Track) -> Vec<String> {
     match track {
         Track::Transform { keys, .. } => keys_ordered(where_, keys),
+        Track::Color { keys, .. } => {
+            let mut errs = keys_ordered(where_, keys);
+            // A negative or wildly out-of-range linear component is not a
+            // colour, it is a typo — most likely an sRGB byte that was never
+            // divided by 255. Above 1 is legal and useful (an emissive brick
+            // is brighter than white), so the ceiling is generous rather than
+            // 1.0; 255.0 is not a colour by any reading.
+            for (i, k) in keys.iter().enumerate() {
+                for (c, v) in k.value.iter().enumerate() {
+                    if !v.is_finite() || *v < 0.0 || *v > 16.0 {
+                        errs.push(format!(
+                            "{where_}: key {i} component {c} is {v} — colours here are LINEAR RGB, roughly 0..1"
+                        ));
+                    }
+                }
+            }
+            errs
+        }
         Track::Dissolve { keys, .. }
         | Track::Material { keys, .. }
         | Track::Post { keys, .. }

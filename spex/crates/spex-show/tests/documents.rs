@@ -152,36 +152,58 @@ fn a_minimal_resolved_document_validates() {
 }
 
 #[test]
-fn the_real_act_one_document_satisfies_the_schema_and_the_model() {
+fn the_real_document_satisfies_the_schema_and_the_model() {
     let path = repo_root().join("shows/die-geschichtliche-matrix.show.json");
-    let text = std::fs::read_to_string(&path).expect("reading the Act I document");
+    let text = std::fs::read_to_string(&path).expect("reading the piece");
     let doc: serde_json::Value = serde_json::from_str(&text).expect("the document is not valid JSON");
     assert_valid(&schema(), &doc, "shows/die-geschichtliche-matrix.show.json");
 
-    let show = spex_show::from_str(&text).expect("the model rejects the Act I document");
+    let show = spex_show::from_str(&text).expect("the model rejects the document");
     assert_eq!(show.archive_signature, "IA-2026-002");
-    assert_eq!(show.movements.len(), 1);
-    assert_eq!(show.movements[0].shots.len(), 6);
+    // Four movements, and the shot counts the screenplay's own table gives.
+    // Asserted per movement rather than as a total, because a shot moving
+    // between acts is exactly the mistake a total would not notice.
+    let shots: Vec<usize> = show.movements.iter().map(|m| m.shots.len()).collect();
+    assert_eq!(shots, vec![6, 5, 6, 6], "shots per movement");
 }
 
-/// The screenplay says Act I is bars 0..17 and ends at 0:48.571. If the
-/// document's own shots do not add up to that, one of the two is wrong — and
-/// silently disagreeing with the screenplay is the failure this whole format
-/// exists to prevent.
+/// The screenplay gives every act a bar count, and the whole piece 84 bars =
+/// 240.000 s. If the document's own shots do not add up to that, one of the
+/// two is wrong — and silently disagreeing with the screenplay is the failure
+/// this whole format exists to prevent.
+///
+/// **This test asserted 17 for two acts.** It was written when the document
+/// was Act I alone, and from the moment Act II landed it failed on a number
+/// that was not wrong — which is worse than useless, because three tests being
+/// red is three tests nobody reads, and the two beside it were catching real
+/// things the whole time. The numbers below are per act and are the
+/// screenplay's, so the next act to land fails this on purpose, once, and in
+/// the one place where the two documents are meant to be compared.
 #[test]
-fn act_one_is_seventeen_bars_and_ends_where_the_screenplay_says() {
+fn every_act_is_as_long_as_the_screenplay_says_and_they_sum_to_two_forty() {
     let path = repo_root().join("shows/die-geschichtliche-matrix.show.json");
     let show = spex_show::load(&path).unwrap();
 
-    let bars = show.movements[0].duration_bars();
-    assert_eq!(bars, 17.0, "Act I should be 17 bars");
-    assert_eq!(bars, show.base_duration_bars, "baseDurationBars should be what the document actually contains");
+    let bars: Vec<f64> = show.movements.iter().map(|m| m.duration_bars()).collect();
+    assert_eq!(bars, vec![17.0, 20.0, 20.0, 21.0], "bars per act");
 
-    // 17 x 20/7 = 48.571428...
+    // 78 authored, 84 declared. THE SIX-BAR GAP IS THE ATLAS (bars 57-63),
+    // which depends on M73/M74/M75 and is not built — so the resolver
+    // water-fills those six bars across the stretch shots that do exist. The
+    // gap is asserted rather than tolerated: it is the one place in the
+    // repository where "a movement of this piece does not exist yet" is a
+    // number, and the day the Atlas lands this fails and says so.
+    let total: f64 = bars.iter().sum();
+    assert_eq!(total, 78.0, "authored bars");
+    assert_eq!(show.base_duration_bars, 84.0, "declared bars");
+    assert_eq!(show.base_duration_bars - total, 6.0, "the unbuilt ATLAS, bars 57-63");
+
+    // 84 x 20/7 is exactly 240, and nothing else nearby is.
     let end = show.base_duration_sec();
-    assert!((end - 340.0 / 7.0).abs() < 1e-9, "Act I ends at {end}, not 48.571…");
+    assert!((end - 240.0).abs() < 1e-9, "the piece ends at {end}, not 240.000");
 
-    // The screenplay's per-shot bar counts, in order.
+    // Act I's per-shot bar counts, in order — the one act whose shape the
+    // screenplay states shot by shot rather than in a table.
     let got: Vec<f64> = show.movements[0].shots.iter().map(|s| s.duration_bars).collect();
     assert_eq!(got, vec![2.0, 2.0, 3.0, 4.0, 3.0, 3.0]);
 }
@@ -207,6 +229,7 @@ fn every_track_target_names_a_real_scene_prefix_and_can_reach_an_instance() {
             spex_show::Track::Transform { target, .. }
             | spex_show::Track::Dissolve { target, .. }
             | spex_show::Track::Material { target, .. }
+            | spex_show::Track::Color { target, .. }
             | spex_show::Track::PointCloud { target, .. } => Some(target.clone()),
             // A post or HUD track addresses the frame, not the geometry.
             spex_show::Track::Post { .. } | spex_show::Track::Hud { .. } => None,
@@ -280,6 +303,7 @@ fn keys_authored_at_the_same_moment_resolve_to_the_same_moment() {
     let key_times = |t: &spex_show::ResolvedTrack| -> Vec<f64> {
         match t {
             spex_show::ResolvedTrack::Transform { keys, .. } => keys.iter().map(|k| k.time_sec).collect(),
+            spex_show::ResolvedTrack::Color { keys, .. } => keys.iter().map(|k| k.time_sec).collect(),
             spex_show::ResolvedTrack::Dissolve { keys, .. }
             | spex_show::ResolvedTrack::Material { keys, .. }
             | spex_show::ResolvedTrack::Post { keys, .. }
@@ -290,6 +314,7 @@ fn keys_authored_at_the_same_moment_resolve_to_the_same_moment() {
     let src_times = |t: &spex_show::Track| -> Vec<f64> {
         match t {
             spex_show::Track::Transform { keys, .. } => keys.iter().map(|k| k.t).collect(),
+            spex_show::Track::Color { keys, .. } => keys.iter().map(|k| k.t).collect(),
             spex_show::Track::Dissolve { keys, .. }
             | spex_show::Track::Material { keys, .. }
             | spex_show::Track::Post { keys, .. }
