@@ -92,6 +92,23 @@ export class Scheduler {
    * a seek moves it. */
   private cursor = 0;
   private cueCursor = 0;
+  /** Where the previous window ended, in score seconds, so the next one can
+   * start there instead of wherever the clock happens to be.
+   *
+   * THE TICK IS NOT GUARANTEED TO BE 25 ms. `setInterval` is a request, and a
+   * main thread busy rasterising does not honour it: measured on this
+   * project's software rasteriser, sixteen pumps in three and a half seconds —
+   * a tick of about 220 ms against a lookahead of 150. Windows computed from
+   * `now` alone then have GAPS, and everything in a gap is discarded in
+   * silence by the `atSec < from` guard below, which exists for seeks.
+   *
+   * That is how DER KICK came to be scored, playable and never bound: at 4 fps
+   * its cue fell between two pumps. Carrying the boundary forward makes
+   * consecutive windows abut, so a cue can be *late* — and the binder measures
+   * exactly how late — but cannot be skipped. `null` until the first pump
+   * after a seek, which is what makes a seek still able to drop the leftovers
+   * it is supposed to drop. */
+  private windowFrom: number | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
   /** Every note handed to the engine, so a flush knows what to release and
    * `pendingCount` can be asserted on. */
@@ -144,8 +161,17 @@ export class Scheduler {
     this.retire(nowAudio);
     if (!this.clock.playing) return;
 
-    const from = this.scoreTime(nowShow);
-    const until = from + LOOKAHEAD_SEC;
+    const at = this.scoreTime(nowShow);
+    // Abut the previous window rather than starting from `now`; see
+    // `windowFrom`. Never *ahead* of the clock, and never further back than
+    // one lookahead — a tab that was in the background for a minute should
+    // not now schedule a minute of music into the past.
+    const from =
+      this.windowFrom === null
+        ? at
+        : Math.min(at, Math.max(this.windowFrom, at - LOOKAHEAD_SEC));
+    const until = at + LOOKAHEAD_SEC;
+    this.windowFrom = until;
     // Show time and audio time run at the same rate; the difference between
     // them is the offset this frame. Computing it once per pump rather than
     // per note is what keeps every note in a window relative to the same
@@ -156,7 +182,9 @@ export class Scheduler {
     while (this.cursor < this.notes.length && this.notes[this.cursor].atSec < until) {
       const n = this.notes[this.cursor++];
       if (n.atSec < from - 1e-6) continue; // already gone by
-      const at = audioForScore(n.atSec);
+      // Never schedule into the past: a note recovered from a gap sounds now,
+      // not at a time the audio hardware has already played through.
+      const at = Math.max(nowAudio, audioForScore(n.atSec));
       this.engine.noteOn(n.voice, n.midi, at, 0.35 + n.velocity * 0.55);
       const offAt = at + Math.max(0.02, n.durationSec);
       this.engine.noteOff(n.voice, n.midi, offAt);
@@ -213,6 +241,8 @@ export class Scheduler {
     const target = this.scoreTime(showTime);
     this.cursor = lowerBound(this.notes, target, (n) => n.atSec);
     this.cueCursor = lowerBound(this.cues, target, (c) => c.atSec);
+    // A seek is exactly the case the continuous window must NOT bridge.
+    this.windowFrom = null;
     if (!this.clock.playing) return;
 
     // Walk back over anything long enough to still be sounding. The longest

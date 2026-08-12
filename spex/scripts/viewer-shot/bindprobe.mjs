@@ -124,6 +124,80 @@ await page.evaluate(() => {
   w.__m71.startShow = s.clock.elapsed;
 });
 
+// ---- AC2: the Kick — BEFORE the long AC1 sampling, and that ordering is the
+// measurement.
+//
+// This used to run after AC1, and reported `null` for months in a row. The
+// piece is four minutes; AC1 samples for `minutes`. Ask for five and AC1
+// spends the whole piece, so AC2 opened on a show that had finished — and
+// `Scheduler.seek()` sets its cursors and returns early when the clock is not
+// playing, which is right (scrubbing a stopped show must not start a note
+// nothing will ever stop) and means a stopped run hands over no cue at all.
+// Ask for four with looping on and the loop resets the binder at 240.000 s,
+// which is 1.4 s AFTER the Kick — the one moment this measurement needs.
+//
+// Six seconds and a live clock is all it wants, so it takes them first.
+const kick = await page.evaluate(async () => {
+  const s = window.__spexShow;
+  const f = s.fugue();
+  const accent = f.cues.find((c) => c.kick);
+  if (!accent) return { error: 'no KICK cue in the score' };
+  // PLAY, EXPLICITLY. `Scheduler.seek()` sets its cursors and then returns
+  // early when the clock is not playing — correct, because scrubbing a stopped
+  // show must not start a note nothing will ever stop — and a stopped run
+  // therefore hands over no cue at all. AC1 above stops and starts the clock,
+  // and this measurement inherited whatever it left. `playing` is reported
+  // below for the same reason: a null latency and a stopped clock are one
+  // finding, not two, and the difference is a defect in the piece or a defect
+  // in this file.
+  const wasPlaying = s.clock.playing;
+  s.setPlaying(true);
+  // Land a little before it and let the piece play into it, so the Kick is
+  // reached the way a screening reaches it — and TIME THE SEEK, because on a
+  // slow host the seek is the whole problem. `seek` flushes the engine and
+  // walks back over every note still sounding (the pedal is three and a half
+  // bars), and on this project's software rasteriser that has been measured at
+  // seconds. The Kick is 1.43 s from the end. If the seek costs more than the
+  // piece has left, the show loops before the playhead ever reaches the Kick,
+  // `clock.onLoop` resets the binder, and the measurement is not late — it is
+  // impossible. That is a fact about the host, and printing it beats printing
+  // `null`.
+  const seekStart = performance.now();
+  s.seek(accent.atSec - 1.2);
+  const seekMs = performance.now() - seekStart;
+  const headroomSec = s.show.durationSec - accent.atSec;
+  await new Promise((r) => setTimeout(r, 4000));
+  return {
+    scoredAtSec: +accent.atSec.toFixed(4),
+    seekMs: +seekMs.toFixed(1),
+    headroomSec: +headroomSec.toFixed(3),
+    cyclesAfter: s.clock.cycle ?? null,
+    wasPlaying,
+    playing: s.clock.playing,
+    pending: s.binder.pendingCount,
+    scheduledAtAudio: s.binder.kickScheduledAt,
+    appliedAtAudio: s.binder.kickAppliedAt,
+    frameMs: s.__lastFrameMs ?? null,
+    latencyMs:
+      s.binder.kickAppliedAt !== null && s.binder.kickScheduledAt !== null
+        ? +((s.binder.kickAppliedAt - s.binder.kickScheduledAt) * 1000).toFixed(3)
+        : null,
+  };
+});
+
+// AC2 left the playhead 1.4 s from the end. Rewind before AC1 starts counting,
+// or its first sample lands in the loop rather than in the exposition.
+await page.evaluate(() => {
+  const s = window.__spexShow;
+  s.seek(0);
+  s.setPlaying(true);
+  s.binder.resetMeasurements?.();
+  const w = window;
+  w.__m71.startPerf = performance.now() / 1000;
+  w.__m71.startAudio = s.fugue().engine.ctx.currentTime;
+  w.__m71.startShow = s.clock.elapsed;
+});
+
 const sampleEvery = Math.max(1, Math.round(minutes / 6));
 const samples = [];
 for (let i = 1; i <= 6; i++) {
@@ -161,41 +235,6 @@ for (let i = 1; i <= 6; i++) {
       `oscillators ${s.oscillatorDriftMs} ms  clock ${s.clockDriftMs} ms  cycle ${s.cycle}`,
   );
 }
-
-// ---- AC2: the Kick.
-const kick = await page.evaluate(async () => {
-  const s = window.__spexShow;
-  const f = s.fugue();
-  const accent = f.cues.find((c) => c.kick);
-  if (!accent) return { error: 'no KICK cue in the score' };
-  // PLAY, EXPLICITLY. `Scheduler.seek()` sets its cursors and then returns
-  // early when the clock is not playing — correct, because scrubbing a stopped
-  // show must not start a note nothing will ever stop — and a stopped run
-  // therefore hands over no cue at all. AC1 above stops and starts the clock,
-  // and this measurement inherited whatever it left. `playing` is reported
-  // below for the same reason: a null latency and a stopped clock are one
-  // finding, not two, and the difference is a defect in the piece or a defect
-  // in this file.
-  const wasPlaying = s.clock.playing;
-  s.setPlaying(true);
-  // Land a little before it and let the piece play into it, so the Kick is
-  // reached the way a screening reaches it.
-  s.seek(accent.atSec - 1.2);
-  await new Promise((r) => setTimeout(r, 4000));
-  return {
-    scoredAtSec: +accent.atSec.toFixed(4),
-    wasPlaying,
-    playing: s.clock.playing,
-    pending: s.binder.pendingCount,
-    scheduledAtAudio: s.binder.kickScheduledAt,
-    appliedAtAudio: s.binder.kickAppliedAt,
-    frameMs: s.__lastFrameMs ?? null,
-    latencyMs:
-      s.binder.kickAppliedAt !== null && s.binder.kickScheduledAt !== null
-        ? +((s.binder.kickAppliedAt - s.binder.kickScheduledAt) * 1000).toFixed(3)
-        : null,
-  };
-});
 
 // ---- AC3: mute mid-run, unmute, and see whether anything moved.
 const mute = await page.evaluate(async () => {
@@ -269,6 +308,10 @@ console.log(`  scored ${kick.scoredAtSec}s; binding applied ${kick.latencyMs} ms
   `= ${kickFrames?.toFixed(3)} frames  ${kickFrames !== null && kickFrames <= 1 ? 'PASS (<= 1 frame)' : 'OVER one frame'}`);
 console.log(`  clock was ${kick.wasPlaying ? 'playing' : 'STOPPED'} when AC2 began, ${kick.playing ? 'playing' : 'STOPPED'} after; ` +
   `${kick.pending} cue(s) still pending`);
+console.log(`  the seek itself took ${kick.seekMs} ms; the piece has ${(kick.headroomSec * 1000).toFixed(0)} ms left after the Kick` +
+  (kick.seekMs > kick.headroomSec * 1000
+    ? `  — NOT MEASURABLE ON THIS HOST: the seek costs more than the tail it lands in, so the show loops first`
+    : ''));
 console.log(`\nAC3 — mute mid-run`);
 console.log(`  drift while muted ${mute.mutedDriftMs} ms, after unmuting ${mute.unmutedDriftMs} ms, ` +
   `clock still ${mute.clockSource}, playing ${mute.stillPlaying}`);
