@@ -1,0 +1,705 @@
+{
+  "version": 1,
+  "reviewed": "",
+  "reviewer": "ENTWURF — Tier D und E sind noch nicht durchgesehen",
+  "buildable": [
+    {
+      "id": "Q39671",
+      "name": "Stonehenge",
+      "justification": "Trilithons and a continuous lintel ring: Column plus a lintel course. Already built as recipes/stonehenge.json, 28 090 instances from cited stone dimensions.",
+      "tier": "A"
+    },
+    {
+      "id": "Q215429",
+      "name": "Grand-Place",
+      "justification": "A closed square of guildhall facades: Wall for the elevations, Colonnade at ground level, Stair to the Town Hall. Gables are stepped Wall courses.",
+      "tier": "A"
+    },
+    {
+      "id": "Q4993586",
+      "name": "Jelling Heritage Site",
+      "justification": "Two barrows as Dome, two runestones as small blocks, one church as Wall plus roof. The smallest Tier A site and the clearest test of the vocabulary.",
+      "tier": "A"
+    },
+    {
+      "id": "Q65961372",
+      "name": "The Great Wall",
+      "justification": "Wall and Stair, repeated -- the primitive is the site's name. Watchtowers are Column plus Wall.",
+      "tier": "B"
+    },
+    {
+      "id": "Q1175856",
+      "name": "Memphis and its Necropolis – the Pyramid Fields from Giza to Dahshur",
+      "justification": "The Giza pyramids: the Pyramid primitive, stepped in whole courses, which is what a brick pyramid honestly is.",
+      "tier": "B"
+    },
+    {
+      "id": "Q18448486",
+      "name": "Historic Centre of Rome, the Properties of the Holy See in that City Enjoying Extraterritorial Rights and San Paolo Fuori le Mura",
+      "justification": "The Colosseum is Arch on Colonnade, four storeys, which is precisely what the building is. Already partly built as recipes/rom.json.",
+      "tier": "B"
+    },
+    {
+      "id": "Q131013",
+      "name": "Acropolis of Athens",
+      "justification": "The Parthenon is Colonnade plus Stair plus a pediment of stepped Wall courses.",
+      "tier": "B"
+    },
+    {
+      "id": "Q9141",
+      "name": "Taj Mahal",
+      "justification": "Dome on a plinth, four Columns as minarets, Arch iwans on each face.",
+      "tier": "B"
+    },
+    {
+      "id": "Q3331815",
+      "name": "Historic Sanctuary of Machu Picchu",
+      "justification": "Terraces as Stair, buildings as Wall. worship? -- the Intihuatana is a ritual stone, not an active place of worship.",
+      "tier": "B"
+    },
+    {
+      "id": "Q29070",
+      "name": "Borobudur Temple Compounds",
+      "justification": "Stepped terraces (Stair) with stupas (Dome). worship? -- an active Buddhist pilgrimage site.",
+      "tier": "B"
+    },
+    {
+      "id": "Q4176",
+      "name": "Cologne Cathedral",
+      "justification": "Twin towers as Column, nave as Wall, the whole thing as Arch. worship? -- an active cathedral.",
+      "tier": "B"
+    },
+    {
+      "id": "Q189764",
+      "name": "Pont du Gard",
+      "justification": "Three tiers of Arch. Nothing else. The cleanest possible demonstration of one primitive.",
+      "tier": "B"
+    },
+    {
+      "id": "Q5788",
+      "name": "Petra",
+      "justification": "Rock-cut facades as Colonnade and Arch against a Wall face.",
+      "tier": "C"
+    },
+    {
+      "id": "Q2397751",
+      "name": "Angkor",
+      "justification": "Towers as stepped Column, galleries as Colonnade, causeways as Wall. worship? -- parts are in active Buddhist use.",
+      "tier": "C"
+    },
+    {
+      "id": "Q5859",
+      "name": "Chichen Itza",
+      "justification": "El Castillo is the Pyramid primitive with Stair on all four faces.",
+      "tier": "C"
+    },
+    {
+      "id": "Q129072",
+      "name": "Persepolis",
+      "justification": "The Apadana is Colonnade on a Stair-approached terrace.",
+      "tier": "C"
+    },
+    {
+      "id": "Q237128",
+      "name": "Mesa Verde National Park",
+      "justification": "Cliff Palace as stacked Wall and Column under an overhang.",
+      "tier": "C"
+    },
+    {
+      "id": "Q14863645",
+      "name": "Bauhaus and its Sites in Weimar, Dessau and Bernau",
+      "justification": "Wall and glazing grid as Mosaic. A modular building rendered by a modular system, which is the thesis stated twice.",
+      "tier": "C"
+    },
+    {
+      "id": "Q122026",
+      "name": "Zollverein Coal Mine Industrial Complex",
+      "justification": "Shaft 12's headframe as Column and truss, halls as Wall.",
+      "tier": "C"
+    },
+    {
+      "id": "Q20644172",
+      "name": "Speicherstadt and Kontorhaus District with Chilehaus",
+      "justification": "Brick warehouses: Wall and Arch, and the single most literally brick-built site on the list.",
+      "tier": "C"
+    },
+    {
+      "id": "Q189358",
+      "name": "Kronborg Castle",
+      "justification": "Bastioned castle: Wall, Column, Stair. Hamlet's Elsinore, and Danish, which the Postillen make relevant.",
+      "tier": "C"
+    },
+    {
+      "id": "Q750675",
+      "name": "Belfries of Belgium and France",
+      "justification": "The Bruges belfry as a stepped Column. Belgian, likewise.",
+      "tier": "C"
+    },
+    {
+      "id": "Q15240748",
+      "name": "Wieliczka and Bochnia Royal Salt Mines",
+      "justification": "Timbered chambers as Wall and Column. worship? -- the Chapel of St Kinga holds services.",
+      "tier": "C"
+    },
+    {
+      "id": "Q9603543",
+      "name": "Alhambra, Generalife and Albayzín, Granada",
+      "justification": "Courts as Colonnade, the Court of the Lions as Column repeated, Arch throughout.",
+      "tier": "C"
+    },
+    {
+      "id": "Q17117964",
+      "name": "Mont-Saint-Michel and its Bay",
+      "justification": "The abbey as Wall on a Stair-terraced rock. worship? -- an active monastic community.",
+      "tier": "C"
+    },
+    {
+      "id": "Q45178",
+      "name": "Sydney Opera House",
+      "justification": "The shells are the one site here the vocabulary genuinely strains at -- a Dome is a hemisphere and these are not. Drafted as a candidate for exactly that reason: if it cannot be built honestly it should be dropped and said so.",
+      "tier": "C"
+    },
+    {
+      "id": "Q2844",
+      "name": "Brasília",
+      "justification": "Niemeyer's Congress: Dome, inverted Dome, twin Wall slabs.",
+      "tier": "C"
+    },
+    {
+      "id": "Q1763364",
+      "name": "Rapa Nui National Park",
+      "justification": "Moai as Column with a pukao course. Ahu platforms as Wall.",
+      "tier": "C"
+    },
+    {
+      "id": "Q9427",
+      "name": "Timbuktu",
+      "justification": "Djinguereber and Sankore as Wall with projecting toron. worship? -- active mosques.",
+      "tier": "C"
+    },
+    {
+      "id": "Q29317",
+      "name": "Bagan",
+      "justification": "Stupas as Dome on stepped Stair terraces, repeated at scale. worship? -- active.",
+      "tier": "C"
+    },
+    {
+      "id": "Q188754",
+      "name": "Himeji Castle",
+      "justification": "The keep as stacked Wall with tiered roofs; roofs as stepped courses.",
+      "tier": "C"
+    },
+    {
+      "id": "Q237",
+      "name": "Vatican City",
+      "justification": "Bernini's colonnade is Colonnade, four columns deep, which is the primitive's definition. worship? -- the entire state.",
+      "tier": "C"
+    },
+    {
+      "id": "Q15728389",
+      "name": "Old Town of Segovia and its Aqueduct",
+      "justification": "The aqueduct is Arch on Arch, 167 of them.",
+      "tier": "C"
+    },
+    {
+      "id": "Q647958",
+      "name": "Ironbridge Gorge",
+      "justification": "The bridge as Arch in cast iron -- the first of its kind, and the industrial rhyme to Act III.",
+      "tier": "C"
+    },
+    {
+      "id": "Q127754",
+      "name": "Völklingen Ironworks",
+      "justification": "Blast furnaces as Column and Stair. worship? -- no.",
+      "tier": "C"
+    },
+    {
+      "id": "Q272153",
+      "name": "Sigiriya",
+      "justification": "The rock as a mass, the water gardens as Mosaic, the lion staircase as Stair.",
+      "tier": "C"
+    },
+    {
+      "id": "Q3962345",
+      "name": "Archaeological Sites of the Island of Meroe",
+      "justification": "Nubian pyramids: the Pyramid primitive, steeper than Giza's, repeated across a field.",
+      "tier": "C"
+    },
+    {
+      "id": "Q209217",
+      "name": "Great Zimbabwe",
+      "justification": "Dry-stone enclosures: Wall, in the most literal sense on this list -- coursed, mortarless, modular.",
+      "tier": "C"
+    },
+    {
+      "id": "Q718001",
+      "name": "Fujian Tulou sites",
+      "justification": "Circular earthen dwellings: Wall bent into a ring, which is a real test of whether the primitive can curve.",
+      "tier": "C"
+    },
+    {
+      "id": "Q64763166",
+      "name": "Citadel, Ancient City and Fortress Buildings of Derbent",
+      "justification": "Wall running from the citadel to the sea.",
+      "tier": "C"
+    },
+    {
+      "id": "Q57357",
+      "name": "Hadrian's Wall",
+      "justification": "Hadrian's Wall: Wall and milecastle, the same two primitives 117 km apart.",
+      "tier": "D"
+    },
+    {
+      "id": "Q62378",
+      "name": "Tower of London",
+      "justification": "Concentric curtain Walls around a keep; the White Tower is a Wall block with corner Columns.",
+      "tier": "D"
+    },
+    {
+      "id": "Q22889",
+      "name": "Bath",
+      "justification": "The Royal Crescent is a Colonnade bent into an arc -- the one building on this list that is literally an arrangeOn arc.",
+      "tier": "D"
+    },
+    {
+      "id": "Q208181",
+      "name": "Blenheim Palace",
+      "justification": "Baroque courtyard: Wall ranges, a Colonnade portico, Stair to the terrace.",
+      "tier": "D"
+    },
+    {
+      "id": "Q10344038",
+      "name": "Palace of Westminster and Westminster Abbey including Saint Margaret's Church",
+      "justification": "worship? -- no. Victoria Tower and the Elizabeth Tower as Columns, the river front as Wall.",
+      "tier": "D"
+    },
+    {
+      "id": "Q15260680",
+      "name": "Old and New Towns of Edinburgh",
+      "justification": "The New Town is a grid of terraces: Wall, repeated, which is what a Georgian terrace is.",
+      "tier": "D"
+    },
+    {
+      "id": "Q209705",
+      "name": "Roskilde Cathedral",
+      "justification": "worship? -- an active cathedral and Denmark's royal burial church. Brick Gothic: Wall and Arch.",
+      "tier": "D"
+    },
+    {
+      "id": "Q153430",
+      "name": "Bryggen",
+      "justification": "The Hanseatic wharf at Bergen: rows of gabled timber Wall fronts.",
+      "tier": "D"
+    },
+    {
+      "id": "Q3034552",
+      "name": "Palace and Park of Versailles",
+      "justification": "The garden front is 580 m of repeated bay: Wall plus Colonnade, at the largest repetition count on the list.",
+      "tier": "D"
+    },
+    {
+      "id": "Q180274",
+      "name": "Notre-Dame de Chartres",
+      "justification": "worship? -- an active cathedral. Two unmatched spires as Columns of different heights, which is the building's own signature.",
+      "tier": "D"
+    },
+    {
+      "id": "Q389269",
+      "name": "Cité de Carcassonne",
+      "justification": "52 towers on a double curtain: Column on Wall, arrangeOn an arc.",
+      "tier": "D"
+    },
+    {
+      "id": "Q1279597",
+      "name": "Arles, Roman and Romanesque Monuments",
+      "justification": "The Roman amphitheatre: Arch on Arch, the Colosseum's argument at a size the kit handles comfortably.",
+      "tier": "D"
+    },
+    {
+      "id": "Q2944797",
+      "name": "reconstructed center of Le Havre",
+      "justification": "Perret's rebuilt city is a reinforced-concrete module repeated across a whole town centre. If any site on this list IS the thesis, it is this one.",
+      "tier": "D"
+    },
+    {
+      "id": "Q921745",
+      "name": "Works of Antoni Gaudí",
+      "justification": "The Sagrada Familia's towers are Columns; the rest of Gaudi is ruled surfaces the kit cannot express, and that is worth showing.",
+      "tier": "D"
+    },
+    {
+      "id": "Q17255635",
+      "name": "Historic City of Toledo",
+      "justification": "worship? -- the cathedral is active. Alcazar as a Wall block with four corner Columns.",
+      "tier": "D"
+    },
+    {
+      "id": "Q5821857",
+      "name": "Monastery and Site of the Escurial, Madrid",
+      "justification": "worship? -- an active monastery. A grid of courtyards: Wall, at Herrera's deliberate monotony.",
+      "tier": "D"
+    },
+    {
+      "id": "Q593147",
+      "name": "Alcobaça Monastery",
+      "justification": "worship? -- an active monastery. Cistercian plan: Wall, Arch, Colonnade cloister.",
+      "tier": "D"
+    },
+    {
+      "id": "Q5908",
+      "name": "Aachen Cathedral",
+      "justification": "worship? -- active. The Palatine Chapel is an octagon: Colonnade on an arrangeOn circle under a Dome.",
+      "tier": "D"
+    },
+    {
+      "id": "Q64822967",
+      "name": "Würzburg Residence with the Court Gardens and Residence Square",
+      "justification": "worship? -- no. The Residenz is a Wall range with a Stair the building is famous for.",
+      "tier": "D"
+    },
+    {
+      "id": "Q114559132",
+      "name": "Town of Bamberg",
+      "justification": "worship? -- the cathedral is active. A hill town of Wall fronts.",
+      "tier": "D"
+    },
+    {
+      "id": "Q478707",
+      "name": "Grachtengordel",
+      "justification": "The canal ring: gabled Wall fronts in a row, stepped courses for the gables.",
+      "tier": "D"
+    },
+    {
+      "id": "Q914231",
+      "name": "Rietveld Schröder House",
+      "justification": "The Schroeder House is planes and lines -- Wall slabs meeting at edges. De Stijl is a modular grammar and this is the test of whether the kit can speak it.",
+      "tier": "D"
+    },
+    {
+      "id": "Q2328849",
+      "name": "Van Nelle Factory",
+      "justification": "Curtain wall as Mosaic, floor slabs as Wall. A factory built as a system.",
+      "tier": "D"
+    },
+    {
+      "id": "Q4920250",
+      "name": "Imperial Palaces of the Ming and Qing Dynasties in Beijing and Shenyang",
+      "justification": "The Forbidden City: courtyard after courtyard of Wall and Stair, 980 buildings on one axis.",
+      "tier": "D"
+    },
+    {
+      "id": "Q125445",
+      "name": "Temple of Heaven",
+      "justification": "worship? -- ceremonial rather than congregational. The Hall of Prayer is three Domes on a three-tier Stair terrace.",
+      "tier": "D"
+    },
+    {
+      "id": "Q65965285",
+      "name": "Ancient City of Ping Yao",
+      "justification": "6 km of Ming city Wall with 72 watchtowers, cited and countable.",
+      "tier": "D"
+    },
+    {
+      "id": "Q1333799",
+      "name": "Buddhist Monuments in the Hōryū-ji Area",
+      "justification": "worship? -- active. The five-storey pagoda is five Wall boxes with stepped roofs.",
+      "tier": "D"
+    },
+    {
+      "id": "Q874027",
+      "name": "Historic Monuments of Ancient Kyoto",
+      "justification": "worship? -- active. Kinkaku-ji is three storeys of Wall on a plinth.",
+      "tier": "D"
+    },
+    {
+      "id": "Q877626",
+      "name": "Historic Villages of Shirakawa-gō and Gokayama",
+      "justification": "Gassho-zukuri farmhouses: a steep roof as stepped Wall courses, repeated across a village.",
+      "tier": "D"
+    },
+    {
+      "id": "Q482423",
+      "name": "Hwaseong Fortress",
+      "justification": "Suwon: 5.7 km of Wall with cited gates and bastions.",
+      "tier": "D"
+    },
+    {
+      "id": "Q179046",
+      "name": "Fatehpur Sikri",
+      "justification": "worship? -- the Jama Masjid is active. A whole city of red sandstone Colonnade and Wall, abandoned complete.",
+      "tier": "D"
+    },
+    {
+      "id": "Q1074330",
+      "name": "Qutb complex",
+      "justification": "worship? -- the mosque is a ruin. A 72.5 m fluted Column, tapering -- the kit's tallest single primitive.",
+      "tier": "D"
+    },
+    {
+      "id": "Q45957",
+      "name": "Red Fort",
+      "justification": "Wall, 2.4 km of it, with the Diwan-i-Am as Colonnade.",
+      "tier": "D"
+    },
+    {
+      "id": "Q3522747",
+      "name": "Group of monuments at Mahabalipuram",
+      "justification": "The Five Rathas are monolithic temples, each a stepped Wall mass.",
+      "tier": "D"
+    },
+    {
+      "id": "Q1025100",
+      "name": "Ayutthaya Historical Park",
+      "justification": "Prangs as stepped Columns on Wall platforms.",
+      "tier": "D"
+    },
+    {
+      "id": "Q192518",
+      "name": "Shibam",
+      "justification": "Mud-brick towers up to eight storeys -- the oldest skyscraper city, and literally built of bricks.",
+      "tier": "D"
+    },
+    {
+      "id": "Q309436",
+      "name": "Aït Benhaddou",
+      "justification": "Earthen kasbah: Wall towers stacked up a hillside.",
+      "tier": "D"
+    },
+    {
+      "id": "Q966780",
+      "name": "Medina of Marrakesh",
+      "justification": "worship? -- the Koutoubia is active. The minaret is a Column of cited height.",
+      "tier": "D"
+    },
+    {
+      "id": "Q15278644",
+      "name": "Old Towns of Djenné",
+      "justification": "worship? -- the Great Mosque is active and the largest mud-brick building in the world.",
+      "tier": "D"
+    },
+    {
+      "id": "Q642979",
+      "name": "Monolithic churches in Lalibela",
+      "justification": "worship? -- active. Churches cut DOWN into rock: the kit builds solids, not voids, and this is the site that says so.",
+      "tier": "D"
+    },
+    {
+      "id": "Q107183452",
+      "name": "Ruins of Aksum",
+      "justification": "Stelae as Columns, the tallest 33 m and fallen.",
+      "tier": "D"
+    },
+    {
+      "id": "Q178835",
+      "name": "Baalbek",
+      "justification": "The Temple of Jupiter's six standing Columns, 20 m tall, cited.",
+      "tier": "D"
+    },
+    {
+      "id": "Q172613",
+      "name": "Teotihuacan",
+      "justification": "The Pyramid of the Sun and the Moon on the Avenue of the Dead: Pyramid, twice, on an axis.",
+      "tier": "D"
+    },
+    {
+      "id": "Q15924695",
+      "name": "Historic Centre of Mexico City and Xochimilco",
+      "justification": "worship? -- the cathedral is active. Built on Tenochtitlan, which is the argument.",
+      "tier": "D"
+    },
+    {
+      "id": "Q65455940",
+      "name": "Pre-Hispanic Town of Uxmal",
+      "justification": "The Pyramid of the Magician is elliptical in plan -- the second site to ask spex-build for an ellipse.",
+      "tier": "D"
+    },
+    {
+      "id": "Q6063031",
+      "name": "Tikal National Park",
+      "justification": "Temple I as a steep stepped Pyramid with a roof comb.",
+      "tier": "D"
+    },
+    {
+      "id": "Q65121255",
+      "name": "Old Havana and its Fortification System",
+      "justification": "Colonial Wall fronts and Colonnade arcades, a whole quarter of them.",
+      "tier": "D"
+    },
+    {
+      "id": "Q8343766",
+      "name": "Historic Center of Quito",
+      "justification": "worship? -- active churches. A grid on a hillside: Wall and Stair.",
+      "tier": "D"
+    },
+    {
+      "id": "Q3845692",
+      "name": "Historic Town of Ouro Preto",
+      "justification": "Baroque hill town: Wall fronts and two churches.",
+      "tier": "D"
+    },
+    {
+      "id": "Q390028",
+      "name": "Independence Hall",
+      "justification": "A brick Wall front with a Column steeple -- and the building where a constitution was argued, which this piece has views about.",
+      "tier": "D"
+    },
+    {
+      "id": "Q151545",
+      "name": "Wartburg",
+      "justification": "Wall and Column on a ridge -- a castle is the primitive set's home ground.",
+      "tier": "E"
+    },
+    {
+      "id": "Q19094",
+      "name": "Berlin Modernism Housing Estates",
+      "justification": "Taut's Hufeisensiedlung is one dwelling repeated 1 000 times around a horseshoe. Modular housing rendered by a modular system.",
+      "tier": "E"
+    },
+    {
+      "id": "Q151963",
+      "name": "Museum Island",
+      "justification": "The Altes Museum's front is eighteen Ionic columns: one Colonnade, cited.",
+      "tier": "E"
+    },
+    {
+      "id": "Q1246833",
+      "name": "Old town of Regensburg with Stadtamhof",
+      "justification": "worship? -- the cathedral is active. The Steinerne Bruecke is sixteen Arches, cited and countable.",
+      "tier": "E"
+    },
+    {
+      "id": "Q685476",
+      "name": "Fagus Factory",
+      "justification": "Gropius's glass curtain wall as Mosaic on a Wall frame -- the building that starts modern architecture, and a grid.",
+      "tier": "E"
+    },
+    {
+      "id": "Q11288310",
+      "name": "Historic Centre of Vienna",
+      "justification": "worship? -- the Stephansdom is active. The Ringstrasse blocks as Wall ranges.",
+      "tier": "E"
+    },
+    {
+      "id": "Q259313",
+      "name": "Semmering railway",
+      "justification": "Sixteen viaducts and fifteen tunnels: Arch, in the Alps.",
+      "tier": "E"
+    },
+    {
+      "id": "Q11352141",
+      "name": "Venice and its Lagoon",
+      "justification": "The Doge's Palace is a Colonnade under a Wall -- the load-bearing inversion the building is famous for.",
+      "tier": "E"
+    },
+    {
+      "id": "Q2707802",
+      "name": "Historic Centre of Florence",
+      "justification": "Brunelleschi's dome is an octagonal Dome on a Wall drum; the campanile is a Column.",
+      "tier": "E"
+    },
+    {
+      "id": "Q750245",
+      "name": "Piazza del Duomo, Pisa",
+      "justification": "worship? -- the cathedral is active. Four buildings, one of them leaning, all Colonnade and Arch.",
+      "tier": "E"
+    },
+    {
+      "id": "Q17163322",
+      "name": "Historic Centre of Siena",
+      "justification": "The Torre del Mangia is a Column on the Campo's Wall front.",
+      "tier": "E"
+    },
+    {
+      "id": "Q55739617",
+      "name": "The Sassi and the Park of the Rupestrian Churches of Matera",
+      "justification": "Matera: rock-cut dwellings stacked as Wall on Wall, the oldest continuously inhabited modular city on the list.",
+      "tier": "E"
+    },
+    {
+      "id": "Q17132416",
+      "name": "Historical Complex of Split with the Palace of Diocletian",
+      "justification": "Split: a Roman palace with a town grown inside it -- Colonnade, Arch, Wall.",
+      "tier": "E"
+    },
+    {
+      "id": "Q910661",
+      "name": "Old city (Dubrovnik)",
+      "justification": "A complete circuit of Wall with towers. The primitive set's purest single-site demonstration after the Pont du Gard.",
+      "tier": "E"
+    },
+    {
+      "id": "Q55312553",
+      "name": "Archaeological Border complex of Hedeby and the Danevirke",
+      "justification": "worship? -- imperial rather than congregational. Hue: a walled citadel with gates.",
+      "tier": "E"
+    },
+    {
+      "id": "Q333661",
+      "name": "Cahokia",
+      "justification": "Monks Mound is the largest earthwork in the Americas: a four-terrace Pyramid of earth.",
+      "tier": "E"
+    },
+    {
+      "id": "Q252814",
+      "name": "Taos Pueblo",
+      "justification": "Adobe dwellings stacked five storeys -- Wall on Wall, continuously inhabited for a thousand years.",
+      "tier": "E"
+    },
+    {
+      "id": "Q2114279",
+      "name": "Old Quebec",
+      "justification": "Quebec: a walled town, Wall and Column, the only one north of Mexico.",
+      "tier": "E"
+    }
+  ],
+  "excluded": [
+    {
+      "id": "Q7341",
+      "name": "Auschwitz",
+      "reason": "atrocity",
+      "note": "The German Nazi concentration and extermination camp. A site of industrialised mass murder is not a subject for toy bricks, under any framing."
+    },
+    {
+      "id": "Q231140",
+      "name": "Hiroshima Peace Memorial",
+      "reason": "atrocity",
+      "note": "The ruin left by the atomic bombing, preserved as it stood. The building is a record of the deaths beneath it."
+    },
+    {
+      "id": "Q244347",
+      "name": "Gorée",
+      "reason": "atrocity",
+      "note": "A centre of the Atlantic slave trade, and a memorial to it."
+    },
+    {
+      "id": "Q192493",
+      "name": "Robben Island",
+      "reason": "atrocity",
+      "note": "A political prison; the site is inscribed for what was done to the people held there."
+    },
+    {
+      "id": "Q152225",
+      "name": "Bikini Atoll",
+      "reason": "atrocity",
+      "note": "A nuclear test site: the population was displaced and the atoll is still uninhabitable."
+    },
+    {
+      "id": "Q56293252",
+      "name": "Memorial sites of the Genocide: Nyamata, Murambi, Gisozi and Bisesero",
+      "reason": "atrocity",
+      "note": "The Rwandan genocide memorials at Nyamata, Murambi, Gisozi and Bisesero. Not named in the spec; found in the snapshot, and it belongs here for exactly the same reason Auschwitz does."
+    },
+    {
+      "id": "Q5964053",
+      "name": "Murambi Genocide Memorial",
+      "reason": "atrocity",
+      "note": "A second Rwandan record in the snapshot; excluded on its own QID so a merge or split upstream cannot quietly re-admit it."
+    },
+    {
+      "id": "Q134721311",
+      "name": "Cambodian Memorial Sites: From centres of repression to places of peace and reflection",
+      "reason": "atrocity",
+      "note": "Centres of repression under the Khmer Rouge. Not named in the spec; found in the snapshot."
+    }
+  ]
+}

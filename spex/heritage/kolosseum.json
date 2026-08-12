@@ -4,9 +4,9 @@
   "qid": "Q10285",
   "tier": "B",
   "name": "Historic Centre of Rome — the Colosseum",
-  "studsPerMetre": 0.5,
+  "studsPerMetre": 0.8,
   "uncitedBudget": 9,
-  "scaleNote": "0.5 studs per metre. The outer ellipse is 189 x 156 m and the building is 48 m tall; the three arcades are the content, so the scale is whatever lets 80 arches per storey read as 80 arches.",
+  "scaleNote": "0.8 studs per metre. At 0.5 the circumference gave each of the eighty arches 3.4 studs, which is narrower than one arch: they overlapped their neighbours all the way round. Eighty is the building's own number and the scale has to carry it, not the other way round.",
   "palette": {
     "travertin": 19,
     "tuff": 78,
@@ -34,7 +34,7 @@
       "source": "Wikipedia, Colosseum: 'The central arena is an ellipse 87 m (287 ft) long and 55 m (180 ft) wide'."
     }
   },
-  "note": "THE COLOSSEUM IS AN ELLIPSE AND THIS IS A CIRCLE, which is the honest limit of the kit here. `arrangeOn` offers a circle and an arc, not an ellipse; a 189 x 156 m ellipse has an eccentricity a viewer can see. The radius used is the mean of the two semi-axes (86.25 m), so the building is the right size and the wrong shape by about 10 % on each axis. An ellipse would be a real addition to `spex-build` and is the first thing this site would ask for.\n\nThree arcades of eighty arches: the number 80 is the building's own and is what the shot is about, so the scale was chosen to carry it rather than the other way round.",
+  "note": "THE COLOSSEUM IS AN ELLIPSE AND THIS IS A CIRCLE, which is the honest limit of the kit here. `arrangeOn` offers a circle and an arc, not an ellipse; a 189 x 156 m ellipse has an eccentricity a viewer can see. The radius used is the mean of the two semi-axes (86.25 m), so the building is the right size and the wrong shape by about 10 % on each axis. An ellipse would be a real addition to `spex-build` and is the first thing this site would ask for.\n\nThree arcades of eighty arches: the number 80 is the building's own and is what the shot is about, so the scale was chosen to carry it rather than the other way round.\n\nEach arcade stands on the one below by `onTopOf`, not on a number: an Arch builds in whole brick courses and the authored 14 m was never the height it actually reached.\n\n9 600 PLACEMENTS, OVER THE 8 000 BUDGET, and left there on purpose: the two numbers that make this site are eighty arches and three arcades, and the scale that carries eighty arches round a 271-stud circumference is the scale that costs this. Dropping to 0.7 studs/m would fit the budget and put the arches back on top of one another. The budget is the spec's; the arches are the building's.",
   "massing": [
     {
       "primitive": "Arch",
@@ -65,7 +65,9 @@
       "at": {
         "xM": 0,
         "zM": 0,
-        "yM": 14.0
+        "yM": {
+          "onTopOf": 0
+        }
       },
       "params": {
         "spanM": 5.0,
@@ -84,7 +86,9 @@
       "at": {
         "xM": 0,
         "zM": 0,
-        "yM": 28.0
+        "yM": {
+          "onTopOf": 1
+        }
       },
       "params": {
         "spanM": 5.0,

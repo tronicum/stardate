@@ -104,6 +104,89 @@ BUILDABLE = [
 ]
 
 
+
+# ------------------------------------------------------- Tier D: the next 50
+#
+# Chosen for one reason and stated as such: each is a piece of ARCHITECTURE
+# made of discrete repeated modules, which is what this Atlas can honestly
+# build. Geographically spread on purpose -- an Atlas of the world's heritage
+# that is four fifths European is a claim about Europe, not about heritage.
+#
+# `worship?` marks a site that is or contains an active place of worship.
+TIER_D = [
+
+    ("Hadrian's Wall", "D", "Hadrian's Wall: Wall and milecastle, the same two primitives 117 km apart."),
+    ('Tower of London', "D", 'Concentric curtain Walls around a keep; the White Tower is a Wall block with corner Columns.'),
+    ('Bath', "D", 'The Royal Crescent is a Colonnade bent into an arc -- the one building on this list that is literally an arrangeOn arc.'),
+    ('Blenheim Palace', "D", 'Baroque courtyard: Wall ranges, a Colonnade portico, Stair to the terrace.'),
+    ('Palace of Westminster', "D", 'worship? -- no. Victoria Tower and the Elizabeth Tower as Columns, the river front as Wall.'),
+    ('Edinburgh', "D", 'The New Town is a grid of terraces: Wall, repeated, which is what a Georgian terrace is.'),
+    ('Grachtengordel', "D", 'The canal ring: gabled Wall fronts in a row, stepped courses for the gables.'),
+    ('Rietveld Schr', "D", 'The Schroeder House is planes and lines -- Wall slabs meeting at edges. De Stijl is a modular grammar and this is the test of whether the kit can speak it.'),
+    ('Van Nelle', "D", 'Curtain wall as Mosaic, floor slabs as Wall. A factory built as a system.'),
+    ('Roskilde', "D", "worship? -- an active cathedral and Denmark's royal burial church. Brick Gothic: Wall and Arch."),
+    ('Bryggen', "D", 'The Hanseatic wharf at Bergen: rows of gabled timber Wall fronts.'),
+    ('Palace and Park of Versailles', "D", 'The garden front is 580 m of repeated bay: Wall plus Colonnade, at the largest repetition count on the list.'),
+    ('Chartres', "D", "worship? -- an active cathedral. Two unmatched spires as Columns of different heights, which is the building's own signature."),
+    ('Cité de Carcassonne', "D", '52 towers on a double curtain: Column on Wall, arrangeOn an arc.'),
+    ('Arles', "D", "The Roman amphitheatre: Arch on Arch, the Colosseum's argument at a size the kit handles comfortably."),
+    ('Le Havre', "D", "Perret's rebuilt city is a reinforced-concrete module repeated across a whole town centre. If any site on this list IS the thesis, it is this one."),
+    ('Works of Antoni Gaud', "D", "The Sagrada Familia's towers are Columns; the rest of Gaudi is ruled surfaces the kit cannot express, and that is worth showing."),
+    ('Toledo', "D", 'worship? -- the cathedral is active. Alcazar as a Wall block with four corner Columns.'),
+    ('Escurial', "D", "worship? -- an active monastery. A grid of courtyards: Wall, at Herrera's deliberate monotony."),
+    ('Alcobaça', "D", 'worship? -- an active monastery. Cistercian plan: Wall, Arch, Colonnade cloister.'),
+    ('Aachen Cathedral', "D", 'worship? -- active. The Palatine Chapel is an octagon: Colonnade on an arrangeOn circle under a Dome.'),
+    ('Würzburg', "D", 'worship? -- no. The Residenz is a Wall range with a Stair the building is famous for.'),
+    ('Bamberg', "D", 'worship? -- the cathedral is active. A hill town of Wall fronts.'),
+    ('Wartburg', "D", "Wall and Column on a ridge -- a castle is the primitive set's home ground."),
+    ('Berlin Modernism Housing Estates', "D", "Taut's Hufeisensiedlung is one dwelling repeated 1 000 times around a horseshoe. Modular housing rendered by a modular system."),
+    ('Museum Island', "D", "The Altes Museum's front is eighteen Ionic columns: one Colonnade, cited."),
+    ('Regensburg', "D", 'worship? -- the cathedral is active. The Steinerne Bruecke is sixteen Arches, cited and countable.'),
+    ('Fagus', "D", "Gropius's glass curtain wall as Mosaic on a Wall frame -- the building that starts modern architecture, and a grid."),
+    ('Historic Centre of Vienna', "D", 'worship? -- the Stephansdom is active. The Ringstrasse blocks as Wall ranges.'),
+    ('Semmering', "D", 'Sixteen viaducts and fifteen tunnels: Arch, in the Alps.'),
+    ('Venice', "D", "The Doge's Palace is a Colonnade under a Wall -- the load-bearing inversion the building is famous for."),
+    ('Florence', "D", "Brunelleschi's dome is an octagonal Dome on a Wall drum; the campanile is a Column."),
+    ('Piazza del Duomo, Pisa', "D", 'worship? -- the cathedral is active. Four buildings, one of them leaning, all Colonnade and Arch.'),
+    ('Siena', "D", "The Torre del Mangia is a Column on the Campo's Wall front."),
+    ('Sassi', "D", 'Matera: rock-cut dwellings stacked as Wall on Wall, the oldest continuously inhabited modular city on the list.'),
+    ('Diocletian', "D", 'Split: a Roman palace with a town grown inside it -- Colonnade, Arch, Wall.'),
+    ('Dubrovnik', "D", "A complete circuit of Wall with towers. The primitive set's purest single-site demonstration after the Pont du Gard."),
+    ('Imperial Palaces of the Ming', "D", 'The Forbidden City: courtyard after courtyard of Wall and Stair, 980 buildings on one axis.'),
+    ('Temple of Heaven', "D", 'worship? -- ceremonial rather than congregational. The Hall of Prayer is three Domes on a three-tier Stair terrace.'),
+    ('Ancient City of Ping Yao', "D", '6 km of Ming city Wall with 72 watchtowers, cited and countable.'),
+    ('Buddhist Monuments in the Horyu-ji', "D", 'worship? -- active. The five-storey pagoda is five Wall boxes with stepped roofs.'),
+    ('Historic Monuments of Ancient Kyoto', "D", 'worship? -- active. Kinkaku-ji is three storeys of Wall on a plinth.'),
+    ('Shirakawa-g', "D", 'Gassho-zukuri farmhouses: a steep roof as stepped Wall courses, repeated across a village.'),
+    ('Hwaseong Fortress', "D", 'Suwon: 5.7 km of Wall with cited gates and bastions.'),
+    ('Fatehpur Sikri', "D", 'worship? -- the Jama Masjid is active. A whole city of red sandstone Colonnade and Wall, abandoned complete.'),
+    ('Qutb complex', "D", "worship? -- the mosque is a ruin. A 72.5 m fluted Column, tapering -- the kit's tallest single primitive."),
+    ('Red Fort', "D", 'Wall, 2.4 km of it, with the Diwan-i-Am as Colonnade.'),
+    ('Group of Monuments at Mahabalipuram', "D", 'The Five Rathas are monolithic temples, each a stepped Wall mass.'),
+    ('Ayutthaya Historical Park', "D", 'Prangs as stepped Columns on Wall platforms.'),
+    ('Complex of H', "D", 'worship? -- imperial rather than congregational. Hue: a walled citadel with gates.'),
+    ('Shibam', "D", 'Mud-brick towers up to eight storeys -- the oldest skyscraper city, and literally built of bricks.'),
+    ('Aït Benhaddou', "D", 'Earthen kasbah: Wall towers stacked up a hillside.'),
+    ('Medina of Marrakesh', "D", 'worship? -- the Koutoubia is active. The minaret is a Column of cited height.'),
+    ('Old Towns of Djenn', "D", 'worship? -- the Great Mosque is active and the largest mud-brick building in the world.'),
+    ('Monolithic churches in Lalibela', "D", 'worship? -- active. Churches cut DOWN into rock: the kit builds solids, not voids, and this is the site that says so.'),
+    ('Aksum', "D", 'Stelae as Columns, the tallest 33 m and fallen.'),
+    ('Baalbek', "D", "The Temple of Jupiter's six standing Columns, 20 m tall, cited."),
+    ('Teotihuacan', "D", 'The Pyramid of the Sun and the Moon on the Avenue of the Dead: Pyramid, twice, on an axis.'),
+    ('Historic Centre of Mexico City', "D", 'worship? -- the cathedral is active. Built on Tenochtitlan, which is the argument.'),
+    ('Pre-Hispanic Town of Uxmal', "D", 'The Pyramid of the Magician is elliptical in plan -- the second site to ask spex-build for an ellipse.'),
+    ('Tikal', "D", 'Temple I as a steep stepped Pyramid with a roof comb.'),
+    ('Old Havana', "D", 'Colonial Wall fronts and Colonnade arcades, a whole quarter of them.'),
+    ('Historic Center of Quito', "D", 'worship? -- active churches. A grid on a hillside: Wall and Stair.'),
+    ('Historic Town of Ouro Preto', "D", 'Baroque hill town: Wall fronts and two churches.'),
+    ('Independence Hall', "D", 'A brick Wall front with a Column steeple -- and the building where a constitution was argued, which this piece has views about.'),
+    ('Cahokia', "D", 'Monks Mound is the largest earthwork in the Americas: a four-terrace Pyramid of earth.'),
+    ('Taos Pueblo', "D", 'Adobe dwellings stacked five storeys -- Wall on Wall, continuously inhabited for a thousand years.'),
+    ('Old Quebec', "D", 'Quebec: a walled town, Wall and Column, the only one north of Mexico.'),
+]
+
+BUILDABLE = BUILDABLE + TIER_D
+
 def fold(s):
     """Accent- and case-insensitive, so 'Goree' finds 'Gorée'."""
     return "".join(

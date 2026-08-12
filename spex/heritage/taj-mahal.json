@@ -4,9 +4,9 @@
   "qid": "Q9141",
   "tier": "B",
   "name": "Taj Mahal",
-  "studsPerMetre": 1.0,
+  "studsPerMetre": 0.5,
   "uncitedBudget": 6,
-  "scaleNote": "1 stud per metre. The plinth is 95.5 m square and the dome 23 m tall; both read at one stud to the metre.",
+  "scaleNote": "0.5 studs per metre. At 1 stud/m the 40 m mausoleum block alone was 26 907 placements; the dome, the four minarets and the plinth all still read at a half.",
   "palette": {
     "marmor": 15,
     "sandstein": 70
@@ -33,7 +33,7 @@
       "source": "Wikipedia, Taj Mahal: minarets 'more than 40 metres (130 ft) tall'."
     }
   },
-  "note": "The dome is a `Dome` with its own cited height -- 23 m over an 18.4 m drum, which is taller than a hemisphere and is exactly why `Dome` gained a height parameter at Jelling. Four minarets at the plinth's corners. The mausoleum block under the dome is uncited: no source read here gives its footprint.",
+  "note": "The dome is a `Dome` with its own cited height -- 23 m over an 18.4 m drum, which is taller than a hemisphere and is exactly why `Dome` gained a height parameter at Jelling. Four minarets at the plinth's corners. The mausoleum block under the dome is uncited: no source read here gives its footprint.\n\nThe minarets stand on the plinth. At a 60 m arrangement radius about a 95.5 m plinth, two of the four hung over the edge and floated.",
   "massing": [
     {
       "primitive": "Wall",
@@ -55,7 +55,9 @@
       "at": {
         "xM": 28.0,
         "zM": 28.0,
-        "yM": 7.0
+        "yM": {
+          "onTopOf": 0
+        }
       },
       "params": {
         "widthM": 40.0,
@@ -70,7 +72,9 @@
       "at": {
         "xM": 39.0,
         "zM": 39.0,
-        "yM": 32.0
+        "yM": {
+          "onTopOf": 1
+        }
       },
       "params": {
         "radiusM": {
@@ -86,12 +90,14 @@
       "count": 4,
       "arrangeOn": {
         "kind": "circle",
-        "radiusM": 60.0
+        "radiusM": 40.0
       },
       "at": {
         "xM": 48.0,
         "zM": 48.0,
-        "yM": 7.0
+        "yM": {
+          "onTopOf": 0
+        }
       },
       "params": {
         "diameterM": 4.0,

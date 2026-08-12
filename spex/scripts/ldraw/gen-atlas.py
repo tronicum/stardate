@@ -70,6 +70,22 @@ PASSTHROUGH = {"bond", "color", "stepped", "architrave", "columns", "tiers", "co
 # construction; this constant is here so the generator can say so out loud.
 MIN_WALL_PLATES = 3
 
+# Everything in this kit stacks in whole brick courses. A `Wall` authored 1.6 m
+# tall at 1 stud/m is 4 plates, which the engine builds as TWO courses -- 6
+# plates, 2.4 m. Authoring the next thing at 1.6 m then floats or overlaps it,
+# and eight of the nine Tier B sites failed exactly this way.
+#
+# So a height is snapped up to a whole course here, once, and a sheet says
+# `{"onTopOf": 3}` instead of repeating a number that was never the real one.
+PLATES_PER_COURSE = 3
+
+
+def snap_course(plates):
+    """Up to the next whole brick course. Zero stays zero; one plate is a course."""
+    if plates <= 0:
+        return 0
+    return -(-plates // PLATES_PER_COURSE) * PLATES_PER_COURSE
+
 
 class Uncited(Exception):
     pass
@@ -89,6 +105,10 @@ class Sheet:
         self.uncited = []          # (where, value) -- sizes
         self.uncited_pos = []      # (where, value) -- positions
         self.used_dims = set()
+        # Absolute top of each converted step, in plates above ground, so a
+        # later step can stand on it without anybody doing the arithmetic by
+        # hand and getting the course rounding wrong.
+        self.tops = []
 
     def metres(self, value, where, position=False):
         """A dimension name resolves to its cited value; a bare number is recorded.
@@ -148,6 +168,35 @@ def convert_params(sheet, params, where):
     return out
 
 
+# How tall each primitive actually builds, in plates, given its converted
+# params. Not a second opinion about the geometry -- every one of these is the
+# primitive's own `extent()` rule from `crates/spex-build/src/primitives.rs`,
+# and the pairing is checked by building the recipe and comparing.
+def built_plates(primitive, params):
+    if primitive in ("Wall", "Column"):
+        return snap_course(params.get("heightPlates", 0))
+    if primitive in ("Ziggurat",):
+        return params.get("tiers", 1) * snap_course(params.get("tierHeightPlates", PLATES_PER_COURSE))
+    if primitive in ("Pyramid",):
+        # Closes to a cap: base/2 tiers of one course each.
+        return max(1, params.get("baseStuds", 1) // 2) * PLATES_PER_COURSE
+    if primitive == "Dome":
+        h = params.get("heightPlates")
+        if h is None:
+            h = round(params.get("radiusStuds", 1) * 2.5)
+        return snap_course(h)
+    if primitive == "Stair":
+        return snap_course(params.get("risePlates", 0))
+    if primitive == "Arch":
+        return snap_course(params.get("risePlates", 0))
+    if primitive == "Colonnade":
+        col = params.get("column", {})
+        return snap_course(col.get("heightPlates", 0))
+    if primitive == "Mosaic":
+        return 1
+    return 0
+
+
 def convert(sheet):
     steps = []
     for i, part in enumerate(sheet.d["massing"]):
@@ -170,7 +219,7 @@ def convert(sheet):
             "at": {
                 "xStuds": sheet.studs_at(sheet.metres(at["xM"], f"{where}.at.xM", position=True)) if at.get("xM") else 0,
                 "zStuds": sheet.studs_at(sheet.metres(at["zM"], f"{where}.at.zM", position=True)) if at.get("zM") else 0,
-                "yPlates": -sheet.plates_at(sheet.metres(at["yM"], f"{where}.at.yM", position=True)) if at.get("yM") else 0,
+                "yPlates": y_plates_of(sheet, at, where),
             },
             "params": convert_params(sheet, part.get("params", {}), where),
         }
@@ -190,8 +239,26 @@ def convert(sheet):
                 if extra in arrange:
                     a[extra] = arrange[extra]
             step["arrangeOn"] = a
+        # Ledger for `onTopOf`: where this step's top sits, in plates above
+        # ground. `yPlates` is negative-up in LDraw's frame, so the top is the
+        # magnitude of the base plus what the primitive actually builds.
+        base = -step["at"]["yPlates"]
+        sheet.tops.append(base + built_plates(step["primitive"], step["params"]))
         steps.append(step)
     return steps
+
+
+def y_plates_of(sheet, at, where):
+    """`at.yM` in metres, or `{"onTopOf": i}` — the real top of an earlier step."""
+    y = at.get("yM")
+    if isinstance(y, dict) and "onTopOf" in y:
+        i = y["onTopOf"]
+        if i >= len(sheet.tops):
+            raise Uncited(f"{sheet.path.name}: {where} stands onTopOf step {i}, which comes later or does not exist")
+        return -(sheet.tops[i] + int(y.get("plusCourses", 0)) * PLATES_PER_COURSE)
+    if y:
+        return -sheet.plates_at(sheet.metres(y, f"{where}.at.yM", position=True))
+    return 0
 
 
 def note(sheet):

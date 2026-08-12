@@ -25,7 +25,7 @@
       "source": "Wikipedia, Borobudur: '35 metres (115 ft) above ground level' at the central dome's top."
     }
   },
-  "note": "Nine platforms, the lower six square and the upper three circular, with seventy-two small stupas around one large central stupa (Wikipedia, Borobudur). The six square platforms are a `Ziggurat`; the three circular ones and the 72 stupas are `Dome`s on `arrangeOn` circles. The setback per terrace is uncited -- no source read gives it -- and is derived from the base divided by the terrace count.",
+  "note": "Nine platforms, the lower six square and the upper three circular, with seventy-two small stupas around one large central stupa (Wikipedia, Borobudur). The six square platforms are a `Ziggurat`; the three circular ones and the 72 stupas are `Dome`s on `arrangeOn` circles. The setback per terrace is uncited -- no source read gives it -- and is derived from the base divided by the terrace count.\n\nThe three stupa rings sit at 18, 13 and 8 m from the centre. The first attempt used 36, 26 and 16 m, which is wider than the sixth terrace: 123 m base less five 8 m setbacks leaves 21.5 m of half-width, so two of the three rings hung in the air.",
   "massing": [
     {
       "primitive": "Ziggurat",
@@ -47,12 +47,14 @@
       "count": 32,
       "arrangeOn": {
         "kind": "circle",
-        "radiusM": 36.0
+        "radiusM": 18.0
       },
       "at": {
         "xM": 61.5,
         "zM": 61.5,
-        "yM": 18.0
+        "yM": {
+          "onTopOf": 0
+        }
       },
       "params": {
         "radiusM": 2.0,
@@ -64,12 +66,14 @@
       "count": 24,
       "arrangeOn": {
         "kind": "circle",
-        "radiusM": 26.0
+        "radiusM": 13.0
       },
       "at": {
         "xM": 61.5,
         "zM": 61.5,
-        "yM": 22.0
+        "yM": {
+          "onTopOf": 0
+        }
       },
       "params": {
         "radiusM": 2.0,
@@ -81,12 +85,14 @@
       "count": 16,
       "arrangeOn": {
         "kind": "circle",
-        "radiusM": 16.0
+        "radiusM": 8.0
       },
       "at": {
         "xM": 61.5,
         "zM": 61.5,
-        "yM": 26.0
+        "yM": {
+          "onTopOf": 0
+        }
       },
       "params": {
         "radiusM": 2.0,
@@ -98,7 +104,9 @@
       "at": {
         "xM": 55.0,
         "zM": 55.0,
-        "yM": 28.0
+        "yM": {
+          "onTopOf": 0
+        }
       },
       "params": {
         "radiusM": 6.5,

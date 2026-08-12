@@ -4,9 +4,9 @@
   "qid": "Q676203",
   "tier": "B",
   "name": "Historic Sanctuary of Machu Picchu",
-  "studsPerMetre": 1.0,
+  "studsPerMetre": 0.6,
   "uncitedBudget": 10,
-  "scaleNote": "1 stud per metre. The central square is the unit the site is arranged around, and the terraces step off it.",
+  "scaleNote": "0.6 studs per metre; at 1 the terraces alone were 15 424 placements.",
   "palette": {
     "granit": 71,
     "gras": 288
@@ -36,9 +36,28 @@
     {
       "primitive": "Wall",
       "at": {
-        "xM": 62.0,
+        "xM": 0,
+        "zM": 0,
+        "yM": {
+          "onTopOf": 0
+        }
+      },
+      "params": {
+        "widthM": 60.0,
+        "depthM": 120.0,
+        "heightM": 1.2,
+        "bond": "Stack",
+        "color": "gras"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 10.0,
         "zM": 20.0,
-        "yM": 18.0
+        "yM": {
+          "onTopOf": 1
+        }
       },
       "params": {
         "widthM": "sacredPlaza",
@@ -51,9 +70,11 @@
     {
       "primitive": "Wall",
       "at": {
-        "xM": 62.0,
+        "xM": 10.0,
         "zM": 40.0,
-        "yM": 18.0
+        "yM": {
+          "onTopOf": 1
+        }
       },
       "params": {
         "widthM": 40.0,
@@ -66,9 +87,11 @@
     {
       "primitive": "Wall",
       "at": {
-        "xM": 62.0,
+        "xM": 10.0,
         "zM": 54.0,
-        "yM": 18.0
+        "yM": {
+          "onTopOf": 1
+        }
       },
       "params": {
         "widthM": 40.0,
