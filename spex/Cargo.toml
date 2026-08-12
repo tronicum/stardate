@@ -12,6 +12,7 @@ members = [
     "crates/spex-wasm",
     "crates/spex-fugue",
     "crates/spex-build",
+    "crates/spex-flag",
     "crates/spex-ankerstein",
     "crates/spex-cli",
 ]
@@ -31,6 +32,7 @@ spex-mesh = { path = "crates/spex-mesh" }
 spex-show = { path = "crates/spex-show" }
 spex-fugue = { path = "crates/spex-fugue" }
 spex-build = { path = "crates/spex-build" }
+spex-flag = { path = "crates/spex-flag" }
 spex-ankerstein = { path = "crates/spex-ankerstein" }
 anyhow = "1"
 thiserror = "1"

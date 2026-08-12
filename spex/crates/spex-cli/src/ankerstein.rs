@@ -74,6 +74,9 @@ pub fn full_color_table() -> FullColorTable {
                     alpha: 255,
                     luminance: 0,
                     finish: Finish::Solid,
+                    // Not from LDConfig.ldr at all — these are Ankerstein's
+                    // own stone colours, and they belong to no LDraw section.
+                    section: String::new(),
                 },
             );
         }

@@ -41,6 +41,11 @@ pub struct LdrawColor {
     /// glow-in-the-dark colours, where it drives emission.
     pub luminance: u8,
     pub finish: Finish,
+    /// The heading of the real file's own section this line sits under —
+    /// `"Solid"`, `"Transparent"`, `"Modulex"`, `"Rubber"`, ... See
+    /// [`parse_section_comment`] for why this is load-bearing and not
+    /// bookkeeping. Empty for a line parsed outside `load_colors_full`.
+    pub section: String,
 }
 
 impl LdrawColor {
@@ -105,12 +110,38 @@ impl Finish {
 pub fn load_colors_full(cache: &LdrawCache) -> Result<HashMap<u32, LdrawColor>> {
     let text = cache.fetch("LDConfig.ldr")?;
     let mut colors = HashMap::new();
+    let mut section = String::new();
     for line in text.lines() {
-        if let Some(color) = parse_colour_line(line) {
+        if let Some(name) = parse_section_comment(line) {
+            section = name;
+            continue;
+        }
+        if let Some(mut color) = parse_colour_line(line) {
+            color.section = section.clone();
             colors.insert(color.code, color);
         }
     }
     Ok(colors)
+}
+
+/// The real file's own section headings: `0 // LDraw Solid Colours`,
+/// `0 // LDraw Modulex Colours`, and a dozen more.
+///
+/// M75 is why this is parsed. `Finish` cannot tell a LEGO brick colour from a
+/// Modulex one — Modulex entries are plain `!COLOUR` lines with no material
+/// keyword, so they are `Finish::Solid` and opaque like any brick. The first
+/// Belgian flag built here came out in `30006 Modulex_Ochre_Yellow`, which is
+/// an architectural modelling block from a different product line at a
+/// different scale: a colour nobody can build a flag out of, chosen because
+/// it happened to be the nearest in Lab. The section heading is the only
+/// thing in the real file that says so, so it is now carried.
+fn parse_section_comment(line: &str) -> Option<String> {
+    let rest = line.trim().strip_prefix("0 //")?.trim();
+    // Every heading ends in " Colours" and nothing in the file's prose
+    // preamble does — checked against the real file rather than assumed.
+    let name = rest.strip_suffix(" Colours")?;
+    let name = name.strip_prefix("LDraw ").unwrap_or(name).trim();
+    (!name.is_empty()).then(|| name.to_string())
 }
 
 /// Splits the line at `MATERIAL` **before** looking for anything else.
@@ -160,7 +191,7 @@ fn parse_colour_line(line: &str) -> Option<LdrawColor> {
         parse_material(tail)?
     };
 
-    Some(LdrawColor { code, name, value, edge, alpha, luminance, finish })
+    Some(LdrawColor { code, name, value, edge, alpha, luminance, finish, section: String::new() })
 }
 
 fn parse_material(tail: &[&str]) -> Option<Finish> {

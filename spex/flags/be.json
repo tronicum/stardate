@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "iso2": "BE",
+  "name": "Drapeau belge / Belgische vlag",
+  "ratio": [
+    13,
+    15
+  ],
+  "source": "Official Guide to Protocol in Belgium: the national flag measures 2.6 m tall for each 3 m wide (13:15), in three equal vertical bands, black at the hoist. The tricolour was placed in the Constitution on 23 January 1831; the vertical orientation and the black-at-hoist order were settled on 12 October 1831. A 2:3 civil version is in common use, including by ministries, but is not the constitutional ratio.",
+  "colors": {
+    "black": {
+      "srgb": [
+        0,
+        0,
+        0
+      ],
+      "specified_as": "Pantone Black / CMYK 0-0-0-100 (Official Guide to Protocol)"
+    },
+    "yellow": {
+      "srgb": [
+        253,
+        218,
+        36
+      ],
+      "specified_as": "Pantone 115 / CMYK 0-8.5-79-0 (Official Guide to Protocol); hex #FDDA24"
+    },
+    "red": {
+      "srgb": [
+        239,
+        51,
+        64
+      ],
+      "specified_as": "Pantone 032 / CMYK 0-94-87-0 (Official Guide to Protocol); hex #EF3340. Other flag manuals cite PMS 116 or 114 for the yellow and 186 or 185 for the red; the Protocol guide is the one this sheet follows."
+    }
+  },
+  "elements": [
+    {
+      "kind": "stripesVertical",
+      "colors": [
+        "black",
+        "yellow",
+        "red"
+      ]
+    }
+  ],
+  "note": "The simplest flag in Tier A, and the one that shows the element system does not need a special case for the easy majority: three equal bands is one element."
+}

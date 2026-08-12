@@ -228,6 +228,7 @@ mod tests {
             alpha,
             luminance,
             finish,
+            section: "Solid".into(),
         }
     }
 

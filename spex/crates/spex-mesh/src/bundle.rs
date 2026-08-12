@@ -564,6 +564,7 @@ impl MeshBundleBuilder {
             alpha: 255,
             luminance: 0,
             finish: Finish::Solid,
+            section: String::new(),
         };
         let color = colors.get(&color_code).unwrap_or(&fallback);
         let lin = |c: [u8; 3]| [srgb_to_linear(c[0]), srgb_to_linear(c[1]), srgb_to_linear(c[2])];
@@ -825,6 +826,7 @@ mod tests {
             alpha,
             luminance: 0,
             finish,
+            section: "Solid".into(),
         }
     }
 

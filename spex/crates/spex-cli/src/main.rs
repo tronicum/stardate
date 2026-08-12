@@ -7,6 +7,7 @@ mod cargo_deps;
 mod deb_deps;
 mod disk_usage;
 mod export_static;
+mod flag;
 mod frame_sequence;
 mod graph_diff;
 mod mesh;
@@ -224,6 +225,34 @@ enum Command {
     /// duration and ONE seed, every instance-id glob bound to an index list.
     /// The 4:00, 10:00 and 60:00 cuts are three resolutions of one document,
     /// not three edits.
+    /// Build a national flag as a real brick mosaic from its own published
+    /// construction sheet (`flags/<iso2>.json`) — declarative geometry, never
+    /// a traced bitmap, so there is no image and therefore no image licence.
+    /// Every cell is mapped to the nearest real LDraw colour by CIEDE2000 and
+    /// the worst error is printed; over dE 12 the flag is for review, not for
+    /// shipping.
+    Flag {
+        /// ISO 3166-1 alpha-2 code, e.g. DK, BE, GB.
+        iso2: String,
+
+        /// Mosaic width in whole studs. The height follows from the flag's
+        /// own ratio.
+        #[arg(long, default_value_t = 48)]
+        width_studs: u32,
+
+        /// Where the construction sheets live.
+        #[arg(long, default_value = "flags")]
+        flags_dir: PathBuf,
+
+        /// Output recipe (a Mosaic step; `spex build` turns it into the .ldr).
+        #[arg(short, long)]
+        out: PathBuf,
+
+        /// Local cache directory for fetched real LDraw files.
+        #[arg(long, default_value = ".ldraw-cache")]
+        cache_dir: PathBuf,
+    },
+
     ShowBuild {
         /// The authored document, e.g. shows/die-geschichtliche-matrix.show.json
         show: PathBuf,
@@ -722,6 +751,8 @@ fn main() -> Result<()> {
         } => cmd_brick_cinematic(hero, scene, hero_points, hero_frames, hero_revolutions, scene_points, scene_frames, fps, out, &cache_dir),
         Command::MeshPart { part, color, crease, out, cache_dir } => cmd_mesh_part(part, color, crease, out, &cache_dir),
         Command::MeshModel { model, crease, out, cache_dir } => cmd_mesh_model(model, crease, out, &cache_dir),
+        Command::Flag { iso2, width_studs, flags_dir, out, cache_dir } =>
+            flag::build(&iso2, width_studs, &flags_dir, &out, &cache_dir),
         Command::ShowBuild { show, out, duration, endless, seed, no_bundles, skip_unbuildable, crease, cache_dir } => show::build(
             &show,
             &out,

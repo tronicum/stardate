@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "iso2": "DK",
+  "name": "Dannebrog",
+  "ratio": [
+    28,
+    37
+  ],
+  "source": "Ceremonial Book of the Danish Ministry of Defence, FKOBST L.202-4, chapter 4 appendix 1 (1994 and 2019 editions), as transcribed by Flags of the World, crwflags.com/fotw/flags/dk.html: horizontally 12/4/21, vertically 12/4/12. The cross arm is 4/28 = 1/7 of the height, which is the wording of the regulation of 11 June 1748 ('The white cross must be 1/7 of the flag's height'). The 1748 sheet itself gives 28:34 (horizontally 12/4/18); the Ministry of the Interior permitted up to 28:37 in 1893 without cancelling the older figure, and 28:37 is the flag in use.",
+  "colors": {
+    "red": {
+      "srgb": [
+        200,
+        16,
+        46
+      ],
+      "specified_as": "Pantone 186 C, per Dansk Standard 359 (2005). The sRGB triple is Pantone's own published conversion of that chip, not a measurement of a flag."
+    },
+    "white": {
+      "srgb": [
+        255,
+        255,
+        255
+      ],
+      "specified_as": "unspecified; white"
+    }
+  },
+  "elements": [
+    {
+      "kind": "stripesVertical",
+      "colors": [
+        "red"
+      ]
+    },
+    {
+      "kind": "cross",
+      "color": "white",
+      "armWidthFraction": 0.14285714285714285,
+      "centerXFraction": 0.3783783783783784,
+      "centerYFraction": 0.5
+    }
+  ],
+  "note": "The two hoist fields are square (12 x 12) and the two fly fields are 21 wide, which is what makes a Nordic cross a Nordic cross: the upright stands toward the hoist rather than in the middle. centerXFraction is (12+2)/37."
+}

@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "iso2": "GB",
+  "name": "Union Flag",
+  "ratio": [
+    1,
+    2
+  ],
+  "source": "The Flag Institute, Union Flag Specification (flaginstitute.org/wp/uk-flags/union-flag-specification/): each diagonal is 6 units of the 30-unit height, comprising white 3, red 2, white 1, with the broader white uppermost at the hoist and the narrower white uppermost at the fly; the red cross of St George is 6 units wide with a 2-unit white fimbriation. Equivalently, per Wikipedia's Union Jack article: St George's cross 1/5 of the height with a 1/15 fimbriation; the white saltire 1/5, showing 1/10 and 1/30 either side of the red saltire; the red saltire 1/15, offset by 1/30 anticlockwise. Land proportions are 3:5 and naval 1:2; this sheet is the 1:2.",
+  "colors": {
+    "blue": {
+      "srgb": [
+        1,
+        33,
+        105
+      ],
+      "specified_as": "Pantone 280 C (Flag Institute recommendation; the colours are not standardised by statute). Hex #012169."
+    },
+    "red": {
+      "srgb": [
+        200,
+        16,
+        46
+      ],
+      "specified_as": "Pantone 186 C (Flag Institute recommendation). Hex #C8102E."
+    },
+    "white": {
+      "srgb": [
+        255,
+        255,
+        255
+      ],
+      "specified_as": "unspecified; white"
+    }
+  },
+  "elements": [
+    {
+      "kind": "stripesVertical",
+      "colors": [
+        "blue"
+      ]
+    },
+    {
+      "kind": "saltire",
+      "color": "white",
+      "armWidthFraction": 0.2
+    },
+    {
+      "kind": "saltire",
+      "color": "red",
+      "armWidthFraction": 0.06666666666666667,
+      "offsetFraction": 0.03333333333333333,
+      "counterchange": "hoistBroadAbove"
+    },
+    {
+      "kind": "cross",
+      "color": "white",
+      "armWidthFraction": 0.3333333333333333,
+      "centerXFraction": 0.5,
+      "centerYFraction": 0.5
+    },
+    {
+      "kind": "cross",
+      "color": "red",
+      "armWidthFraction": 0.2,
+      "centerXFraction": 0.5,
+      "centerYFraction": 0.5
+    }
+  ],
+  "note": "WHAT IS EXACT AND WHAT IS A CONVENTION. Exact: every width here is a published fraction of the height, and the counterchange is the published rule. A convention, stated so nobody has to reverse-engineer it: the saltire band widths are applied as VERTICAL distances from each diagonal, not perpendicular ones. That is the reading under which one construction sheet serves both 1:2 and 3:5 without the bands changing width -- which is the property the Flag Institute's single sheet actually has. A perpendicular reading would make the diagonals narrower on the longer flag. NOT EXPRESSED: at 3:5 the innermost points of the lower-left and upper-right arms of St Patrick's saltire are truncated. That is a real detail of the 3:5 flag and this sheet is the 1:2, where it does not arise; a 3:5 sheet would need it and would have to say so rather than approximate."
+}

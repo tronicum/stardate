@@ -18,6 +18,7 @@ spex-mesh = { workspace = true }
 spex-show = { workspace = true }
 spex-fugue = { workspace = true }
 spex-build = { workspace = true }
+spex-flag = { workspace = true }
 spex-ankerstein = { workspace = true }
 anyhow = { workspace = true }
 serde = { workspace = true }
