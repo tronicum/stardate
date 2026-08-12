@@ -65,13 +65,28 @@ async function tryUrl(label, url) {
     await page.goto(url, { waitUntil: 'load' });
     await page.waitForFunction(() => !!window.__spexShow, null, { timeout: 60000 });
     await page.waitForTimeout(2500);
-    info = await page.evaluate(() => {
+    info = await page.evaluate(async () => {
       const s = window.__spexShow;
+      // `begin()` is the gate, and the score is behind it: no browser starts
+      // an `AudioContext` without a gesture, so an export checked without
+      // this reports a happy silence.
+      s.begin();
+      await new Promise((r) => setTimeout(r, 2500));
+      const f = s.fugue();
       return {
         title: s.show.title,
         durationSec: s.show.durationSec,
         scenes: s.scenes.map((x) => `${x.id}:${x.instanceIds.length}`),
         drawCalls: s.drawCalls(),
+        // THE SCORE HAS TO TRAVEL WITH THE FILES. `show-export` copies the
+        // whole show directory, so `fugue.mid` comes along at `show/` — but a
+        // missing score is a 404 that `absence.mjs` calls absent-by-design,
+        // which is exactly how every screening this project built stayed
+        // silent for four milestones. An export that plays no notes now says
+        // so here rather than in a gallery.
+        notes: f?.score?.notes?.length ?? 0,
+        cues: f?.cues?.length ?? 0,
+        clock: s.clock.source,
       };
     });
     ok = true;
@@ -81,6 +96,10 @@ async function tryUrl(label, url) {
   console.log(`\n${label}\n  ${url}`);
   console.log(`  loaded: ${ok}`);
   if (info) console.log(`  ${JSON.stringify(info)}`);
+  if (info && info.notes !== undefined) {
+    console.log(`  score: ${info.notes} notes, ${info.cues} cues, clock ${info.clock}` +
+      `  ${info.notes > 0 ? 'audible' : 'SILENT — the score did not travel'}`);
+  }
   console.log(`  console errors: ${errors.length}${errors.length ? `\n    ! ${errors.slice(0, 3).join('\n    ! ')}` : ''}`);
   if (requests.length) console.log(`  failed requests: ${requests.length}\n    ! ${requests.slice(0, 3).join('\n    ! ')}`);
   await page.close();
