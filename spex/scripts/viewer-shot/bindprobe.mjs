@@ -63,7 +63,12 @@ page.on('pageerror', (e) => warnings.push(String(e)));
 // The 240 s cut, looped — not the endless one. The endless cut is 48.571 s
 // and the score is 240, so an hour of it would be an hour of the exposition:
 // the Kick is at 238.571 s and would never once be reached.
-await page.goto(`${url}?duration=240&loop=1`, { waitUntil: 'networkidle' });
+// `?` and not `&` if the caller already brought a query string. Passing
+// `.../?loop=0` used to produce `...?loop=0?duration=240`, and the viewer said
+// so — `?loop=0?duration=240 is not a boolean; ignored` — in a warnings list
+// nobody reads while looking at a latency number.
+const join = url.includes('?') ? '&' : '?';
+await page.goto(`${url}${join}duration=240&loop=1`, { waitUntil: 'networkidle' });
 await page.waitForFunction(() => !!window.__spexShow, null, { timeout: 60000 });
 
 // The gate is real and the harness uses the same door: `begin()` is exactly
@@ -163,12 +168,25 @@ const kick = await page.evaluate(async () => {
   const f = s.fugue();
   const accent = f.cues.find((c) => c.kick);
   if (!accent) return { error: 'no KICK cue in the score' };
+  // PLAY, EXPLICITLY. `Scheduler.seek()` sets its cursors and then returns
+  // early when the clock is not playing — correct, because scrubbing a stopped
+  // show must not start a note nothing will ever stop — and a stopped run
+  // therefore hands over no cue at all. AC1 above stops and starts the clock,
+  // and this measurement inherited whatever it left. `playing` is reported
+  // below for the same reason: a null latency and a stopped clock are one
+  // finding, not two, and the difference is a defect in the piece or a defect
+  // in this file.
+  const wasPlaying = s.clock.playing;
+  s.setPlaying(true);
   // Land a little before it and let the piece play into it, so the Kick is
   // reached the way a screening reaches it.
   s.seek(accent.atSec - 1.2);
   await new Promise((r) => setTimeout(r, 4000));
   return {
     scoredAtSec: +accent.atSec.toFixed(4),
+    wasPlaying,
+    playing: s.clock.playing,
+    pending: s.binder.pendingCount,
     scheduledAtAudio: s.binder.kickScheduledAt,
     appliedAtAudio: s.binder.kickAppliedAt,
     frameMs: s.__lastFrameMs ?? null,
@@ -249,6 +267,8 @@ console.log(`\nAC2 — the Kick`);
 const kickFrames = kick.latencyMs !== null ? kick.latencyMs / (samples.at(-1)?.meanFrameMs || 16.7) : null;
 console.log(`  scored ${kick.scoredAtSec}s; binding applied ${kick.latencyMs} ms after the onset ` +
   `= ${kickFrames?.toFixed(3)} frames  ${kickFrames !== null && kickFrames <= 1 ? 'PASS (<= 1 frame)' : 'OVER one frame'}`);
+console.log(`  clock was ${kick.wasPlaying ? 'playing' : 'STOPPED'} when AC2 began, ${kick.playing ? 'playing' : 'STOPPED'} after; ` +
+  `${kick.pending} cue(s) still pending`);
 console.log(`\nAC3 — mute mid-run`);
 console.log(`  drift while muted ${mute.mutedDriftMs} ms, after unmuting ${mute.unmutedDriftMs} ms, ` +
   `clock still ${mute.clockSource}, playing ${mute.stillPlaying}`);
