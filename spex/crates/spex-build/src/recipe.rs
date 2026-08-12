@@ -182,7 +182,11 @@ fn build_primitive(name: &str, params: &Value, palette: &HashMap<String, u32>) -
             color: color("color")?,
             stepped: get_bool_or(params, "stepped", true),
         }),
-        "Dome" => Box::new(Dome { radius_studs: get_u32(params, "radiusStuds")?, color: color("color")? }),
+        "Dome" => Box::new(Dome {
+            radius_studs: get_u32(params, "radiusStuds")?,
+            height_plates: params.get("heightPlates").and_then(|v| v.as_u64()).map(|v| v as u32),
+            color: color("color")?,
+        }),
         "Trilithon" => Box::new(Trilithon {
             post_height_plates: get_u32(params, "postHeightPlates")?,
             gap_studs: get_u32(params, "gapStuds")?,

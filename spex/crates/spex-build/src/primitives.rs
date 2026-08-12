@@ -461,40 +461,117 @@ impl Primitive for Pyramid {
 
 pub struct Dome {
     pub radius_studs: u32,
+    /// How tall the cap is. `None` is a hemisphere — height equals radius.
+    ///
+    /// A real dome is almost never hemispherical, and a burial mound is not
+    /// remotely: Jelling's South Mound is 70 m across and 10 m high, a ratio
+    /// of seven to one. Built as a hemisphere it came out 35 m tall — three
+    /// and a half times its cited height, and it read as a ball rather than a
+    /// barrow. So the profile is an ellipsoidal cap, and the second axis is a
+    /// parameter rather than an assumption.
+    pub height_plates: Option<u32>,
     pub color: u32,
 }
 
 impl Primitive for Dome {
-    /// A corbelled approximation: solid square courses, each inset by one
-    /// stud on every side from the course below, closing to a single small
-    /// cap course. **Solid, not a hollow vault** — an earlier hollow-ring
-    /// (four short walls per course in a pinwheel) version turned out not
-    /// to be a real self-supporting structure: consecutive rings only
-    /// touch at the corners, well under this kit's real footprint-overlap
-    /// threshold for vertical support, so `validate()` correctly reported
-    /// most of it as `Floating`. That is a real, useful finding: a true
-    /// hollow corbelled vault needs each course's *inner* edge to overhang
-    /// no more than the course below can carry — real voussoir/corbel
-    /// engineering this milestone does not attempt. A solid mass is the
-    /// honest, self-supporting first cut (every course's footprint is
-    /// fully contained in the one below it by construction, the same
-    /// mechanism `Ziggurat` already proves correct), at the cost of no
-    /// hollow interior. See the module doc comment.
+    /// A **round** solid dome: one filled circular course per brick course,
+    /// each course's radius taken off a real hemisphere.
+    ///
+    /// # Why this is not the Ziggurat it used to be
+    ///
+    /// `Dome` was a `Ziggurat` with a one-stud setback, which is a square
+    /// stepped mass. That is a fine ziggurat and it is not a dome, and M74
+    /// caught it the moment a dome had to be something in particular: the
+    /// Jelling barrows came out as two stepped square pyramids, and a Danish
+    /// barrow is round. A primitive whose name is a shape should build that
+    /// shape or say it cannot.
+    ///
+    /// # Round, and still self-supporting
+    ///
+    /// Course *k* sits at height `y = k * BRICK_PLATES` and has radius
+    /// `sqrt(R² − y²)` with everything in studs — the hemisphere of radius
+    /// `R`. Because that radius decreases monotonically with height, every
+    /// course's footprint is strictly contained in the one below it, which is
+    /// exactly the property that made the solid `Ziggurat` pass `validate()`
+    /// where the hollow corbelled ring did not. Still **solid**: a real hollow
+    /// vault needs voussoir engineering this kit does not attempt, and the
+    /// module doc comment above explains what happened when it was tried.
+    ///
+    /// Each course is emitted **row by row as a `Wall` of that row's chord**,
+    /// not as one 1×1 brick per cell. The rows get `Wall`'s greedy tiling for
+    /// free, so a 35-stud dome is bricks rather than thousands of studs — and
+    /// the footprint is a real circle rather than a square pretending.
     fn emit(&self, origin: GridPos, orientation: Orientation) -> Vec<Placement> {
-        let outer0 = (self.radius_studs * 2).max(1);
-        let zig = Ziggurat {
-            base_studs: outer0,
-            tiers: tiers_to_close(outer0, 1),
-            tier_height_plates: BRICK_PLATES,
-            setback_studs: 1,
-            color: self.color,
+        let r = self.radius_studs.max(1) as f64;
+        // In studs, so the profile is one piece of arithmetic.
+        let h = match self.height_plates {
+            Some(p) => (p.max(1) as f64) / 2.5,
+            None => r,
         };
-        zig.emit(origin, orientation)
+        let mut local = Vec::new();
+        let mut course = 0u32;
+        loop {
+            // Height of this course's UNDERSIDE, in studs. A brick course is
+            // BRICK_PLATES plates and a stud is 2.5 plates.
+            let y = course as f64 * BRICK_PLATES as f64 / 2.5;
+            if y >= h {
+                break;
+            }
+            // The ellipsoidal cap: r(y) = R * sqrt(1 - (y/H)^2). With H = R
+            // this is the hemisphere it was before.
+            let rk = r * (1.0 - (y / h) * (y / h)).max(0.0).sqrt();
+            let size = (rk * 2.0).round().max(1.0) as u32;
+            if size == 0 {
+                break;
+            }
+            // Centre every course on the same point, so the dome is round
+            // about one axis rather than growing from a corner.
+            let centre = r;
+            let mut rows = 0u32;
+            for row in 0..size {
+                let dz = row as f64 + 0.5 - rk;
+                let half = (rk * rk - dz * dz).max(0.0).sqrt();
+                let w = (half * 2.0).round() as u32;
+                if w == 0 {
+                    continue;
+                }
+                let x0 = centre - rk + (rk - half);
+                let z0 = centre - rk + row as f64;
+                let row_wall = Wall {
+                    width_studs: w,
+                    height_plates: BRICK_PLATES,
+                    depth_studs: 1,
+                    bond: Bond::Stack,
+                    color: self.color,
+                    part_set: PartSet::Classic,
+                };
+                let at = GridPos::new(
+                    studs(x0.round() as u32),
+                    -(course as i32 * BRICK_PLATES as i32),
+                    studs(z0.round() as u32),
+                );
+                let mut placements = row_wall.emit(at, Orientation::IDENTITY);
+                for p in &mut placements {
+                    // One build stage per course — the structural unit a dome
+                    // rises by, matching `Ziggurat`'s grain.
+                    p.build_step = course;
+                }
+                local.extend(placements);
+                rows += 1;
+            }
+            if rows == 0 {
+                break;
+            }
+            course += 1;
+        }
+        transform_local(local, origin, orientation)
     }
 
     fn extent(&self) -> (u32, u32, u32) {
-        let outer0 = (self.radius_studs * 2).max(1);
-        (outer0, outer0, tiers_to_close(outer0, 1) * BRICK_PLATES)
+        let d = (self.radius_studs * 2).max(1);
+        let h = self.height_plates.unwrap_or_else(|| (self.radius_studs as f64 * 2.5).round() as u32);
+        let courses = ((h as f64 / BRICK_PLATES as f64).ceil() as u32).max(1);
+        (d, d, courses * BRICK_PLATES)
     }
 }
 
@@ -838,11 +915,57 @@ mod tests {
 
     #[test]
     fn dome_closes_to_a_cap_and_validates_clean() {
-        let dome = Dome { radius_studs: 3, color: 1 };
+        let dome = Dome { radius_studs: 3, height_plates: None, color: 1 };
         let placements = dome.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
         assert!(!placements.is_empty());
         let problems = validate(&placements, &FootprintTable::standard());
         assert_eq!(problems, vec![]);
+    }
+
+    /// A dome must be ROUND, which is the whole reason it stopped being a
+    /// `Ziggurat`. Measured rather than asserted: take the footprint of the
+    /// bottom course and check its corners are empty and its middle is not.
+    /// A square mass passes every other test in this file.
+    #[test]
+    fn a_dome_is_round_in_plan_and_a_square_would_fail_this() {
+        let r = 12u32;
+        let dome = Dome { radius_studs: r, height_plates: None, color: 1 };
+        let placements = dome.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY);
+        let ground: Vec<_> = placements.iter().filter(|p| p.build_step == 0).collect();
+        let xs: Vec<f64> = ground.iter().map(|p| p.translation_ldu[0]).collect();
+        let zs: Vec<f64> = ground.iter().map(|p| p.translation_ldu[2]).collect();
+        let (x0, x1) = (xs.iter().cloned().fold(f64::MAX, f64::min), xs.iter().cloned().fold(f64::MIN, f64::max));
+        let (z0, z1) = (zs.iter().cloned().fold(f64::MAX, f64::min), zs.iter().cloned().fold(f64::MIN, f64::max));
+        // Nothing sits within a couple of studs of a corner of the bounding box.
+        let stud = 20.0;
+        let near_corner = ground.iter().any(|p| {
+            let (x, z) = (p.translation_ldu[0], p.translation_ldu[2]);
+            (x - x0).abs() < 2.0 * stud && (z - z0).abs() < 2.0 * stud
+        });
+        assert!(!near_corner, "a corner of the bounding box is occupied — this footprint is square, not round");
+        assert!(x1 - x0 > 15.0 * stud, "the ground course should be about 2r studs across, got {}", (x1 - x0) / stud);
+        assert!((z1 - z0 - (x1 - x0)).abs() < 3.0 * stud, "the footprint is not as deep as it is wide");
+    }
+
+    /// Jelling's South Mound is 70 m across and 10 m high. Built as a
+    /// hemisphere it came out three and a half times too tall, which is what
+    /// `height_plates` exists to fix.
+    #[test]
+    fn a_dome_obeys_its_own_height() {
+        let flat = Dome { radius_studs: 20, height_plates: Some(9), color: 1 };
+        let ball = Dome { radius_studs: 20, height_plates: None, color: 1 };
+        let top = |d: &Dome| {
+            d.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY)
+                .iter()
+                .map(|p| -p.translation_ldu[1])
+                .fold(f64::MIN, f64::max)
+        };
+        let (t_flat, t_ball) = (top(&flat), top(&ball));
+        assert!(t_flat < t_ball / 3.0, "a 9-plate cap ({t_flat}) should be far below a 20-stud hemisphere ({t_ball})");
+        // Both still stand up.
+        for d in [&flat, &ball] {
+            assert_eq!(validate(&d.emit(GridPos::new(0, 0, 0), Orientation::IDENTITY), &FootprintTable::standard()), vec![]);
+        }
     }
 
     #[test]

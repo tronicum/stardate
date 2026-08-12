@@ -1,0 +1,180 @@
+{
+  "version": 1,
+  "slug": "jelling",
+  "qid": "Q1188278",
+  "name": "Jelling Mounds, Runic Stones and Church",
+  "tier": "A",
+  "studsPerMetre": 0.5,
+  "uncitedBudget": 16,
+  "scaleNote": "0.5 studs per metre. The site's longest dimension is the 354 m ship setting and its smallest object is a 2.7 m runestone, so one scale cannot flatter both: at 0.5 the ship is 177 studs and a runestone is 2 studs tall. That is what Jelling IS -- earthworks with two stones in them -- and inflating the stones to make them read would be inventing a monument.",
+  "palette": {
+    "erde": 288,
+    "stein": 71,
+    "kirche": 15,
+    "runenstein": 484
+  },
+  "dimensions": {
+    "southMoundHeight": {
+      "m": 10,
+      "source": "National Museum of Denmark, 'The North Mound and the South Mound': the South Mound 'measuring 10 m in height and 70 m in diameter, and was constructed around 970.'"
+    },
+    "southMoundDiameter": {
+      "m": 70,
+      "source": "National Museum of Denmark, 'The North Mound and the South Mound': the South Mound 'measuring 10 m in height and 70 m in diameter, and was constructed around 970.'"
+    },
+    "shipLength": {
+      "m": 354,
+      "source": "Wikipedia, Jelling stone ship: '354 metres (1,161 ft) long'. Kongernes Jelling, the site museum, gives 356 m and 500 stones."
+    },
+    "runestoneHeight": {
+      "m": 2.7,
+      "source": "The Past, 'Monuments of kingship: Power, memory, and belief at Jelling': Harald's stone 'stands 2.7m high'."
+    },
+    "palisadePerimeter": {
+      "m": 1440,
+      "source": "Kongernes Jelling (site museum), The Monument Area: the palisade is '1,440 meters long and several meters high'."
+    }
+  },
+  "note": "THE MOUNDS ARE ROUND, and they were not until this site was built:  was a  with a one-stud setback -- a square stepped mass -- and the two barrows came out as pyramids. A primitive whose name is a shape should build that shape. It now emits one filled circular course per brick course off a real hemisphere, row by row as chords so 's greedy tiling still applies. Colour 288 Dark_Green, because a Danish barrow is turf.\n\nTHE NORTH MOUND'S OWN DIMENSIONS ARE NOT CITED HERE, AND THAT IS A GAP RATHER THAN AN OMISSION. Every source reached for this sheet gives figures for the South Mound and none for the North, though the two are described throughout as comparable. The North Mound is therefore built at the South Mound's cited dimensions and its two figures are counted as UNCITED. If the number turns up -- Holst, Jessen et al. in Praehistorische Zeitschrift is the likely place -- it belongs in `dimensions` and the uncited count drops by two.\n\nThe palisade is cited by PERIMETER (1 440 m), so the 360 m side is arithmetic, not a source: 1440 / 4. That division is the modeller's reading of a square enclosure and is counted as uncited.\n\nThe ship setting is represented by its two ends rather than its 500 stones: at 1 stud/m a stone is one stud, and 500 of them at the true spacing is a dotted line the camera cannot read. What the shot needs is the ship's LENGTH against the mounds, which is the fact the site is about.",
+  "massing": [
+    {
+      "primitive": "Dome",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "radiusM": {
+          "dim": "southMoundDiameter",
+          "x": 0.5
+        },
+        "capHeightM": "southMoundHeight",
+        "color": "erde"
+      }
+    },
+    {
+      "primitive": "Dome",
+      "at": {
+        "xM": 0,
+        "zM": 140.0,
+        "yM": 0
+      },
+      "params": {
+        "radiusM": {
+          "dim": "southMoundDiameter",
+          "x": 0.5
+        },
+        "capHeightM": "southMoundHeight",
+        "color": "erde"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 24.0,
+        "zM": 98.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 22.0,
+        "depthM": 9.0,
+        "heightM": 8.0,
+        "bond": "Running",
+        "color": "kirche"
+      }
+    },
+    {
+      "primitive": "Column",
+      "at": {
+        "xM": 28.0,
+        "zM": 90.0,
+        "yM": 0
+      },
+      "params": {
+        "diameterM": 2.0,
+        "heightM": "runestoneHeight",
+        "color": "runenstein"
+      }
+    },
+    {
+      "primitive": "Column",
+      "at": {
+        "xM": 38.0,
+        "zM": 90.0,
+        "yM": 0
+      },
+      "params": {
+        "diameterM": 2.0,
+        "heightM": "runestoneHeight",
+        "color": "runenstein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": -145.0,
+        "zM": -75.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": {
+          "dim": "palisadePerimeter",
+          "x": 0.25
+        },
+        "depthM": 2.0,
+        "heightM": 2.5,
+        "bond": "Stack",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": -145.0,
+        "zM": 283.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": {
+          "dim": "palisadePerimeter",
+          "x": 0.25
+        },
+        "depthM": 2.0,
+        "heightM": 2.5,
+        "bond": "Stack",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": -145.0,
+        "zM": -73.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 2.0,
+        "depthM": 356.0,
+        "heightM": 2.5,
+        "bond": "Stack",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 213.0,
+        "zM": -73.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 2.0,
+        "depthM": 356.0,
+        "heightM": 2.5,
+        "bond": "Stack",
+        "color": "stein"
+      }
+    }
+  ]
+}

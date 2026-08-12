@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "slug": "grand-place",
+  "qid": "Q216225",
+  "name": "Grand-Place, Brussels",
+  "tier": "A",
+  "studsPerMetre": 0.7,
+  "uncitedBudget": 12,
+  "scaleNote": "0.7 studs per metre, chosen by measurement rather than by taste: the square is entirely paved, which is a cited fact, and the paving is therefore 7 480 tiles at 1 stud/m and the site 14 780 placements -- nearly twice the spec budget. At 0.7 it is 5 835 with the paving intact. The dial that keeps a site under budget is its scale, never its content.",
+  "palette": {
+    "stein": 71,
+    "dach": 0,
+    "gold": 82,
+    "pflaster": 72
+  },
+  "dimensions": {
+    "squareLength": {
+      "m": 110,
+      "source": "Wikipedia, Grand-Place: 'The square measures 68 by 110 metres (223 by 361 ft) and is entirely paved.'"
+    },
+    "squareWidth": {
+      "m": 68,
+      "source": "Wikipedia, Grand-Place: 'The square measures 68 by 110 metres (223 by 361 ft) and is entirely paved.'"
+    },
+    "towerHeight": {
+      "m": 96,
+      "source": "Wikipedia, Grand-Place: 'The 96-metre-high (315 ft) tower in Brabantine Gothic style.'"
+    },
+    "michaelHeight": {
+      "m": 2.7,
+      "source": "Wikipedia, Grand-Place: the tower is 'capped by a 2.7 metres (8.9 ft)' statue of Saint Michael."
+    }
+  },
+  "note": "WHAT THIS IS AND IS NOT. It is the square's real footprint, the Town Hall's real tower height, and a ring of guildhall facades of the real square's real proportions. It is NOT a facade-by-facade reconstruction: the Grand-Place has 38 individually listed houses and each is its own baroque gable, which the seven primitives cannot express and which this Atlas does not claim. What the shot needs is a closed square with one tower breaking the skyline, and that is what the massing is. The facade height and depth are the modeller's judgement and are counted as such.\n\nTHE FACADES ARE 1.5 m DEEP, which is a facade and not a building. The Grand-Place's houses are real buildings with real depth, but the depth is behind the elevation and the camera never sees it; carrying it would triple the placement count for geometry that is occluded in every frame of the shot. Stated because an Atlas that quietly builds solid blocks and calls them buildings is an Atlas making a claim it has not earned.\n\nTHE PAVING IS A MOSAIC, NOT A WALL, and that is not a stylistic preference. A Wall builds in whole brick courses; the paving was first authored as a 0.35 m Wall, became one plate, and emitted zero placements without a word. The square came out as four ranges around nothing. 'The square measures 68 by 110 metres and is entirely paved' is a cited fact about this site, so the ground is 7 480 tiles and they are the largest single thing in the model.",
+  "massing": [
+    {
+      "primitive": "Mosaic",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "fillWidthM": {
+          "dim": "squareLength"
+        },
+        "fillDepthM": {
+          "dim": "squareWidth"
+        },
+        "color": "pflaster",
+        "tilePart": "3070b.dat"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": -1.5,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "squareLength",
+        "depthM": 1.5,
+        "heightM": 20.0,
+        "bond": "Running",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": {
+          "dim": "squareWidth"
+        },
+        "yM": 0
+      },
+      "params": {
+        "widthM": "squareLength",
+        "depthM": 1.5,
+        "heightM": 20.0,
+        "bond": "Running",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": -1.5,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 1.5,
+        "depthM": {
+          "dim": "squareWidth"
+        },
+        "heightM": 20.0,
+        "bond": "Running",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": {
+          "dim": "squareLength"
+        },
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 1.5,
+        "depthM": {
+          "dim": "squareWidth"
+        },
+        "heightM": 20.0,
+        "bond": "Running",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Column",
+      "at": {
+        "xM": 45.0,
+        "zM": 0.5,
+        "yM": 0
+      },
+      "params": {
+        "diameterM": 6.0,
+        "heightM": "towerHeight",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Column",
+      "at": {
+        "xM": 47.0,
+        "zM": 2.5,
+        "yM": {
+          "dim": "towerHeight"
+        }
+      },
+      "params": {
+        "diameterM": 2.0,
+        "heightM": "michaelHeight",
+        "color": "gold"
+      }
+    }
+  ]
+}
