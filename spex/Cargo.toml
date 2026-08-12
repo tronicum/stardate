@@ -13,6 +13,7 @@ members = [
     "crates/spex-fugue",
     "crates/spex-build",
     "crates/spex-flag",
+    "crates/spex-heritage",
     "crates/spex-ankerstein",
     "crates/spex-cli",
 ]
@@ -33,6 +34,7 @@ spex-show = { path = "crates/spex-show" }
 spex-fugue = { path = "crates/spex-fugue" }
 spex-build = { path = "crates/spex-build" }
 spex-flag = { path = "crates/spex-flag" }
+spex-heritage = { path = "crates/spex-heritage" }
 spex-ankerstein = { path = "crates/spex-ankerstein" }
 anyhow = "1"
 thiserror = "1"

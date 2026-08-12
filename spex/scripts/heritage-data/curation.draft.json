@@ -1,0 +1,297 @@
+{
+  "version": 1,
+  "reviewed": "",
+  "reviewer": "UNREVIEWED — a draft, not a curation",
+  "buildable": [
+    {
+      "id": "Q39671",
+      "name": "Stonehenge",
+      "justification": "Trilithons and a continuous lintel ring: Column plus a lintel course. Already built as recipes/stonehenge.json, 28 090 instances from cited stone dimensions.",
+      "tier": "A"
+    },
+    {
+      "id": "Q215429",
+      "name": "Grand-Place",
+      "justification": "A closed square of guildhall facades: Wall for the elevations, Colonnade at ground level, Stair to the Town Hall. Gables are stepped Wall courses.",
+      "tier": "A"
+    },
+    {
+      "id": "Q4993586",
+      "name": "Jelling Heritage Site",
+      "justification": "Two barrows as Dome, two runestones as small blocks, one church as Wall plus roof. The smallest Tier A site and the clearest test of the vocabulary.",
+      "tier": "A"
+    },
+    {
+      "id": "Q65961372",
+      "name": "The Great Wall",
+      "justification": "Wall and Stair, repeated -- the primitive is the site's name. Watchtowers are Column plus Wall.",
+      "tier": "B"
+    },
+    {
+      "id": "Q1175856",
+      "name": "Memphis and its Necropolis – the Pyramid Fields from Giza to Dahshur",
+      "justification": "The Giza pyramids: the Pyramid primitive, stepped in whole courses, which is what a brick pyramid honestly is.",
+      "tier": "B"
+    },
+    {
+      "id": "Q18448486",
+      "name": "Historic Centre of Rome, the Properties of the Holy See in that City Enjoying Extraterritorial Rights and San Paolo Fuori le Mura",
+      "justification": "The Colosseum is Arch on Colonnade, four storeys, which is precisely what the building is. Already partly built as recipes/rom.json.",
+      "tier": "B"
+    },
+    {
+      "id": "Q131013",
+      "name": "Acropolis of Athens",
+      "justification": "The Parthenon is Colonnade plus Stair plus a pediment of stepped Wall courses.",
+      "tier": "B"
+    },
+    {
+      "id": "Q9141",
+      "name": "Taj Mahal",
+      "justification": "Dome on a plinth, four Columns as minarets, Arch iwans on each face.",
+      "tier": "B"
+    },
+    {
+      "id": "Q3331815",
+      "name": "Historic Sanctuary of Machu Picchu",
+      "justification": "Terraces as Stair, buildings as Wall. worship? -- the Intihuatana is a ritual stone, not an active place of worship.",
+      "tier": "B"
+    },
+    {
+      "id": "Q29070",
+      "name": "Borobudur Temple Compounds",
+      "justification": "Stepped terraces (Stair) with stupas (Dome). worship? -- an active Buddhist pilgrimage site.",
+      "tier": "B"
+    },
+    {
+      "id": "Q4176",
+      "name": "Cologne Cathedral",
+      "justification": "Twin towers as Column, nave as Wall, the whole thing as Arch. worship? -- an active cathedral.",
+      "tier": "B"
+    },
+    {
+      "id": "Q189764",
+      "name": "Pont du Gard",
+      "justification": "Three tiers of Arch. Nothing else. The cleanest possible demonstration of one primitive.",
+      "tier": "B"
+    },
+    {
+      "id": "Q5788",
+      "name": "Petra",
+      "justification": "Rock-cut facades as Colonnade and Arch against a Wall face.",
+      "tier": "C"
+    },
+    {
+      "id": "Q2397751",
+      "name": "Angkor",
+      "justification": "Towers as stepped Column, galleries as Colonnade, causeways as Wall. worship? -- parts are in active Buddhist use.",
+      "tier": "C"
+    },
+    {
+      "id": "Q5859",
+      "name": "Chichen Itza",
+      "justification": "El Castillo is the Pyramid primitive with Stair on all four faces.",
+      "tier": "C"
+    },
+    {
+      "id": "Q129072",
+      "name": "Persepolis",
+      "justification": "The Apadana is Colonnade on a Stair-approached terrace.",
+      "tier": "C"
+    },
+    {
+      "id": "Q237128",
+      "name": "Mesa Verde National Park",
+      "justification": "Cliff Palace as stacked Wall and Column under an overhang.",
+      "tier": "C"
+    },
+    {
+      "id": "Q14863645",
+      "name": "Bauhaus and its Sites in Weimar, Dessau and Bernau",
+      "justification": "Wall and glazing grid as Mosaic. A modular building rendered by a modular system, which is the thesis stated twice.",
+      "tier": "C"
+    },
+    {
+      "id": "Q122026",
+      "name": "Zollverein Coal Mine Industrial Complex",
+      "justification": "Shaft 12's headframe as Column and truss, halls as Wall.",
+      "tier": "C"
+    },
+    {
+      "id": "Q20644172",
+      "name": "Speicherstadt and Kontorhaus District with Chilehaus",
+      "justification": "Brick warehouses: Wall and Arch, and the single most literally brick-built site on the list.",
+      "tier": "C"
+    },
+    {
+      "id": "Q189358",
+      "name": "Kronborg Castle",
+      "justification": "Bastioned castle: Wall, Column, Stair. Hamlet's Elsinore, and Danish, which the Postillen make relevant.",
+      "tier": "C"
+    },
+    {
+      "id": "Q750675",
+      "name": "Belfries of Belgium and France",
+      "justification": "The Bruges belfry as a stepped Column. Belgian, likewise.",
+      "tier": "C"
+    },
+    {
+      "id": "Q15240748",
+      "name": "Wieliczka and Bochnia Royal Salt Mines",
+      "justification": "Timbered chambers as Wall and Column. worship? -- the Chapel of St Kinga holds services.",
+      "tier": "C"
+    },
+    {
+      "id": "Q9603543",
+      "name": "Alhambra, Generalife and Albayzín, Granada",
+      "justification": "Courts as Colonnade, the Court of the Lions as Column repeated, Arch throughout.",
+      "tier": "C"
+    },
+    {
+      "id": "Q17117964",
+      "name": "Mont-Saint-Michel and its Bay",
+      "justification": "The abbey as Wall on a Stair-terraced rock. worship? -- an active monastic community.",
+      "tier": "C"
+    },
+    {
+      "id": "Q45178",
+      "name": "Sydney Opera House",
+      "justification": "The shells are the one site here the vocabulary genuinely strains at -- a Dome is a hemisphere and these are not. Drafted as a candidate for exactly that reason: if it cannot be built honestly it should be dropped and said so.",
+      "tier": "C"
+    },
+    {
+      "id": "Q2844",
+      "name": "Brasília",
+      "justification": "Niemeyer's Congress: Dome, inverted Dome, twin Wall slabs.",
+      "tier": "C"
+    },
+    {
+      "id": "Q1763364",
+      "name": "Rapa Nui National Park",
+      "justification": "Moai as Column with a pukao course. Ahu platforms as Wall.",
+      "tier": "C"
+    },
+    {
+      "id": "Q9427",
+      "name": "Timbuktu",
+      "justification": "Djinguereber and Sankore as Wall with projecting toron. worship? -- active mosques.",
+      "tier": "C"
+    },
+    {
+      "id": "Q29317",
+      "name": "Bagan",
+      "justification": "Stupas as Dome on stepped Stair terraces, repeated at scale. worship? -- active.",
+      "tier": "C"
+    },
+    {
+      "id": "Q188754",
+      "name": "Himeji Castle",
+      "justification": "The keep as stacked Wall with tiered roofs; roofs as stepped courses.",
+      "tier": "C"
+    },
+    {
+      "id": "Q237",
+      "name": "Vatican City",
+      "justification": "Bernini's colonnade is Colonnade, four columns deep, which is the primitive's definition. worship? -- the entire state.",
+      "tier": "C"
+    },
+    {
+      "id": "Q15728389",
+      "name": "Old Town of Segovia and its Aqueduct",
+      "justification": "The aqueduct is Arch on Arch, 167 of them.",
+      "tier": "C"
+    },
+    {
+      "id": "Q647958",
+      "name": "Ironbridge Gorge",
+      "justification": "The bridge as Arch in cast iron -- the first of its kind, and the industrial rhyme to Act III.",
+      "tier": "C"
+    },
+    {
+      "id": "Q127754",
+      "name": "Völklingen Ironworks",
+      "justification": "Blast furnaces as Column and Stair. worship? -- no.",
+      "tier": "C"
+    },
+    {
+      "id": "Q272153",
+      "name": "Sigiriya",
+      "justification": "The rock as a mass, the water gardens as Mosaic, the lion staircase as Stair.",
+      "tier": "C"
+    },
+    {
+      "id": "Q3962345",
+      "name": "Archaeological Sites of the Island of Meroe",
+      "justification": "Nubian pyramids: the Pyramid primitive, steeper than Giza's, repeated across a field.",
+      "tier": "C"
+    },
+    {
+      "id": "Q209217",
+      "name": "Great Zimbabwe",
+      "justification": "Dry-stone enclosures: Wall, in the most literal sense on this list -- coursed, mortarless, modular.",
+      "tier": "C"
+    },
+    {
+      "id": "Q718001",
+      "name": "Fujian Tulou sites",
+      "justification": "Circular earthen dwellings: Wall bent into a ring, which is a real test of whether the primitive can curve.",
+      "tier": "C"
+    },
+    {
+      "id": "Q64763166",
+      "name": "Citadel, Ancient City and Fortress Buildings of Derbent",
+      "justification": "Wall running from the citadel to the sea.",
+      "tier": "C"
+    }
+  ],
+  "excluded": [
+    {
+      "id": "Q7341",
+      "name": "Auschwitz",
+      "reason": "atrocity",
+      "note": "The German Nazi concentration and extermination camp. A site of industrialised mass murder is not a subject for toy bricks, under any framing."
+    },
+    {
+      "id": "Q231140",
+      "name": "Hiroshima Peace Memorial",
+      "reason": "atrocity",
+      "note": "The ruin left by the atomic bombing, preserved as it stood. The building is a record of the deaths beneath it."
+    },
+    {
+      "id": "Q244347",
+      "name": "Gorée",
+      "reason": "atrocity",
+      "note": "A centre of the Atlantic slave trade, and a memorial to it."
+    },
+    {
+      "id": "Q192493",
+      "name": "Robben Island",
+      "reason": "atrocity",
+      "note": "A political prison; the site is inscribed for what was done to the people held there."
+    },
+    {
+      "id": "Q152225",
+      "name": "Bikini Atoll",
+      "reason": "atrocity",
+      "note": "A nuclear test site: the population was displaced and the atoll is still uninhabitable."
+    },
+    {
+      "id": "Q56293252",
+      "name": "Memorial sites of the Genocide: Nyamata, Murambi, Gisozi and Bisesero",
+      "reason": "atrocity",
+      "note": "The Rwandan genocide memorials at Nyamata, Murambi, Gisozi and Bisesero. Not named in the spec; found in the snapshot, and it belongs here for exactly the same reason Auschwitz does."
+    },
+    {
+      "id": "Q5964053",
+      "name": "Murambi Genocide Memorial",
+      "reason": "atrocity",
+      "note": "A second Rwandan record in the snapshot; excluded on its own QID so a merge or split upstream cannot quietly re-admit it."
+    },
+    {
+      "id": "Q134721311",
+      "name": "Cambodian Memorial Sites: From centres of repression to places of peace and reflection",
+      "reason": "atrocity",
+      "note": "Centres of repression under the Khmer Rouge. Not named in the spec; found in the snapshot."
+    }
+  ]
+}

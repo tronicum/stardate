@@ -2549,6 +2549,7 @@ dependencies = [
  "spex-flag",
  "spex-fugue",
  "spex-graph",
+ "spex-heritage",
  "spex-io",
  "spex-ldraw",
  "spex-mesh",
@@ -2593,6 +2594,16 @@ dependencies = [
  "serde",
  "serde_json",
  "spex-core",
+]
+
+[[package]]
+name = "spex-heritage"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "ureq",
 ]
 
 [[package]]

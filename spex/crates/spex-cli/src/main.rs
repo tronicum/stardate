@@ -8,6 +8,7 @@ mod deb_deps;
 mod disk_usage;
 mod export_static;
 mod flag;
+mod heritage;
 mod frame_sequence;
 mod graph_diff;
 mod mesh;
@@ -231,6 +232,40 @@ enum Command {
     /// Every cell is mapped to the nearest real LDraw colour by CIEDE2000 and
     /// the worst error is printed; over dE 12 the flag is for review, not for
     /// shipping.
+    /// Fetch the real World Heritage index from Wikidata's SPARQL endpoint
+    /// into a committed snapshot. Run rarely and on purpose — everything else
+    /// reads the snapshot. Nothing here touches the World Heritage Centre:
+    /// its syndication terms forbid republication without written
+    /// authorisation, and Wikidata is CC0.
+    HeritageIndex {
+        /// Output snapshot.
+        #[arg(short, long)]
+        out: PathBuf,
+
+        /// The date this query is being run, ISO. Passed rather than read from
+        /// the clock so the snapshot says what a person meant.
+        #[arg(long)]
+        date: String,
+    },
+
+    /// Read the committed snapshot and print the working set.
+    HeritageList {
+        #[arg(long, default_value = spex_heritage::CURRENT_SNAPSHOT)]
+        snapshot: PathBuf,
+
+        /// The hand-written buildability and exclusion lists.
+        #[arg(long, default_value = spex_heritage::CURATION_PATH)]
+        curation: PathBuf,
+
+        /// Only the sites a person has classified as buildable. Fails closed:
+        /// with no curation file, nothing is buildable.
+        #[arg(long)]
+        buildable: bool,
+
+        #[arg(long, default_value_t = 40)]
+        limit: usize,
+    },
+
     Flag {
         /// ISO 3166-1 alpha-2 code, e.g. DK, BE, GB.
         iso2: String,
@@ -751,6 +786,9 @@ fn main() -> Result<()> {
         } => cmd_brick_cinematic(hero, scene, hero_points, hero_frames, hero_revolutions, scene_points, scene_frames, fps, out, &cache_dir),
         Command::MeshPart { part, color, crease, out, cache_dir } => cmd_mesh_part(part, color, crease, out, &cache_dir),
         Command::MeshModel { model, crease, out, cache_dir } => cmd_mesh_model(model, crease, out, &cache_dir),
+        Command::HeritageIndex { out, date } => heritage::index(&out, &date),
+        Command::HeritageList { snapshot, curation, buildable, limit } =>
+            heritage::list(&snapshot, &curation, buildable, limit),
         Command::Flag { iso2, width_studs, flags_dir, out, cache_dir } =>
             flag::build(&iso2, width_studs, &flags_dir, &out, &cache_dir),
         Command::ShowBuild { show, out, duration, endless, seed, no_bundles, skip_unbuildable, crease, cache_dir } => show::build(
