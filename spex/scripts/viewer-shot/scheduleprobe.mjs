@@ -322,7 +322,55 @@ const result = await page.evaluate(async (b64) => {
   sched3.pump(audioT + 3600, clock.time);
   const stuck = { pending: sched3.pendingCount, sounding: engine3.soundingCount, ops };
 
+  // ---- AC4: a starved tick must not drop a cue.
+  //
+  // `setInterval(…, 25)` is a request, not a contract. Measured on this
+  // project's own software rasteriser: sixteen pumps in three and a half
+  // seconds — a tick of about 220 ms against a lookahead of 150. Windows
+  // computed from `now` alone then have gaps, and a cue in a gap used to be
+  // discarded in silence by the guard that exists for seeks.
+  //
+  // That is not a hypothetical: it is how DER KICK came to be scored,
+  // playable and never bound. So this pumps the real scheduler at four
+  // deliberately bad cadences and counts what arrives against what the score
+  // says is in the interval. The cue may be LATE — the binder measures that —
+  // but it may not be missing.
+  const starved = [];
+  {
+    const allCues = A.cuesFromScore(score);
+    const FROM = 180;
+    const SPAN = 60;
+    const expected = allCues.filter((c) => c.atSec >= FROM && c.atSec < FROM + SPAN);
+    for (const pumpMs of [A.TICK_MS, 100, 250, 500]) {
+      const seen = [];
+      const ctx = new OfflineAudioContext(1, SR, SR);
+      const engine = new A.AudioEngine(ctx);
+      clock.time = FROM;
+      clock.playing = true;
+      const sched = new A.Scheduler(engine, score, clock, {
+        cues: allCues,
+        onCue: (c) => seen.push(c.atSec),
+      });
+      sched.seek(FROM, 0);
+      for (let t = 0; t <= SPAN; t += pumpMs / 1000) {
+        clock.time = FROM + t;
+        sched.pump(t, clock.time);
+      }
+      const got = new Set(seen.map((x) => x.toFixed(6)));
+      const missing = expected.filter((c) => !got.has(c.atSec.toFixed(6)));
+      starved.push({
+        pumpMs,
+        lookaheadMs: A.LOOKAHEAD_SEC * 1000,
+        expected: expected.length,
+        delivered: seen.length,
+        missing: missing.length,
+        firstMissing: missing.length ? +missing[0].atSec.toFixed(3) : null,
+      });
+    }
+  }
+
   return {
+    ac4: starved,
     score: {
       notes: score.notes.length,
       durationSec: +score.durationSec.toFixed(3),
@@ -353,6 +401,7 @@ const result = await page.evaluate(async (b64) => {
 
 writeFileSync(`${outDir}/m70-schedule.json`, JSON.stringify({ ...result, warnings }, null, 2));
 
+const ac4ok = result.ac4.every((r) => r.missing === 0);
 const ac1ok = result.ac1.worstMs <= 3 && result.ac1.missed === 0;
 console.log(`score: ${result.score.notes} notes, ${result.score.durationSec} s at ${result.score.bpm} bpm, ${result.score.ticksPerBeat} ppq`);
 console.log(`       tracks ${result.score.trackNames.filter(Boolean).join(', ')}; ${result.score.cues} cues derived`);
@@ -367,6 +416,13 @@ for (const s of result.ac2) {
 }
 console.log(`\nAC3 — after 100 randomised seek/pause/play (${result.ac3.ops.join('/')} seek/pause/play)`);
 console.log(`  pending ${result.ac3.pending}, sounding ${result.ac3.sounding}  ${result.ac3.pending === 0 && result.ac3.sounding === 0 ? 'no stuck notes' : 'STUCK'}`);
+console.log(`\nAC4 — a starved tick, against a ${result.lookaheadSec * 1000} ms lookahead`);
+for (const r of result.ac4) {
+  console.log(`  tick ${String(r.pumpMs).padStart(4)} ms  ${r.delivered} of ${r.expected} cues delivered, ` +
+    `${r.missing} missing${r.firstMissing !== null ? ` (first at ${r.firstMissing}s)` : ''}` +
+    `  ${r.missing === 0 ? 'ok' : 'DROPPED'}`);
+}
+
 console.log(`\nconsole warnings/errors: ${warnings.length}`);
 for (const w of warnings.slice(0, 5)) console.log(`  ! ${w}`);
 await browser.close();

@@ -43,6 +43,16 @@ export const TICK_MS = 25;
 /** How far ahead it schedules. Six wake-ups fit in this window, so five of
  * them can be late or missed entirely and every note still lands. */
 export const LOOKAHEAD_SEC = 0.15;
+
+/** How far back a cue may be recovered from, in seconds.
+ *
+ * Four times the lookahead. `setInterval(…, 25)` is a request and a loaded
+ * main thread answers it when it can: measured on this project's software
+ * rasteriser, about 220 ms. Two seconds covers a tick an order of magnitude
+ * worse than that and still refuses to replay a minute of a backgrounded tab,
+ * which is the failure this bound exists to prevent. `scheduleprobe.mjs`'s
+ * AC4 pumps at 25, 100, 250 and 500 ms and counts what arrives. */
+export const MAX_CUE_CATCHUP_SEC = 2.0;
 /** The release ramp a seek uses. */
 export const SEEK_RAMP_SEC = 0.02;
 
@@ -163,13 +173,26 @@ export class Scheduler {
 
     const at = this.scoreTime(nowShow);
     // Abut the previous window rather than starting from `now`; see
-    // `windowFrom`. Never *ahead* of the clock, and never further back than
-    // one lookahead — a tab that was in the background for a minute should
-    // not now schedule a minute of music into the past.
-    const from =
+    // `windowFrom`.
+    //
+    // NOTES AND CUES GET DIFFERENT REACH, and the asymmetry is the point. A
+    // note recovered from a long gap would sound *now*, all at once, so notes
+    // reach back one lookahead and no further: after a real stall, silence is
+    // better than a chord of everything that was missed. A cue is an accent on
+    // a picture — arriving late is measurable (the binder reports exactly how
+    // late) and not arriving at all is invisible and wrong. So cues reach back
+    // as far as `MAX_CUE_CATCHUP_SEC`, which covers a tick an order of
+    // magnitude worse than the one asked for and still refuses to replay a
+    // backgrounded minute.
+    const noteFrom =
       this.windowFrom === null
         ? at
         : Math.min(at, Math.max(this.windowFrom, at - LOOKAHEAD_SEC));
+    const cueFrom =
+      this.windowFrom === null
+        ? at
+        : Math.min(at, Math.max(this.windowFrom, at - MAX_CUE_CATCHUP_SEC));
+    const from = noteFrom;
     const until = at + LOOKAHEAD_SEC;
     this.windowFrom = until;
     // Show time and audio time run at the same rate; the difference between
@@ -194,7 +217,7 @@ export class Scheduler {
 
     while (this.cueCursor < this.cues.length && this.cues[this.cueCursor].atSec < until) {
       const c = this.cues[this.cueCursor++];
-      if (c.atSec < from - 1e-6) continue;
+      if (c.atSec < cueFrom - 1e-6) continue;
       this.onCue?.(c, audioForScore(c.atSec));
     }
   }
