@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "slug": "taj-mahal",
+  "qid": "Q9141",
+  "tier": "B",
+  "name": "Taj Mahal",
+  "studsPerMetre": 1.0,
+  "uncitedBudget": 6,
+  "scaleNote": "1 stud per metre. The plinth is 95.5 m square and the dome 23 m tall; both read at one stud to the metre.",
+  "palette": {
+    "marmor": 15,
+    "sandstein": 70
+  },
+  "dimensions": {
+    "plinth": {
+      "m": 95.5,
+      "source": "Wikipedia, Taj Mahal: '95.5 metres (313 ft) in length' on each side of the square base."
+    },
+    "domeHeight": {
+      "m": 23,
+      "source": "Wikipedia, Taj Mahal: '23-metre (75 ft) high marble dome'."
+    },
+    "domeDiameter": {
+      "m": 18.4,
+      "source": "Wikipedia, Taj Mahal: 'inner diameter of 18.4 metres (60 ft)' for the cylindrical drum supporting it."
+    },
+    "finialHeight": {
+      "m": 9.6,
+      "source": "Wikipedia, Taj Mahal: '9.6-metre (31 ft) high gilded finial'."
+    },
+    "minaretHeight": {
+      "m": 40,
+      "source": "Wikipedia, Taj Mahal: minarets 'more than 40 metres (130 ft) tall'."
+    }
+  },
+  "note": "The dome is a `Dome` with its own cited height -- 23 m over an 18.4 m drum, which is taller than a hemisphere and is exactly why `Dome` gained a height parameter at Jelling. Four minarets at the plinth's corners. The mausoleum block under the dome is uncited: no source read here gives its footprint.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "plinth",
+        "depthM": "plinth",
+        "heightM": 7.0,
+        "bond": "Stack",
+        "color": "marmor"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 28.0,
+        "zM": 28.0,
+        "yM": 7.0
+      },
+      "params": {
+        "widthM": 40.0,
+        "depthM": 40.0,
+        "heightM": 25.0,
+        "bond": "Running",
+        "color": "marmor"
+      }
+    },
+    {
+      "primitive": "Dome",
+      "at": {
+        "xM": 39.0,
+        "zM": 39.0,
+        "yM": 32.0
+      },
+      "params": {
+        "radiusM": {
+          "dim": "domeDiameter",
+          "x": 0.5
+        },
+        "capHeightM": "domeHeight",
+        "color": "marmor"
+      }
+    },
+    {
+      "primitive": "Column",
+      "count": 4,
+      "arrangeOn": {
+        "kind": "circle",
+        "radiusM": 60.0
+      },
+      "at": {
+        "xM": 48.0,
+        "zM": 48.0,
+        "yM": 7.0
+      },
+      "params": {
+        "diameterM": 4.0,
+        "heightM": "minaretHeight",
+        "color": "marmor"
+      }
+    }
+  ]
+}

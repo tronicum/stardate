@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "slug": "pont-du-gard",
+  "qid": "Q131013x",
+  "tier": "B",
+  "name": "Pont du Gard (Roman Aqueduct)",
+  "studsPerMetre": 1.0,
+  "uncitedBudget": 6,
+  "scaleNote": "1 stud per metre. 275 m long and 49 m high, and the whole site is three tiers of arches: the arches have to be countable.",
+  "palette": {
+    "kalkstein": 19
+  },
+  "dimensions": {
+    "height": {
+      "m": 49,
+      "source": "Wikipedia, Pont du Gard: '49m (161ft) high above the river at low water and 274m (899ft) long'."
+    },
+    "lowerLength": {
+      "m": 142,
+      "source": "Wikipedia, Pont du Gard: lower tier '142m (466ft)', 6 arches, piers '6m (20ft)', arch height '22m (72ft)'."
+    },
+    "lowerArchHeight": {
+      "m": 22,
+      "source": "Wikipedia, Pont du Gard: lower tier arch height '22m (72ft)'."
+    },
+    "middleLength": {
+      "m": 242,
+      "source": "Wikipedia, Pont du Gard: middle tier '242m (794ft)', 11 arches, piers '4m (13ft)', arch height '20m (66ft)'."
+    },
+    "middleArchHeight": {
+      "m": 20,
+      "source": "Wikipedia, Pont du Gard: middle tier arch height '20m (66ft)'."
+    },
+    "upperLength": {
+      "m": 275,
+      "source": "Wikipedia, Pont du Gard: upper tier '275m (902ft)', 35 arches surviving of an original 47, piers '3m (9.8ft)', arch height '7m (23ft)'."
+    },
+    "upperArchHeight": {
+      "m": 7,
+      "source": "Wikipedia, Pont du Gard: upper tier arch height '7m (23ft)'."
+    }
+  },
+  "note": "THE CLEANEST SITE IN THE ATLAS: three tiers of arches and nothing else, every tier's length, arch count, pier thickness and arch height cited from one table. 6, 11 and 35 arches -- 35 surviving of an original 47, and this builds the 35 that stand.\n\nThe arch spans are derived: tier length divided by arch count, minus the cited pier thickness. The source says only that 'span of the arches varies slightly'.",
+  "massing": [
+    {
+      "primitive": "Arch",
+      "count": 6,
+      "arrangeOn": {
+        "kind": "arc",
+        "radiusM": 400.0,
+        "startDeg": -10,
+        "endDeg": 10
+      },
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "spanM": 18.0,
+        "riseM": "lowerArchHeight",
+        "thicknessStuds": 6,
+        "color": "kalkstein"
+      }
+    },
+    {
+      "primitive": "Arch",
+      "count": 11,
+      "arrangeOn": {
+        "kind": "arc",
+        "radiusM": 400.0,
+        "startDeg": -16,
+        "endDeg": 16
+      },
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": "lowerArchHeight"
+      },
+      "params": {
+        "spanM": 18.0,
+        "riseM": "middleArchHeight",
+        "thicknessStuds": 4,
+        "color": "kalkstein"
+      }
+    },
+    {
+      "primitive": "Arch",
+      "count": 35,
+      "arrangeOn": {
+        "kind": "arc",
+        "radiusM": 400.0,
+        "startDeg": -19,
+        "endDeg": 19
+      },
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 42.0
+      },
+      "params": {
+        "spanM": 4.0,
+        "riseM": "upperArchHeight",
+        "thicknessStuds": 3,
+        "color": "kalkstein"
+      }
+    }
+  ]
+}

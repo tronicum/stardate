@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "slug": "akropolis",
+  "qid": "Q131013",
+  "tier": "B",
+  "name": "Acropolis, Athens — the Parthenon",
+  "studsPerMetre": 1.0,
+  "uncitedBudget": 3,
+  "scaleNote": "1 stud per metre. The building is 69.5 x 30.9 m and its subject is a colonnade of 8 x 17 columns, so the scale has to make a column more than one stud.",
+  "palette": {
+    "marmor": 15,
+    "fels": 71
+  },
+  "dimensions": {
+    "stylobateLength": {
+      "m": 69.5,
+      "source": "New World Encyclopedia, Parthenon: 'Measured at the top step, the dimensions of the base of the Parthenon are 69.5 meters by 30.9 meters (228.0 x 101.4 ft).'"
+    },
+    "stylobateWidth": {
+      "m": 30.9,
+      "source": "New World Encyclopedia, Parthenon: 'Measured at the top step, the dimensions of the base of the Parthenon are 69.5 meters by 30.9 meters (228.0 x 101.4 ft).'"
+    },
+    "columnHeight": {
+      "m": 10.4,
+      "source": "New World Encyclopedia, Parthenon: 'the Doric columns measure 1.9 meters (6.2 ft) in diameter and are 10.4 meters (34.1 ft) high'."
+    },
+    "columnDiameter": {
+      "m": 1.9,
+      "source": "New World Encyclopedia, Parthenon: 'the Doric columns measure 1.9 meters (6.2 ft) in diameter and are 10.4 meters (34.1 ft) high'."
+    }
+  },
+  "note": "Octastyle peripteral: eight columns on the ends, seventeen on the sides (Wikipedia, Parthenon). Two Colonnades of seventeen and two of eight, on a stylobate. The spacing is derived from the stylobate divided by the column count rather than cited -- the intercolumniation is not in either source read for this sheet -- and is counted as uncited.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "stylobateLength",
+        "depthM": "stylobateWidth",
+        "heightM": 1.6,
+        "bond": "Stack",
+        "color": "marmor"
+      }
+    },
+    {
+      "primitive": "Colonnade",
+      "at": {
+        "xM": 1.0,
+        "zM": 1.0,
+        "yM": 1.6
+      },
+      "params": {
+        "columns": 17,
+        "spacingM": 4.0,
+        "architrave": true,
+        "column": {
+          "heightM": "columnHeight",
+          "diameterM": "columnDiameter",
+          "color": "marmor"
+        }
+      }
+    },
+    {
+      "primitive": "Colonnade",
+      "at": {
+        "xM": 1.0,
+        "zM": 28.0,
+        "yM": 1.6
+      },
+      "params": {
+        "columns": 17,
+        "spacingM": 4.0,
+        "architrave": true,
+        "column": {
+          "heightM": "columnHeight",
+          "diameterM": "columnDiameter",
+          "color": "marmor"
+        }
+      }
+    }
+  ]
+}

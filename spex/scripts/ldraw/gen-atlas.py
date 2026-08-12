@@ -60,7 +60,7 @@ PLATE_PARAMS = {
     "heightM": "heightPlates", "riseM": "risePlates", "tierHeightM": "tierHeightPlates",
     "postHeightM": "postHeightPlates", "capHeightM": "heightPlates",
 }
-PASSTHROUGH = {"bond", "color", "stepped", "architrave", "columns", "tiers", "count", "tilePart", "cells"}
+PASSTHROUGH = {"bond", "color", "stepped", "architrave", "columns", "tiers", "count", "tilePart", "cells", "thicknessStuds"}
 
 # A `Wall` builds in whole BRICK courses, so a wall under three plates emits
 # nothing at all -- silently. The Grand-Place's paving was authored 0.35 m

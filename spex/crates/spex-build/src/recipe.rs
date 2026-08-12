@@ -271,20 +271,48 @@ fn step_origins(step: &Step) -> Result<Vec<(GridPos, Orientation)>> {
             let orientation = step.at.map(|at| Orientation::nearest_yaw(at.orientation_deg)).unwrap_or(Orientation::IDENTITY);
             Ok(vec![(origin, orientation)])
         }
+        // An arrangement is RELATIVE TO `at`, and it did not used to be: the
+        // two were exclusive, so a step with both had its `at` silently
+        // dropped and the ring landed at the origin at ground level. M74's
+        // Colosseum found it — three arcades authored at 0 m, 14 m and 28 m
+        // came out stacked in the same place, 6 240 overlaps out of 6 240
+        // placements. "A ring of columns at this point and this height" is
+        // what an author means by writing both, and a silently ignored field
+        // is worse than a rejected one.
         Some(ArrangeOn::Circle { radius_studs }) => Ok((0..count)
             .map(|i| {
                 let deg = 360.0 * i as f64 / count as f64;
-                arc_point(*radius_studs, deg)
+                offset_by_at(arc_point(*radius_studs, deg), step)
             })
             .collect()),
         Some(ArrangeOn::Arc { radius_studs, start_deg, end_deg }) => Ok((0..count)
             .map(|i| {
                 let t = if count > 1 { i as f64 / (count as f64 - 1.0) } else { 0.0 };
                 let deg = start_deg + (end_deg - start_deg) * t;
-                arc_point(*radius_studs, deg)
+                offset_by_at(arc_point(*radius_studs, deg), step)
             })
             .collect()),
     }
+}
+
+/// Shifts an arranged instance by the step's own `at`.
+///
+/// The orientation the arrangement chose is kept: `arrangeOn` snaps each
+/// instance to face outward along its radius, which is the whole reason to use
+/// it, and `at.orientationDeg` on an arranged step would be asking for two
+/// different things at once. It is ignored, and that is stated here rather
+/// than left to be discovered.
+fn offset_by_at(point: (GridPos, Orientation), step: &Step) -> (GridPos, Orientation) {
+    let (pos, orientation) = point;
+    let Some(at) = step.at else { return (pos, orientation) };
+    (
+        GridPos::new(
+            pos.x + snap_half_studs(at.x_studs),
+            pos.y + at.y_plates,
+            pos.z + snap_half_studs(at.z_studs),
+        ),
+        orientation,
+    )
 }
 
 /// A point on a real circle of `radius_studs`, snapped to the grid-legal
@@ -480,6 +508,35 @@ mod tests {
         let placements = build_recipe(&recipe).unwrap();
         assert_eq!(placements.len(), 2, "8 studs, stack bond -> real greedy tiling, 2x 1x4");
         assert!(placements.iter().all(|p| p.color == 71));
+    }
+
+    /// `at` and `arrangeOn` compose. They did not: a step with both had its
+    /// `at` silently dropped, so three arcades authored at three heights came
+    /// out in the same place — 6 240 overlaps out of 6 240 placements, and no
+    /// error anywhere.
+    #[test]
+    fn an_arrangement_is_relative_to_the_step_s_own_at() {
+        let with_at: Recipe = serde_json::from_str(
+            r#"{
+                "version": 1, "id": "ring", "title": "Ring",
+                "palette": { "stone": 71 },
+                "steps": [
+                    { "primitive": "Column", "count": 4, "at": { "xStuds": 100, "yPlates": -30, "zStuds": 200 },
+                      "arrangeOn": { "kind": "circle", "radiusStuds": 10 },
+                      "params": { "heightPlates": 3, "diameterStuds": 1, "color": "stone" } }
+                ]
+            }"#,
+        )
+        .unwrap();
+        let moved = build_recipe(&with_at).unwrap();
+        assert_eq!(moved.len(), 4);
+        // 100 studs = 2000 LDU, 200 studs = 4000 LDU, -30 plates = -240 LDU.
+        for p in &moved {
+            assert!(p.translation_ldu[0] > 1700.0 && p.translation_ldu[0] < 2300.0, "x {:?}", p.translation_ldu);
+            assert!(p.translation_ldu[2] > 3700.0 && p.translation_ldu[2] < 4300.0, "z {:?}", p.translation_ldu);
+        }
+        let lowest = moved.iter().map(|p| p.translation_ldu[1]).fold(f64::MAX, f64::min);
+        assert!(lowest <= -240.0, "the ring did not rise with at.yPlates: {lowest}");
     }
 
     #[test]

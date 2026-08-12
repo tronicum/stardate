@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "slug": "kolosseum",
+  "qid": "Q10285",
+  "tier": "B",
+  "name": "Historic Centre of Rome — the Colosseum",
+  "studsPerMetre": 0.5,
+  "uncitedBudget": 9,
+  "scaleNote": "0.5 studs per metre. The outer ellipse is 189 x 156 m and the building is 48 m tall; the three arcades are the content, so the scale is whatever lets 80 arches per storey read as 80 arches.",
+  "palette": {
+    "travertin": 19,
+    "tuff": 78,
+    "arena": 19
+  },
+  "dimensions": {
+    "length": {
+      "m": 189,
+      "source": "Wikipedia, Colosseum: '189 meters (615 ft / 640 Roman feet) long, and 156 meters (510 ft / 528 Roman feet) wide'."
+    },
+    "width": {
+      "m": 156,
+      "source": "Wikipedia, Colosseum: '189 meters (615 ft / 640 Roman feet) long, and 156 meters (510 ft / 528 Roman feet) wide'."
+    },
+    "outerHeight": {
+      "m": 48,
+      "source": "Wikipedia, Colosseum: 'The height of the outer wall is 48 meters (157 ft / 165 Roman feet)'."
+    },
+    "arenaLength": {
+      "m": 87,
+      "source": "Wikipedia, Colosseum: 'The central arena is an ellipse 87 m (287 ft) long and 55 m (180 ft) wide'."
+    },
+    "arenaWidth": {
+      "m": 55,
+      "source": "Wikipedia, Colosseum: 'The central arena is an ellipse 87 m (287 ft) long and 55 m (180 ft) wide'."
+    }
+  },
+  "note": "THE COLOSSEUM IS AN ELLIPSE AND THIS IS A CIRCLE, which is the honest limit of the kit here. `arrangeOn` offers a circle and an arc, not an ellipse; a 189 x 156 m ellipse has an eccentricity a viewer can see. The radius used is the mean of the two semi-axes (86.25 m), so the building is the right size and the wrong shape by about 10 % on each axis. An ellipse would be a real addition to `spex-build` and is the first thing this site would ask for.\n\nThree arcades of eighty arches: the number 80 is the building's own and is what the shot is about, so the scale was chosen to carry it rather than the other way round.",
+  "massing": [
+    {
+      "primitive": "Arch",
+      "count": 80,
+      "arrangeOn": {
+        "kind": "circle",
+        "radiusM": 86.25
+      },
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "spanM": 5.0,
+        "riseM": 14.0,
+        "thicknessStuds": 2,
+        "color": "travertin"
+      }
+    },
+    {
+      "primitive": "Arch",
+      "count": 80,
+      "arrangeOn": {
+        "kind": "circle",
+        "radiusM": 86.25
+      },
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 14.0
+      },
+      "params": {
+        "spanM": 5.0,
+        "riseM": 14.0,
+        "thicknessStuds": 2,
+        "color": "travertin"
+      }
+    },
+    {
+      "primitive": "Arch",
+      "count": 80,
+      "arrangeOn": {
+        "kind": "circle",
+        "radiusM": 86.25
+      },
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 28.0
+      },
+      "params": {
+        "spanM": 5.0,
+        "riseM": 14.0,
+        "thicknessStuds": 2,
+        "color": "travertin"
+      }
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "slug": "borobudur",
+  "qid": "Q39231",
+  "tier": "B",
+  "name": "Borobudur Temple Compounds",
+  "studsPerMetre": 0.5,
+  "uncitedBudget": 10,
+  "scaleNote": "0.5 studs per metre. 123 m square and 35 m tall; nine platforms have to be nine distinguishable courses, which sets the floor on the scale.",
+  "palette": {
+    "andesit": 72,
+    "stupa": 71
+  },
+  "dimensions": {
+    "base": {
+      "m": 123,
+      "source": "Wikipedia, Borobudur: 'The base is 123 m x 123 m (404 ft x 404 ft) in size with 4 metres (13 ft) walls.'"
+    },
+    "baseWall": {
+      "m": 4,
+      "source": "Wikipedia, Borobudur: 'The base is 123 m x 123 m (404 ft x 404 ft) in size with 4 metres (13 ft) walls.'"
+    },
+    "height": {
+      "m": 35,
+      "source": "Wikipedia, Borobudur: '35 metres (115 ft) above ground level' at the central dome's top."
+    }
+  },
+  "note": "Nine platforms, the lower six square and the upper three circular, with seventy-two small stupas around one large central stupa (Wikipedia, Borobudur). The six square platforms are a `Ziggurat`; the three circular ones and the 72 stupas are `Dome`s on `arrangeOn` circles. The setback per terrace is uncited -- no source read gives it -- and is derived from the base divided by the terrace count.",
+  "massing": [
+    {
+      "primitive": "Ziggurat",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "baseM": "base",
+        "tiers": 6,
+        "tierHeightM": 3.0,
+        "setbackM": 8.0,
+        "color": "andesit"
+      }
+    },
+    {
+      "primitive": "Dome",
+      "count": 32,
+      "arrangeOn": {
+        "kind": "circle",
+        "radiusM": 36.0
+      },
+      "at": {
+        "xM": 61.5,
+        "zM": 61.5,
+        "yM": 18.0
+      },
+      "params": {
+        "radiusM": 2.0,
+        "color": "stupa"
+      }
+    },
+    {
+      "primitive": "Dome",
+      "count": 24,
+      "arrangeOn": {
+        "kind": "circle",
+        "radiusM": 26.0
+      },
+      "at": {
+        "xM": 61.5,
+        "zM": 61.5,
+        "yM": 22.0
+      },
+      "params": {
+        "radiusM": 2.0,
+        "color": "stupa"
+      }
+    },
+    {
+      "primitive": "Dome",
+      "count": 16,
+      "arrangeOn": {
+        "kind": "circle",
+        "radiusM": 16.0
+      },
+      "at": {
+        "xM": 61.5,
+        "zM": 61.5,
+        "yM": 26.0
+      },
+      "params": {
+        "radiusM": 2.0,
+        "color": "stupa"
+      }
+    },
+    {
+      "primitive": "Dome",
+      "at": {
+        "xM": 55.0,
+        "zM": 55.0,
+        "yM": 28.0
+      },
+      "params": {
+        "radiusM": 6.5,
+        "capHeightM": 7.0,
+        "color": "stupa"
+      }
+    }
+  ]
+}

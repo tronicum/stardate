@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "slug": "giza",
+  "qid": "Q1175856",
+  "tier": "B",
+  "name": "Memphis and its Necropolis — the Pyramid Fields from Giza to Dahshur",
+  "studsPerMetre": 0.12,
+  "uncitedBudget": 0,
+  "scaleNote": "0.12 studs per metre. Khufu's base is 230.33 m; at 1 stud/m the Pyramid primitive would lay some 265 000 bricks for one pyramid. At 0.12 the three together are a few thousand and the field still reads as a field.",
+  "palette": {
+    "kalkstein": 19,
+    "granit": 70
+  },
+  "dimensions": {
+    "khufuBase": {
+      "m": 230.33,
+      "source": "Wikipedia, Great Pyramid of Giza: base side length '230.33 m (756 ft)'."
+    },
+    "khufuHeight": {
+      "m": 146.6,
+      "source": "Wikipedia, Great Pyramid of Giza: original height '146.6 m (481 ft)'; current '138.5 m (454 ft)'."
+    },
+    "khafreBase": {
+      "m": 215.5,
+      "source": "Wikipedia, Pyramid of Khafre: base side length '215.5 m (706 ft)'."
+    },
+    "khafreHeight": {
+      "m": 136.4,
+      "source": "Wikipedia, Pyramid of Khafre: original height '136.4 metres (448 ft)'."
+    },
+    "menkaureBase": {
+      "m": 108.5,
+      "source": "Wikipedia, Pyramid of Menkaure: base side length '108.5 m (356 ft)'."
+    },
+    "menkaureHeight": {
+      "m": 65.5,
+      "source": "Wikipedia, Pyramid of Menkaure: original height '65.5 meters (215 ft)'."
+    }
+  },
+  "note": "THE SLOPE IS THE PRIMITIVE'S, NOT KHUFU'S, and the difference is small enough to state exactly. `Pyramid` corbels a square footprint inward one stud per brick course, which gives height/base = 0.6. Khufu's real ratio is 146.6/230.33 = 0.637, Khafre's 0.633, Menkaure's 0.604. So this Atlas builds Giza about 6 % too flat for the two large pyramids and almost exactly right for the third. The cited heights are in `dimensions` and unused by the massing, which is why the generator lists them separately: they are the number this model does not hit.\n\nThe three are placed on their real relative diagonal — Khufu north-east, Menkaure south-west — but the spacings are read off a plan by eye and are counted as site-plan coordinates.",
+  "massing": [
+    {
+      "primitive": "Pyramid",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "baseM": "khufuBase",
+        "color": "kalkstein",
+        "stepped": true
+      }
+    },
+    {
+      "primitive": "Pyramid",
+      "at": {
+        "xM": -260.0,
+        "zM": 250.0,
+        "yM": 0
+      },
+      "params": {
+        "baseM": "khafreBase",
+        "color": "kalkstein",
+        "stepped": true
+      }
+    },
+    {
+      "primitive": "Pyramid",
+      "at": {
+        "xM": -480.0,
+        "zM": 520.0,
+        "yM": 0
+      },
+      "params": {
+        "baseM": "menkaureBase",
+        "color": "granit",
+        "stepped": true
+      }
+    }
+  ]
+}

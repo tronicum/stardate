@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "slug": "koelner-dom",
+  "qid": "Q4176",
+  "tier": "B",
+  "name": "Cologne Cathedral",
+  "studsPerMetre": 0.6,
+  "uncitedBudget": 6,
+  "scaleNote": "0.6 studs per metre. The spires are 157 m and the church 144.58 m long; the whole point of the site is that the towers are taller than the building is long.",
+  "palette": {
+    "stein": 72,
+    "dach": 0
+  },
+  "dimensions": {
+    "spireHeight": {
+      "m": 157,
+      "source": "Wikipedia, Cologne Cathedral: 'At 157 m (515 ft), the cathedral is the tallest twin-spired church in the world'."
+    },
+    "length": {
+      "m": 144.58,
+      "source": "Wikipedia, Cologne Cathedral: 'External length | 144.58 m (474.3 ft)'."
+    },
+    "width": {
+      "m": 86.25,
+      "source": "Wikipedia, Cologne Cathedral: 'External width | 86.25 m (283.0 ft)'."
+    }
+  },
+  "note": "Three cited numbers and nothing else: no source read here gives the nave height or the transept width, so the body of the church is a block of the cited length and width at an uncited height, and the two spires are `Column`s of the cited height. That is a thin model of a very elaborate building, and the elaboration is the part a Klemmbaustein cannot do anyway.\n\nACTIVE PLACE OF WORSHIP. Included under Stefan's 'build all of them', not decided individually.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "length",
+        "depthM": 40.0,
+        "heightM": 45.0,
+        "bond": "Running",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 90.0,
+        "zM": -23.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 24.0,
+        "depthM": "width",
+        "heightM": 45.0,
+        "bond": "Running",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Column",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "diameterM": 18.0,
+        "heightM": "spireHeight",
+        "color": "stein"
+      }
+    },
+    {
+      "primitive": "Column",
+      "at": {
+        "xM": 22.0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "diameterM": 18.0,
+        "heightM": "spireHeight",
+        "color": "stein"
+      }
+    }
+  ]
+}
