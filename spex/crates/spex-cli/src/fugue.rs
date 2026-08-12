@@ -13,7 +13,22 @@ use anyhow::{Context, Result};
 use spex_fugue::counterpoint::Rule;
 use std::path::Path;
 
-pub fn build(show_path: &Path, out: &Path, seed: Option<u64>) -> Result<()> {
+/// `spex show-build`'s entry point: the same bytes, without the report.
+///
+/// A show build already prints a screenful; the relaxations belong to the
+/// person who asked for the score, and `spex fugue-build` is where they ask.
+pub fn build_into(show_path: &Path, out: &Path, seed: Option<u64>) -> Result<()> {
+    write_score(show_path, out, seed).map(|_| ())
+}
+
+/// Realises the plan and writes the file. Shared by both entry points so the
+/// score a screening plays and the score a person opens in a DAW cannot come
+/// from two code paths — the same argument rev 4 made for having one format.
+fn write_score(
+    show_path: &Path,
+    out: &Path,
+    seed: Option<u64>,
+) -> Result<(spex_fugue::counterpoint::Realisation, u64, usize)> {
     let text = std::fs::read_to_string(show_path)
         .with_context(|| format!("reading {}", show_path.display()))?;
     let doc: serde_json::Value = serde_json::from_str(&text)?;
@@ -34,6 +49,11 @@ pub fn build(show_path: &Path, out: &Path, seed: Option<u64>) -> Result<()> {
         }
     }
     std::fs::write(out, &bytes).with_context(|| format!("writing {}", out.display()))?;
+    Ok((r, seed, bytes.len()))
+}
+
+pub fn build(show_path: &Path, out: &Path, seed: Option<u64>) -> Result<()> {
+    let (r, seed, byte_count) = write_score(show_path, out, seed)?;
 
     let bars = r.notes.iter().map(|n| n.end_beat()).fold(0.0, f64::max) / r.beats_per_bar;
     println!(
@@ -71,6 +91,6 @@ pub fn build(show_path: &Path, out: &Path, seed: Option<u64>) -> Result<()> {
             }
         }
     }
-    println!("wrote {} ({} bytes)", out.display(), bytes.len());
+    println!("wrote {} ({} bytes)", out.display(), byte_count);
     Ok(())
 }

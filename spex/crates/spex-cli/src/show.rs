@@ -183,6 +183,26 @@ pub fn build(show_path: &Path, out: &Path, cache_dir: &Path, opts: &BuildOptions
         index.cuts.len(),
         index.cuts.iter().map(|c| c.label.as_str()).collect::<Vec<_>>().join(", ")
     );
+
+    // THE SCORE, INTO THE SHOW DIRECTORY. Without this a show directory is
+    // silent, and silently so: `midi.ts` fetches `fugue.mid`, a missing one is
+    // a 404, and `absence.mjs` classifies exactly that 404 as absent-by-design
+    // — correctly, because a point-cloud tileset has no fugue. So every probe
+    // this project has ever run reported zero console errors on a screening
+    // with no audio in it, and `spex show-export` copied the silence to a
+    // static host. A four-voice piece is not a piece without its four voices.
+    //
+    // The score is built here rather than left to `spex fugue-build` because a
+    // screening is ONE directory and a person should not have to know that it
+    // takes two commands to fill it. `fugue-build` stays: it writes the same
+    // bytes wherever you want them, and it prints the relaxations.
+    if let Err(e) = crate::fugue::build_into(show_path, &out.join("fugue.mid"), opts.seed) {
+        // Not fatal. A show document with no `audio` block is legitimate — the
+        // graph and point-cloud pipelines share this loader — and so is one
+        // whose plan the counterpoint engine cannot realise today. Saying so
+        // is the point; failing the build is not.
+        println!("no score written: {e:#}");
+    }
     Ok(())
 }
 
