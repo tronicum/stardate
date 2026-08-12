@@ -104,6 +104,11 @@
       "prefix": "tokens"
     },
     {
+      "id": "tokensUeberlauf",
+      "source": { "kind": "build", "recipe": "recipes/tokens-ueberlauf.json" },
+      "prefix": "tokensUeberlauf"
+    },
+    {
       "id": "coin",
       "source": { "kind": "build", "recipe": "recipes/coin.json" },
       "prefix": "coin"
@@ -524,7 +529,7 @@
           "minBars": 3,
           "maxBars": 32,
           "tier": 1,
-          "scenes": ["bulla", "tokens"],
+          "scenes": ["bulla", "tokens", "tokensUeberlauf"],
           "camera": {
             "mode": "dolly",
             "fovDeg": 40,
@@ -547,12 +552,20 @@
                 { "t": 0.15, "value": 1, "easing": "linear" },
                 { "t": 0.9, "value": 0, "easing": "linear" }
               ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "tokensUeberlauf/**",
+              "keys": [
+                { "t": 0.55, "value": 1, "easing": "linear" },
+                { "t": 1, "value": 0, "easing": "cubicIn" }
+              ]
             }
           ],
           "cues": [
             { "t": 0.75, "kind": "hud", "payload": { "element": "caption", "text": "Ein Konto, das man nicht ändern kann, ohne es zu zerbrechen." } }
           ],
-          "note": "The tokens arrive one per beat and then keep arriving past what the row can hold -- the camera pulls back and they still run out of frame. NO numeral and no HUD counter: tallying by object ceasing to scale is the actual historical reason the bulla was sealed, and it is an image rather than a caption on a caption. The linear dissolve ramp is what makes the arrival even, one token a beat, rather than eased into a flourish."
+          "note": "The tokens arrive one per beat and then keep arriving past what the row can hold -- the camera pulls back and they still run out of frame. THAT SECOND HALF WAS A SENTENCE AND NOT AN IMAGE UNTIL NOW: the scene was forty counters in a line, and forty in a line is the one number a viewer CAN count, in the one shot that is about counting ceasing to work. `tokensUeberlauf` is two hundred more, scattered around and past the row, with its own dissolve starting at t=0.55 -- a second scene rather than a longer recipe, because a dissolve writes ONE amount to every instance of a scene and the erosion noise is sampled in world position, so one scene of 240 would arrive as a single spreading stain and never as 'the row, and then the overrun'. Measured on the real frames: 21 separable counters at t=0.5, 61 at t=0.7, and at t=0.95 twice the token pixels in FEWER separable blobs -- they have stopped being objects and become a heap, which is the whole historical point and is why the bulla was sealed. NO numeral and no HUD counter: tallying by object ceasing to scale is the actual historical reason the bulla was sealed, and it is an image rather than a caption on a caption. The linear dissolve ramp is what makes the arrival even, one token a beat, rather than eased into a flourish."
         },
         {
           "id": "A2-S04",
@@ -563,7 +576,7 @@
           "minBars": 2,
           "maxBars": 25,
           "tier": 1,
-          "scenes": ["tokens", "coin"],
+          "scenes": ["tokens", "tokensUeberlauf", "coin"],
           "camera": {
             "mode": "dolly",
             "fovDeg": 30,
@@ -577,6 +590,14 @@
               "keys": [
                 { "t": 0.1, "value": 0, "easing": "linear" },
                 { "t": 0.55, "value": 1, "easing": "cubicIn" }
+              ]
+            },
+            {
+              "kind": "dissolve",
+              "target": "tokensUeberlauf/**",
+              "keys": [
+                { "t": 0, "value": 0, "easing": "linear" },
+                { "t": 0.4, "value": 1, "easing": "cubicIn" }
               ]
             },
             {
