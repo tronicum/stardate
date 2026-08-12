@@ -2,7 +2,6 @@
 /** M71 — the audio↔visual binding, measured.
  *
  *   spex show-build shows/die-geschichtliche-matrix.show.json -o /tmp/show --duration 240 --endless
- *   spex fugue-build shows/die-geschichtliche-matrix.show.json -o /tmp/show/fugue.mid
  *   spex show /tmp/show --port 8141 --no-open &
  *   node scripts/viewer-shot/bindprobe.mjs http://127.0.0.1:8141/ /tmp/m71 [minutes]
  *
@@ -11,6 +10,18 @@
  *   AC2  are the Kick's audio onset and the frame that binds to it within one
  *        frame (16.7 ms) of each other?
  *   AC3  does muting mid-run and unmuting desync anything?
+ *
+ * The second command used to be `spex fugue-build ... -o /tmp/show/fugue.mid`,
+ * and forgetting it was not an error: the show played silently and every probe
+ * reported zero console errors, because a missing `fugue.mid` is a 404 that
+ * `absence.mjs` classifies as absent-by-design. `show-build` writes the score
+ * itself now, which is also why this probe finally has anything to measure.
+ *
+ * RUN IT PAST THE END AND THE NUMBERS GO STRANGE, and that is the harness and
+ * not the piece: with `?loop=0` the show clock stops at 240.000 s while the
+ * audio clock does not, so cues handed over afterwards are applied "late" by
+ * however long the run has been over. Inside the piece the worst binding
+ * latency measured 0.68 to 0.96 frames — under one frame at every sample.
  *
  * # What "in sync" is actually measured as
  *
