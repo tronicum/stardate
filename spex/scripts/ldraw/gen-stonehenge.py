@@ -1,4 +1,4 @@
-"""NOT YET WIRED INTO THE SHOW. Emits `recipes/stonehenge.json` — the sarsen circle and the trilithon horseshoe.
+"""Emits `recipes/stonehenge.json` — the sarsen circle and the trilithon horseshoe.
 
     python3 scripts/ldraw/gen-stonehenge.py     # from the repo's spex/
 
@@ -59,7 +59,12 @@ def wall(x, z, y_plates, w, d, h, deg, color):
                    "bond": "Running", "color": color},
     })
 
-CX = 400   # stage centre, in studs
+# The circle's centre, in studs. ZERO, and that is not a default: the .ldr this
+# replaces places its circle on the origin (x -1500..1500 LDU, z the same), and
+# A1-S06's camera dollies to (0, 380, 1500) mm looking at (0, 36.8, 0). A stud
+# is 8 mm here and a metre is 5 studs, so the 15 m radius is 75 studs = 600 mm
+# — exactly the .ldr's 1500 LDU. Same circle, same place, same camera.
+CX = 0
 
 # --- the sarsen circle: uprights, then the lintel ring on top of them.
 for i in range(N_UPRIGHTS):

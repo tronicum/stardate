@@ -115,7 +115,7 @@
     },
     {
       "id": "stonehenge",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/stonehenge.ldr" },
+      "source": { "kind": "build", "recipe": "recipes/stonehenge.json" },
       "prefix": "stonehenge"
     },
     {

@@ -34,7 +34,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 475,
+    "xStuds": 75,
     "zStuds": 0,
     "yPlates": 0,
     "orientationDeg": 90
@@ -50,7 +50,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 473,
+    "xStuds": 73,
     "zStuds": 16,
     "yPlates": 0,
     "orientationDeg": 102
@@ -66,7 +66,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 469,
+    "xStuds": 69,
     "zStuds": 31,
     "yPlates": 0,
     "orientationDeg": 114
@@ -82,7 +82,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 461,
+    "xStuds": 61,
     "zStuds": 44,
     "yPlates": 0,
     "orientationDeg": 126
@@ -98,7 +98,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 450,
+    "xStuds": 50,
     "zStuds": 56,
     "yPlates": 0,
     "orientationDeg": 138
@@ -114,7 +114,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 438,
+    "xStuds": 38,
     "zStuds": 65,
     "yPlates": 0,
     "orientationDeg": 150
@@ -130,7 +130,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 423,
+    "xStuds": 23,
     "zStuds": 71,
     "yPlates": 0,
     "orientationDeg": 162
@@ -146,7 +146,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 408,
+    "xStuds": 8,
     "zStuds": 75,
     "yPlates": 0,
     "orientationDeg": 174
@@ -162,7 +162,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 392,
+    "xStuds": -8,
     "zStuds": 75,
     "yPlates": 0,
     "orientationDeg": 186
@@ -178,7 +178,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 377,
+    "xStuds": -23,
     "zStuds": 71,
     "yPlates": 0,
     "orientationDeg": 198
@@ -194,7 +194,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 362,
+    "xStuds": -37,
     "zStuds": 65,
     "yPlates": 0,
     "orientationDeg": 210
@@ -210,7 +210,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 350,
+    "xStuds": -50,
     "zStuds": 56,
     "yPlates": 0,
     "orientationDeg": 222
@@ -226,7 +226,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 339,
+    "xStuds": -61,
     "zStuds": 44,
     "yPlates": 0,
     "orientationDeg": 234
@@ -242,7 +242,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 331,
+    "xStuds": -69,
     "zStuds": 31,
     "yPlates": 0,
     "orientationDeg": 246
@@ -258,7 +258,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 327,
+    "xStuds": -73,
     "zStuds": 16,
     "yPlates": 0,
     "orientationDeg": 258
@@ -274,7 +274,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 325,
+    "xStuds": -75,
     "zStuds": 0,
     "yPlates": 0,
     "orientationDeg": 270
@@ -290,7 +290,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 327,
+    "xStuds": -73,
     "zStuds": -16,
     "yPlates": 0,
     "orientationDeg": 282
@@ -306,7 +306,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 331,
+    "xStuds": -69,
     "zStuds": -31,
     "yPlates": 0,
     "orientationDeg": 294
@@ -322,7 +322,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 339,
+    "xStuds": -61,
     "zStuds": -44,
     "yPlates": 0,
     "orientationDeg": 306
@@ -338,7 +338,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 350,
+    "xStuds": -50,
     "zStuds": -56,
     "yPlates": 0,
     "orientationDeg": 318
@@ -354,7 +354,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 362,
+    "xStuds": -38,
     "zStuds": -65,
     "yPlates": 0,
     "orientationDeg": 330
@@ -370,7 +370,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 377,
+    "xStuds": -23,
     "zStuds": -71,
     "yPlates": 0,
     "orientationDeg": 342
@@ -386,7 +386,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 392,
+    "xStuds": -8,
     "zStuds": -75,
     "yPlates": 0,
     "orientationDeg": 354
@@ -402,7 +402,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 408,
+    "xStuds": 8,
     "zStuds": -75,
     "yPlates": 0,
     "orientationDeg": 6
@@ -418,7 +418,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 423,
+    "xStuds": 23,
     "zStuds": -71,
     "yPlates": 0,
     "orientationDeg": 18
@@ -434,7 +434,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 438,
+    "xStuds": 38,
     "zStuds": -65,
     "yPlates": 0,
     "orientationDeg": 30
@@ -450,7 +450,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 450,
+    "xStuds": 50,
     "zStuds": -56,
     "yPlates": 0,
     "orientationDeg": 42
@@ -466,7 +466,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 461,
+    "xStuds": 61,
     "zStuds": -44,
     "yPlates": 0,
     "orientationDeg": 54
@@ -482,7 +482,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 469,
+    "xStuds": 69,
     "zStuds": -31,
     "yPlates": 0,
     "orientationDeg": 66
@@ -498,7 +498,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 473,
+    "xStuds": 73,
     "zStuds": -16,
     "yPlates": 0,
     "orientationDeg": 78
@@ -514,7 +514,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 475,
+    "xStuds": 75,
     "zStuds": 8,
     "yPlates": -51,
     "orientationDeg": 96
@@ -530,7 +530,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 471,
+    "xStuds": 71,
     "zStuds": 23,
     "yPlates": -51,
     "orientationDeg": 108
@@ -546,7 +546,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 465,
+    "xStuds": 65,
     "zStuds": 37,
     "yPlates": -51,
     "orientationDeg": 120
@@ -562,7 +562,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 456,
+    "xStuds": 56,
     "zStuds": 50,
     "yPlates": -51,
     "orientationDeg": 132
@@ -578,7 +578,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 444,
+    "xStuds": 44,
     "zStuds": 61,
     "yPlates": -51,
     "orientationDeg": 144
@@ -594,7 +594,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 431,
+    "xStuds": 31,
     "zStuds": 69,
     "yPlates": -51,
     "orientationDeg": 156
@@ -610,7 +610,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 416,
+    "xStuds": 16,
     "zStuds": 73,
     "yPlates": -51,
     "orientationDeg": 168
@@ -626,7 +626,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 400,
+    "xStuds": 0,
     "zStuds": 75,
     "yPlates": -51,
     "orientationDeg": 180
@@ -642,7 +642,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 384,
+    "xStuds": -16,
     "zStuds": 73,
     "yPlates": -51,
     "orientationDeg": 192
@@ -658,7 +658,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 369,
+    "xStuds": -31,
     "zStuds": 69,
     "yPlates": -51,
     "orientationDeg": 204
@@ -674,7 +674,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 356,
+    "xStuds": -44,
     "zStuds": 61,
     "yPlates": -51,
     "orientationDeg": 216
@@ -690,7 +690,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 344,
+    "xStuds": -56,
     "zStuds": 50,
     "yPlates": -51,
     "orientationDeg": 228
@@ -706,7 +706,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 335,
+    "xStuds": -65,
     "zStuds": 37,
     "yPlates": -51,
     "orientationDeg": 240
@@ -722,7 +722,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 329,
+    "xStuds": -71,
     "zStuds": 23,
     "yPlates": -51,
     "orientationDeg": 252
@@ -738,7 +738,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 325,
+    "xStuds": -75,
     "zStuds": 8,
     "yPlates": -51,
     "orientationDeg": 264
@@ -754,7 +754,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 325,
+    "xStuds": -75,
     "zStuds": -8,
     "yPlates": -51,
     "orientationDeg": 276
@@ -770,7 +770,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 329,
+    "xStuds": -71,
     "zStuds": -23,
     "yPlates": -51,
     "orientationDeg": 288
@@ -786,7 +786,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 335,
+    "xStuds": -65,
     "zStuds": -37,
     "yPlates": -51,
     "orientationDeg": 300
@@ -802,7 +802,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 344,
+    "xStuds": -56,
     "zStuds": -50,
     "yPlates": -51,
     "orientationDeg": 312
@@ -818,7 +818,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 356,
+    "xStuds": -44,
     "zStuds": -61,
     "yPlates": -51,
     "orientationDeg": 324
@@ -834,7 +834,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 369,
+    "xStuds": -31,
     "zStuds": -69,
     "yPlates": -51,
     "orientationDeg": 336
@@ -850,7 +850,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 384,
+    "xStuds": -16,
     "zStuds": -73,
     "yPlates": -51,
     "orientationDeg": 348
@@ -866,7 +866,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 400,
+    "xStuds": 0,
     "zStuds": -75,
     "yPlates": -51,
     "orientationDeg": 0
@@ -882,7 +882,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 416,
+    "xStuds": 16,
     "zStuds": -73,
     "yPlates": -51,
     "orientationDeg": 12
@@ -898,7 +898,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 431,
+    "xStuds": 31,
     "zStuds": -69,
     "yPlates": -51,
     "orientationDeg": 24
@@ -914,7 +914,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 444,
+    "xStuds": 44,
     "zStuds": -61,
     "yPlates": -51,
     "orientationDeg": 36
@@ -930,7 +930,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 456,
+    "xStuds": 56,
     "zStuds": -50,
     "yPlates": -51,
     "orientationDeg": 48
@@ -946,7 +946,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 465,
+    "xStuds": 65,
     "zStuds": -37,
     "yPlates": -51,
     "orientationDeg": 60
@@ -962,7 +962,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 471,
+    "xStuds": 71,
     "zStuds": -23,
     "yPlates": -51,
     "orientationDeg": 72
@@ -978,7 +978,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 475,
+    "xStuds": 75,
     "zStuds": -8,
     "yPlates": -51,
     "orientationDeg": 84
@@ -994,7 +994,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 388,
+    "xStuds": -12,
     "zStuds": -34,
     "yPlates": 0,
     "orientationDeg": 330
@@ -1010,7 +1010,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 377,
+    "xStuds": -23,
     "zStuds": -27,
     "yPlates": 0,
     "orientationDeg": 330
@@ -1026,7 +1026,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 382,
+    "xStuds": -17,
     "zStuds": -30,
     "yPlates": -75,
     "orientationDeg": 330
@@ -1042,7 +1042,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 423,
+    "xStuds": 23,
     "zStuds": -27,
     "yPlates": 0,
     "orientationDeg": 30
@@ -1058,7 +1058,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 412,
+    "xStuds": 12,
     "zStuds": -34,
     "yPlates": 0,
     "orientationDeg": 30
@@ -1074,7 +1074,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 418,
+    "xStuds": 18,
     "zStuds": -30,
     "yPlates": -83,
     "orientationDeg": 30
@@ -1090,7 +1090,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 435,
+    "xStuds": 35,
     "zStuds": 7,
     "yPlates": 0,
     "orientationDeg": 90
@@ -1106,7 +1106,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 435,
+    "xStuds": 35,
     "zStuds": -7,
     "yPlates": 0,
     "orientationDeg": 90
@@ -1122,7 +1122,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 435,
+    "xStuds": 35,
     "zStuds": 0,
     "yPlates": -91,
     "orientationDeg": 90
@@ -1138,7 +1138,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 412,
+    "xStuds": 12,
     "zStuds": 34,
     "yPlates": 0,
     "orientationDeg": 150
@@ -1154,7 +1154,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 423,
+    "xStuds": 23,
     "zStuds": 27,
     "yPlates": 0,
     "orientationDeg": 150
@@ -1170,7 +1170,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 418,
+    "xStuds": 18,
     "zStuds": 30,
     "yPlates": -83,
     "orientationDeg": 150
@@ -1186,7 +1186,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 377,
+    "xStuds": -23,
     "zStuds": 27,
     "yPlates": 0,
     "orientationDeg": 210
@@ -1202,7 +1202,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 388,
+    "xStuds": -12,
     "zStuds": 34,
     "yPlates": 0,
     "orientationDeg": 210
@@ -1218,7 +1218,7 @@
   {
    "primitive": "Wall",
    "at": {
-    "xStuds": 382,
+    "xStuds": -17,
     "zStuds": 30,
     "yPlates": -75,
     "orientationDeg": 210
