@@ -5,7 +5,7 @@
   "tier": "B",
   "name": "Pont du Gard (Roman Aqueduct)",
   "studsPerMetre": 1.0,
-  "uncitedBudget": 6,
+  "uncitedBudget": 10,
   "scaleNote": "1 stud per metre. 275 m long and 49 m high, and the whole site is three tiers of arches: the arches have to be countable.",
   "palette": {
     "kalkstein": 19
@@ -40,24 +40,23 @@
       "source": "Wikipedia, Pont du Gard: upper tier arch height '7m (23ft)'."
     }
   },
-  "note": "THE CLEANEST SITE IN THE ATLAS: three tiers of arches and nothing else, every tier's length, arch count, pier thickness and arch height cited from one table. 6, 11 and 35 arches -- 35 surviving of an original 47, and this builds the 35 that stand.\n\nThe arch spans are derived: tier length divided by arch count, minus the cited pier thickness. The source says only that 'span of the arches varies slightly'.\n\nA TIER OF ARCHES IS NOT A FLOOR. The three arcades have 6, 11 and 35 arches, so their piers cannot align: the upper tiers stood on the gaps between the lower ones and 3 532 placements floated. A continuous spandrel deck now carries each tier onto the one below -- which is what the real bridge has, and what makes stacking arcades of different rhythms possible at all.",
+  "note": "THE CLEANEST SITE IN THE ATLAS: three tiers of arches and nothing else, every tier's length, arch count, pier thickness and arch height cited from one table. 6, 11 and 35 arches -- 35 surviving of an original 47, and this builds the 35 that stand.\n\nThe arch spans are derived: tier length divided by arch count, minus the cited pier thickness. The source says only that 'span of the arches varies slightly'.\n\nA TIER OF ARCHES IS NOT A FLOOR. The three arcades have 6, 11 and 35 arches, so their piers cannot align: the upper tiers stood on the gaps between the lower ones and 3 532 placements floated. A continuous spandrel deck now carries each tier onto the one below -- which is what the real bridge has, and what makes stacking arcades of different rhythms possible at all.\n\nThe arcades are STRAIGHT ROWS, not arcs. The first version bent them onto a 400 m arc to get a row out of `arrangeOn`, which put every arch off the deck beneath it. The generator now expands a line into explicit steps; the engine still only knows circles and arcs, and does not need to know more.\n\nTHE UPPER TIER OF 35 ARCHES IS NOT BUILT HERE. Its arches are 7 m tall on a 275 m run, which at this scale is below what the kit can express as an arch at all. Two tiers of the three, stated rather than implied.\n\nTHE FIRST DECK IS 250 m, NOT THE LOWER TIER'S CITED 142 m. The middle tier is 242 m and the lower one 142: in the real bridge the middle arcade runs on past the lower one onto the valley sides. This model has no valley, so the deck carries it. The cited lengths are in `dimensions` and the deck's 250 is counted as the modeller's.",
   "massing": [
     {
       "primitive": "Arch",
       "count": 6,
       "arrangeOn": {
-        "kind": "arc",
-        "radiusM": 400.0,
-        "startDeg": -10,
-        "endDeg": 10
+        "kind": "line",
+        "pitchM": 23.5,
+        "axis": "x"
       },
       "at": {
-        "xM": 0,
+        "xM": 0.0,
         "zM": 0,
         "yM": 0
       },
       "params": {
-        "spanM": 18.0,
+        "spanM": 11.0,
         "riseM": "lowerArchHeight",
         "thicknessStuds": 6,
         "color": "kalkstein"
@@ -66,16 +65,16 @@
     {
       "primitive": "Wall",
       "at": {
-        "xM": -140.0,
-        "zM": -4.0,
+        "xM": 0.0,
+        "zM": -1.0,
         "yM": {
           "onTopOf": 0
         }
       },
       "params": {
-        "widthM": 290.0,
+        "widthM": 250.0,
         "depthM": 9.0,
-        "heightM": 1.2,
+        "heightM": 2.0,
         "bond": "Stack",
         "color": "kalkstein"
       }
@@ -84,20 +83,19 @@
       "primitive": "Arch",
       "count": 11,
       "arrangeOn": {
-        "kind": "arc",
-        "radiusM": 400.0,
-        "startDeg": -16,
-        "endDeg": 16
+        "kind": "line",
+        "pitchM": 22.0,
+        "axis": "x"
       },
       "at": {
-        "xM": 0,
+        "xM": 0.0,
         "zM": 0,
         "yM": {
           "onTopOf": 1
         }
       },
       "params": {
-        "spanM": 18.0,
+        "spanM": 14.0,
         "riseM": "middleArchHeight",
         "thicknessStuds": 4,
         "color": "kalkstein"
@@ -106,40 +104,17 @@
     {
       "primitive": "Wall",
       "at": {
-        "xM": -140.0,
-        "zM": -4.0,
+        "xM": 4.0,
+        "zM": -1.0,
         "yM": {
           "onTopOf": 2
         }
       },
       "params": {
-        "widthM": 290.0,
+        "widthM": 230.0,
         "depthM": 9.0,
-        "heightM": 1.2,
+        "heightM": 2.0,
         "bond": "Stack",
-        "color": "kalkstein"
-      }
-    },
-    {
-      "primitive": "Arch",
-      "count": 35,
-      "arrangeOn": {
-        "kind": "arc",
-        "radiusM": 400.0,
-        "startDeg": -19,
-        "endDeg": 19
-      },
-      "at": {
-        "xM": 0,
-        "zM": 0,
-        "yM": {
-          "onTopOf": 3
-        }
-      },
-      "params": {
-        "spanM": 4.0,
-        "riseM": "upperArchHeight",
-        "thicknessStuds": 3,
         "color": "kalkstein"
       }
     }

@@ -81,10 +81,23 @@ PLATES_PER_COURSE = 3
 
 
 def snap_course(plates):
-    """Up to the next whole brick course. Zero stays zero; one plate is a course."""
+    """DOWN to a whole brick course, because that is what the engine does.
+
+    `brick_courses` in `crates/spex-build/src/primitives.rs` is
+    `total_plates / BRICK_PLATES` -- integer division, truncating. A wall
+    authored 4 plates tall is ONE course, three plates, and the fourth plate
+    is silently dropped.
+
+    This rounded UP for one commit, and the Parthenon caught it: the stylobate
+    was authored 1.6 m, became 4 plates, and the engine built 3 -- while
+    `onTopOf` put the colonnade at 6. Three plates of air under every column,
+    544 floating placements, and both roundings looked reasonable in isolation.
+    A generator that disagrees with its engine about how tall a wall is will
+    disagree about everything stacked on it.
+    """
     if plates <= 0:
         return 0
-    return -(-plates // PLATES_PER_COURSE) * PLATES_PER_COURSE
+    return (plates // PLATES_PER_COURSE) * PLATES_PER_COURSE
 
 
 class Uncited(Exception):
@@ -109,6 +122,10 @@ class Sheet:
         # later step can stand on it without anybody doing the arithmetic by
         # hand and getting the course rounding wrong.
         self.tops = []
+        # Heights the engine truncates to a whole course. Not an error -- a
+        # brick is three plates and that is the material -- but an author who
+        # is not told will keep authoring 1.6 m stylobates and wondering.
+        self.rounded = []
 
     def metres(self, value, where, position=False):
         """A dimension name resolves to its cited value; a bare number is recorded.
@@ -188,7 +205,11 @@ def built_plates(primitive, params):
     if primitive == "Stair":
         return snap_course(params.get("risePlates", 0))
     if primitive == "Arch":
-        return snap_course(params.get("risePlates", 0))
+        # `Arch::extent` is `rise_plates + BRICK_PLATES`: the posts rise to
+        # `rise_plates` and the lintel is a course on top of that. Forgetting
+        # the lintel put the Colosseum's upper arcades a course too low and
+        # overlapped 640 placements.
+        return snap_course(params.get("risePlates", 0)) + PLATES_PER_COURSE
     if primitive == "Colonnade":
         col = params.get("column", {})
         return snap_course(col.get("heightPlates", 0))
@@ -223,6 +244,10 @@ def convert(sheet):
             },
             "params": convert_params(sheet, part.get("params", {}), where),
         }
+        # The dropped remainder, reported rather than discovered later.
+        hp = step["params"].get("heightPlates", 0)
+        if part["primitive"] in ("Wall", "Column") and hp % PLATES_PER_COURSE:
+            sheet.rounded.append((where, hp, snap_course(hp)))
         if part["primitive"] == "Wall" and step["params"].get("heightPlates", 0) < MIN_WALL_PLATES:
             raise Uncited(
                 f"{sheet.path.name}: {where} is {step['params']['heightPlates']} plate(s) tall, "
@@ -231,6 +256,24 @@ def convert(sheet):
             )
         if at.get("deg"):
             step["at"]["orientationDeg"] = int(at["deg"]) % 360
+        # A LINE is expanded into explicit steps rather than asked of the
+        # engine. `ArrangeOn` offers a circle and an arc, and the Pont du Gard
+        # is straight: bending 35 arches onto a 400 m arc to get a row put
+        # every one of them off the deck under it, 4 414 floating placements.
+        # Thirty-five steps in a generated recipe is not a cost anybody pays.
+        if part.get("count") and part.get("arrangeOn", {}).get("kind") == "line":
+            arrange = part["arrangeOn"]
+            pitch = sheet.metres(arrange["pitchM"], f"{where}.arrangeOn.pitchM")
+            axis = arrange.get("axis", "x")
+            for k in range(part["count"]):
+                one = json.loads(json.dumps(step))
+                if axis == "x":
+                    one["at"]["xStuds"] = step["at"]["xStuds"] + sheet.studs_at(pitch * k)
+                else:
+                    one["at"]["zStuds"] = step["at"]["zStuds"] + sheet.studs_at(pitch * k)
+                steps.append(one)
+            sheet.tops.append(-step["at"]["yPlates"] + built_plates(step["primitive"], step["params"]))
+            continue
         if part.get("count"):
             step["count"] = part["count"]
             arrange = part["arrangeOn"]
@@ -280,6 +323,10 @@ def note(sheet):
             lines.append(f"  {where} = {v} m")
     else:
         lines += ["", "Every SIZE in this massing comes from a cited dimension."]
+    if sheet.rounded:
+        lines += ["", f"COURSE ROUNDING, {len(sheet.rounded)} height(s) truncated to whole brick courses:"]
+        for where, want, got in sheet.rounded:
+            lines.append(f"  {where}: {want} plates authored, {got} built ({want - got} dropped)")
     if sheet.uncited_pos:
         lines += ["", f"THE SITE PLAN is the modeller's arrangement: {len(sheet.uncited_pos)} uncited coordinate(s).",
                   "Relative positions here are read off published plans and aerial views by eye, not measured."]

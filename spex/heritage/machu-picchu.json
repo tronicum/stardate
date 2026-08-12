@@ -5,7 +5,7 @@
   "tier": "B",
   "name": "Historic Sanctuary of Machu Picchu",
   "studsPerMetre": 0.6,
-  "uncitedBudget": 10,
+  "uncitedBudget": 25,
   "scaleNote": "0.6 studs per metre; at 1 the terraces alone were 15 424 placements.",
   "palette": {
     "granit": 71,
@@ -17,52 +17,121 @@
       "source": "Wikipedia, Machu Picchu: '16 m (52 ft) x 16 m (52 ft) terrace' for the Sacred Plaza."
     }
   },
-  "note": "ONE CITED DIMENSION, AND THAT IS THE FINDING. Machu Picchu is described in the sources read here by elevation (2 430 m), by protected area (38 160.87 ha) and by building count ('approximately 200 buildings are arranged on wide parallel terraces around an east-west central square'), and almost never by the size of anything one could build. So the model is a terraced platform of the right character with a plaza of the one cited size, and every other figure in it is the modeller's.\n\nThat is a worse ratio than any other Tier B site, and it is recorded rather than disguised. If this Atlas ships Machu Picchu, it ships it as an arrangement rather than as a measurement.",
+  "note": "ONE CITED DIMENSION, AND THAT IS THE FINDING. Machu Picchu is described in the sources read here by elevation (2 430 m), by protected area (38 160.87 ha) and by building count ('approximately 200 buildings are arranged on wide parallel terraces around an east-west central square'), and almost never by the size of anything one could build. So the model is a terraced platform of the right character with a plaza of the one cited size, and every other figure in it is the modeller's.\n\nThat is a worse ratio than any other Tier B site, and it is recorded rather than disguised. If this Atlas ships Machu Picchu, it ships it as an arrangement rather than as a measurement.\n\nSIX WALL TERRACES, NOT A `Stair`. A `Stair` builds treads that overhang one another -- which is what a stair is, and which `validate()` reports as 1 024 floating placements. An Inca andén is a retaining wall with fill behind it, so it is a Wall of decreasing footprint, six times.",
   "massing": [
     {
-      "primitive": "Stair",
+      "primitive": "Wall",
       "at": {
-        "xM": 0,
+        "xM": 0.0,
         "zM": 0,
         "yM": 0
       },
       "params": {
-        "runM": 60.0,
-        "riseM": 18.0,
-        "widthM": 120.0,
+        "widthM": 60.0,
+        "depthM": 120.0,
+        "heightM": 3.0,
+        "bond": "Running",
         "color": "gras"
       }
     },
     {
       "primitive": "Wall",
       "at": {
-        "xM": 0,
+        "xM": 8.0,
         "zM": 0,
         "yM": {
           "onTopOf": 0
         }
       },
       "params": {
-        "widthM": 60.0,
+        "widthM": 52.0,
         "depthM": 120.0,
-        "heightM": 1.2,
-        "bond": "Stack",
+        "heightM": 3.0,
+        "bond": "Running",
         "color": "gras"
       }
     },
     {
       "primitive": "Wall",
       "at": {
-        "xM": 10.0,
-        "zM": 20.0,
+        "xM": 16.0,
+        "zM": 0,
         "yM": {
           "onTopOf": 1
         }
       },
       "params": {
+        "widthM": 44.0,
+        "depthM": 120.0,
+        "heightM": 3.0,
+        "bond": "Running",
+        "color": "gras"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 24.0,
+        "zM": 0,
+        "yM": {
+          "onTopOf": 2
+        }
+      },
+      "params": {
+        "widthM": 36.0,
+        "depthM": 120.0,
+        "heightM": 3.0,
+        "bond": "Running",
+        "color": "gras"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 32.0,
+        "zM": 0,
+        "yM": {
+          "onTopOf": 3
+        }
+      },
+      "params": {
+        "widthM": 28.0,
+        "depthM": 120.0,
+        "heightM": 3.0,
+        "bond": "Running",
+        "color": "gras"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 40.0,
+        "zM": 0,
+        "yM": {
+          "onTopOf": 4
+        }
+      },
+      "params": {
+        "widthM": 20.0,
+        "depthM": 120.0,
+        "heightM": 3.0,
+        "bond": "Running",
+        "color": "gras"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 42.0,
+        "zM": 20.0,
+        "yM": {
+          "onTopOf": 5
+        }
+      },
+      "params": {
         "widthM": "sacredPlaza",
         "depthM": "sacredPlaza",
-        "heightM": 1.2,
+        "heightM": 2.5,
         "bond": "Stack",
         "color": "granit"
       }
@@ -70,10 +139,10 @@
     {
       "primitive": "Wall",
       "at": {
-        "xM": 10.0,
+        "xM": 42.0,
         "zM": 40.0,
         "yM": {
-          "onTopOf": 1
+          "onTopOf": 5
         }
       },
       "params": {
@@ -87,10 +156,10 @@
     {
       "primitive": "Wall",
       "at": {
-        "xM": 10.0,
+        "xM": 42.0,
         "zM": 54.0,
         "yM": {
-          "onTopOf": 1
+          "onTopOf": 5
         }
       },
       "params": {
