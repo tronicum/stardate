@@ -208,6 +208,49 @@ fn every_act_is_as_long_as_the_screenplay_says_and_they_sum_to_two_forty() {
     assert_eq!(got, vec![2.0, 2.0, 3.0, 4.0, 3.0, 3.0]);
 }
 
+/// The piece has four voices, and the director HUD should say four.
+///
+/// `player.ts` labels a voice entry `"${voice} ${range}"` and keeps the
+/// distinct labels it has seen, so a single `voiceEntry` cue that spells the
+/// same voice differently makes the instrument report a fifth voice in a
+/// four-voice fugue. That is exactly what the document did: A1-S03 wrote
+/// `"alto"` and A3-S01 and all four of A3-S05's stretto entries wrote `"alt"`,
+/// so the HUD listed voice 1 twice as soon as Act III began.
+///
+/// It costs nothing to be wrong about and nothing to check, which is the
+/// argument for checking it rather than for being careful.
+#[test]
+fn each_voice_has_exactly_one_name() {
+    use std::collections::BTreeMap;
+
+    let path = repo_root().join("shows/die-geschichtliche-matrix.show.json");
+    let show = spex_show::load(&path).unwrap();
+
+    let mut names: BTreeMap<u64, Vec<String>> = BTreeMap::new();
+    for (_, shot) in show.shots() {
+        for cue in &shot.cues {
+            if cue.payload.get("event").and_then(|v| v.as_str()) != Some("voiceEntry") {
+                continue;
+            }
+            let voice = cue.payload.get("voice").and_then(|v| v.as_u64()).expect("a voiceEntry names a voice");
+            let range = cue.payload.get("range").and_then(|v| v.as_str()).unwrap_or("").to_string();
+            let seen = names.entry(voice).or_default();
+            if !seen.contains(&range) {
+                seen.push(range);
+            }
+        }
+    }
+
+    for (voice, spellings) in &names {
+        assert_eq!(
+            spellings.len(),
+            1,
+            "voice {voice} is spelled {spellings:?} — the HUD would list it more than once"
+        );
+    }
+    assert_eq!(names.len(), 4, "the fugue is in four voices: {names:?}");
+}
+
 /// Every track target must start with a scene prefix the document defines,
 /// and must be able to reach a real instance id.
 ///

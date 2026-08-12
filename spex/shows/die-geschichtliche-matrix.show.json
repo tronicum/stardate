@@ -305,7 +305,7 @@
             {
               "t": 0.66,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 1, "range": "alto", "subject": "subject", "target": { "scene": "brick" } }
+              "payload": { "event": "voiceEntry", "voice": 1, "range": "alt", "subject": "subject", "target": { "scene": "brick" } }
             }
           ],
           "note": "The crossfade, and the centre of the piece. The swarm collapses onto the real mesh of a single 1x1 brick, Black. The edge lines arrive in ONE frame — hence easing 'step' on edgeOpacity, not a fade: legibility is a threshold event, a statistical cloud becoming a thing that can be counted. Then hold silence for one bar; voice 1 enters with the subject AFTER the image has landed, alone. Then the brick makes one full revolution at constant angular velocity — 'linear' is the direction, not laziness."
