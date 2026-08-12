@@ -15,6 +15,7 @@ pub mod choreography;
 pub mod compile;
 pub mod model;
 pub mod resolve;
+pub mod tokens;
 
 pub use choreography::{
     placement_seed, splitmix64, staggered_progress, start_offset_ldu, FLOAT_HEIGHT_LDU,

@@ -1,0 +1,218 @@
+{
+  "spec": {
+    "ids": 48,
+    "originMm": [
+      10804,
+      12,
+      -252
+    ],
+    "pitchMm": 32,
+    "nodes": 17,
+    "hops": 14,
+    "arcMm": 26,
+    "editionSeed": 263865
+  },
+  "samples": [
+    {
+      "t01": 0,
+      "instances": [
+        0,
+        1,
+        7,
+        23,
+        47
+      ],
+      "positionsMm": [
+        [
+          11060,
+          12,
+          -188
+        ],
+        [
+          11156,
+          12,
+          -60
+        ],
+        [
+          11092,
+          12,
+          100
+        ],
+        [
+          10804,
+          12,
+          260
+        ],
+        [
+          11284,
+          12,
+          -28
+        ]
+      ]
+    },
+    {
+      "t01": 0.137,
+      "instances": [
+        0,
+        1,
+        7,
+        23,
+        47
+      ],
+      "positionsMm": [
+        [
+          11028,
+          18.62403886776793,
+          -158.624
+        ],
+        [
+          11126.624,
+          18.62403886776793,
+          -28
+        ],
+        [
+          11121.376,
+          18.62403886776793,
+          68
+        ],
+        [
+          10836,
+          18.62403886776793,
+          230.62400000000002
+        ],
+        [
+          11313.376,
+          18.62403886776793,
+          4
+        ]
+      ]
+    },
+    {
+      "t01": 0.5,
+      "instances": [
+        0,
+        1,
+        7,
+        23,
+        47
+      ],
+      "positionsMm": [
+        [
+          11028,
+          12,
+          -188
+        ],
+        [
+          11124,
+          12,
+          4
+        ],
+        [
+          11252,
+          12,
+          36
+        ],
+        [
+          10868,
+          12,
+          164
+        ],
+        [
+          11316,
+          12,
+          -28
+        ]
+      ]
+    },
+    {
+      "t01": 0.8231,
+      "instances": [
+        0,
+        1,
+        7,
+        23,
+        47
+      ],
+      "positionsMm": [
+        [
+          10996,
+          37.92977702585085,
+          -75.25119999999998
+        ],
+        [
+          11124,
+          37.92977702585085,
+          -12.748800000000017
+        ],
+        [
+          11267.2512,
+          37.92977702585085,
+          4
+        ],
+        [
+          10852.7488,
+          37.92977702585085,
+          196
+        ],
+        [
+          11235.2512,
+          37.92977702585085,
+          -28
+        ]
+      ]
+    },
+    {
+      "t01": 1,
+      "instances": [
+        0,
+        1,
+        7,
+        23,
+        47
+      ],
+      "positionsMm": [
+        [
+          10964,
+          12.000000000000004,
+          -28
+        ],
+        [
+          11156,
+          12.000000000000004,
+          -60
+        ],
+        [
+          11252,
+          12.000000000000004,
+          4
+        ],
+        [
+          10868,
+          12.000000000000004,
+          132
+        ],
+        [
+          11220,
+          12.000000000000004,
+          -28
+        ]
+      ]
+    }
+  ],
+  "_note": [
+    "A2-S03's tokens are A4-S03's tokens; this is A4-S03's WALK.",
+    "",
+    "Generated from viewer/src/show/tokens.ts itself \u2014 bundled with esbuild and run",
+    "in node, not re-derived \u2014 and then used to pin crates/spex-show/src/tokens.rs.",
+    "Same arrangement as assembly-scatter.json: the two implementations are pinned",
+    "to this file rather than to each other, so neither can be quietly edited into",
+    "agreement with the other.",
+    "",
+    "Five moments and five instances. t01 = 0 and 1 are the ends (the arc is zero at",
+    "both, by construction); 0.137, 0.5 and 0.8231 are mid-hop, and 0.8231 is",
+    "deliberately not a round number, because a walk that only agrees on hop",
+    "boundaries agrees about nothing interesting.",
+    "",
+    "Regenerate: see scripts/ldraw/README or the commit that added this file."
+  ]
+}

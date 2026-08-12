@@ -24,9 +24,13 @@ start from a list and not from a survey.**
 | `staggered_progress` | `staggeredProgress` |
 | `FLOAT_HEIGHT_LDU` 420, `SCATTER_RADIUS_LDU` 260 | the same two constants |
 
-The two are pinned to `fixtures/assembly-scatter.json` rather than to each
-other, which is the right arrangement for two implementations and is not a
-substitute for having one.
+`crates/spex-show/src/tokens.rs` against `viewer/src/show/tokens.ts` joined
+them on 11 August — `position_at` / `positionAt`, the reflected walk and the
+half-sine arc — deliberately, so that the list is complete rather than short.
+
+Both pairs are pinned to a fixture (`assembly-scatter.json`, `token-flow.json`)
+rather than to each other, which is the right arrangement for two
+implementations and is not a substitute for having one.
 
 **The sharpest line in the whole case for wasm is in the TypeScript file's own
 header:**
@@ -138,10 +142,14 @@ M86 both cost nothing:
 
 1. **Do not let the duplicate list grow silently.** Anything added to
    `choreography.ts` gets a twin in `choreography.rs` and a fixture entry, or
-   it is written on the Rust side from the start. The `tokens.ts` generator
-   added on 11 August is *TypeScript only* — a deliberate exception, since it
-   has no baked counterpart, and it is the first entry on the list of things
-   M87 will have to move rather than delete.
+   it is written on the Rust side from the start. **Done for `tokens.ts` the
+   same day this page was written**: `crates/spex-show/src/tokens.rs`, pinned
+   to `fixtures/token-flow.json`, which was generated from the TypeScript
+   itself rather than re-derived. The two agree to 1e-9 across a fourteen-hop
+   reflected walk at five moments and five instances. A generator with no Rust
+   side is one M87 would have to *port* under deadline rather than delete, and
+   porting a walk is exactly where an off-by-one in the hop index is
+   invisible.
 2. **Get one frame-time number before believing the performance argument.**
    The zero-copy case deserves a measurement on real hardware with a real
    scene, not a software rasteriser. Until then the architectural argument —
