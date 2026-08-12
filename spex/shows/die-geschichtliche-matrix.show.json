@@ -482,7 +482,18 @@
               { "t": 0, "easing": "linear", "value": { "position": [150, 72, 270], "lookAt": [96, 52, 8] } },
               { "t": 1, "easing": "linear", "value": { "position": [150, 72, 270], "lookAt": [96, 52, 8] } }
             ]
-          }
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "uruk/**",
+              "keys": [
+                { "t": 0, "value": 1, "easing": "linear" },
+                { "t": 0.75, "value": 0, "easing": "linear" }
+              ]
+            }
+          ],
+          "note": "THE WALL HAS TO BUILD ITSELF, and until now it was simply there. This was the last shot in the piece whose sentence the picture did not perform -- the screenplay says 'a wall builds itself, one course per beat, twelve courses in three bars, then settle', and A2-S01 had no tracks and no cues at all: three hundred bricks, present from the first frame, under a camera that deliberately does not move. The stillness of the camera is the whole idea of the shot ('the first static shot of the piece, so the construction moves and nothing else does') and it only works if something else IS moving. LINEAR, and that is the argument the other dissolves in this act already make: an eased ramp arrives as a flourish, a linear one arrives at a rate, and a rate is what one-course-per-beat means. It ends at 0.75 rather than 1 so the wall STANDS for the last quarter -- the screenplay's 'then settle' -- rather than finishing on its own last brick. WHAT IS NOT ACHIEVED, stated rather than implied: this is not literally course by course. `DissolveController` writes one amount to every instance of a scene and the erosion noise is sampled in WORLD POSITION, so the wall assembles as a rising, spreading front and not as twelve discrete courses. A true course-by-course build wants a per-instance threshold keyed on height -- the same mechanism A2-S03 needed a second scene to fake -- and that is a runtime change, not an authoring one. What is here is the difference between a wall that arrives and a wall that was always there, which is the difference the shot is actually about."
         },
         {
           "id": "A2-S02",
