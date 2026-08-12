@@ -135,10 +135,49 @@ and with the fallback path exercised by a probe that blocks the `.wasm` fetch
 the way M86's AC4 already blocks it for the demos. Then "alternative runtime"
 is a true statement about the system rather than a hope about a code path.
 
+## Now, or after the piece? — measured, 11 August
+
+The question is worth a number rather than an opinion, so here are the two that
+exist:
+
+**`spex-show` and `spex-fugue` already compile to `wasm32-unknown-unknown`,
+unmodified.**
+
+```
+rustup target add wasm32-unknown-unknown
+cargo build --release -p spex-show  --target wasm32-unknown-unknown   # Finished, 12 s
+cargo build --release -p spex-fugue --target wasm32-unknown-unknown   # Finished
+```
+
+No feature gates, no `getrandom` fight, no `std::time` to stub out. That is the
+"depends on nothing but serde" discipline both crates were given for exactly
+this reason, and it means the hardest thing M86 could have discovered — that
+the load-bearing crate does not build for the target — is already known not to
+be true. What M86 has left is glue: `wasm-bindgen`, the `wasm-pack` step, the
+Vite import, and a size figure.
+
+**The evaluator, by contrast, is not settled.** A track kind (`color`) was added
+to it on 11 August, and the open list still has items that will add more. The
+phase's own sequencing rule — porting a *settled* algorithm is mechanical —
+argues against starting M87 while the screenplay is still moving.
+
+So the split that the evidence supports:
+
+| | When | Why |
+|---|---|---|
+| **M86** — the crate, the toolchain, `version()` + `resolve_show()`, the size number | **Can start now** | Touches no file the piece is being authored in. Cannot conflict with a shot. The spec itself says "ships only the first two — prove the pipeline before widening it". |
+| **M87** — the evaluator moves to Rust, zero-copy, TS deleted or demoted | **After the cut is locked** | Every new track kind during a port is written twice against a moving boundary, and `timeline.ts` is both where features land and where the wrapper goes. |
+| **M88+** — recipes and LDraw in the browser | **After the Atlas** | Its purpose is reviewing Atlas recipes live; there are no Atlas recipes yet. |
+
+And the thing that buys the right to wait is what was done today: **both
+generators now have Rust twins pinned to fixtures**
+(`assembly-scatter.json`, `token-flow.json`). The drift is bounded rather than
+growing, so waiting costs a known amount instead of an unknown one.
+
 ## The recommendation, in one line
 
-**Not yet as work; already as a constraint.** The two things worth doing before
-M86 both cost nothing:
+**M86 whenever there is an idle afternoon; M87 the day the screenplay stops
+changing.** The two things worth doing before either both cost nothing:
 
 1. **Do not let the duplicate list grow silently.** Anything added to
    `choreography.ts` gets a twin in `choreography.rs` and a fixture entry, or
