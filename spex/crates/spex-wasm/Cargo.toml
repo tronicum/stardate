@@ -1,0 +1,17 @@
+[package]
+name = "spex-wasm"
+version.workspace = true
+edition.workspace = true
+
+# `cdylib` is the wasm module itself; `rlib` keeps the crate testable with an
+# ordinary `cargo test` on the host, which is the only way the equivalence
+# assertion below can be a unit test rather than a browser errand.
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+spex-show = { path = "../spex-show" }
+serde_json = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen = "0.2"

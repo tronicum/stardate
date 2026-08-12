@@ -87,14 +87,29 @@ pub fn version() -> String;
 pub fn resolve_show(show_json: &str, target_sec: f64, seed: u64, endless: bool) -> Result<String, JsValue>;
 ```
 
+**Status, 11 August 2026 — the crate exists and both exports are written**
+(`crates/spex-wasm/`). `wasm-bindgen` is a `cfg(target_arch = "wasm32")`
+dependency and the attributes are gated with it, so the crate compiles as an
+ordinary rlib on the host and AC2 below is a **unit test** rather than a
+browser errand — a check that needs a browser is a check that gets run once.
+What is left of this milestone is the JS side: the `wasm-pack` / `wasm-bindgen`
+glue step, the Vite import, and the CI build.
+
 **Acceptance criteria.**
 
 1. `wasm-pack build` succeeds in CI on a clean checkout.
 2. `resolve_show` called from the browser returns output byte-identical to
    `spex show-build`'s for the same inputs — asserted by fetching both in
-   the headless session and comparing hashes.
+   the headless session and comparing hashes. **Asserted on the host already**
+   (`the_wasm_entry_point_resolves_exactly_what_the_library_does`): the real
+   screenplay, three cuts (240 fixed, 120, endless), string-compared against
+   `spex_show::resolve` called directly. The browser half remains, and is a
+   check of the *transport*, not of the resolver.
 3. Released `.wasm` is < 400 KB gzipped for this export set; record the
-   real figure.
+   real figure. **Recorded, 11 August 2026: 659 KB raw, 184 KB gzipped** for
+   `version()` + `resolve_show()` — `cargo build --release -p spex-wasm
+   --target wasm32-unknown-unknown`, before `wasm-bindgen`'s strip and before
+   `wasm-opt`. Under half the budget with the optimiser not yet run.
 4. Every existing demo still loads with the wasm module **absent** — the
    point-cloud and graph pipelines must not gain a wasm dependency. Verified
    by loading a graph demo with the wasm fetch blocked.

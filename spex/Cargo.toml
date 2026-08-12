@@ -9,6 +9,7 @@ members = [
     "crates/spex-ldraw",
     "crates/spex-mesh",
     "crates/spex-show",
+    "crates/spex-wasm",
     "crates/spex-fugue",
     "crates/spex-build",
     "crates/spex-ankerstein",
