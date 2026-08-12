@@ -74,6 +74,7 @@ import { BLOOM_STRENGTH } from '../mesh/post';
 import type { Monitor } from '../audio/engine';
 import type { ShowParams } from './params';
 import type {
+  DissolveOrder,
   MaterialProperty,
   PostProperty,
   ResolvedCue,
@@ -650,10 +651,12 @@ export async function runShowViewer(
       touched.add(s);
     },
 
-    dissolve(target, value) {
+    dissolve(target, value, _shot, stagger, order) {
       const b = resolveTarget(target);
       if (!b.scene) return;
-      b.scene.dissolve.set(b.scene.writer, b.ids, value);
+      const span = stagger ?? 0;
+      const offsets = span > 0 ? dissolveOffsets(b, order ?? 'index') : undefined;
+      b.scene.dissolve.set(b.scene.writer, b.ids, value, offsets, span);
       touched.add(b.scene);
     },
 
@@ -707,6 +710,46 @@ export async function runShowViewer(
       director.apply(track, t01, sampled, dtSec);
     },
   };
+
+  /** Each bound instance's place in the order, 0 for the first and 1 for the
+   * last, cached per (target, order).
+   *
+   * Computed once and not per frame: the answer cannot change — the home
+   * placements and the build steps are both fixed at load — and a dissolve
+   * runs every frame of its shot over as many instances as the scene has.
+   * Same argument `compile.rs` makes for binding the glob once.
+   *
+   * `height` reads the bundle's own home positions rather than the live
+   * matrices, because the live ones are what a generator is in the middle of
+   * moving: a wall should rise in the order it was BUILT, not in the order it
+   * currently happens to be floating. */
+  const offsetCache = new Map<string, Float32Array>();
+  function dissolveOffsets(b: BoundTarget, order: DissolveOrder): Float32Array {
+    const s = b.scene!;
+    const key = `${s.id}|${order}|${b.indices.join(',')}`;
+    const hit = offsetCache.get(key);
+    if (hit) return hit;
+
+    const steps = (s.bundle as unknown as { instanceBuildSteps?: number[] }).instanceBuildSteps;
+    const rank = b.indices.map((idx, i) => {
+      // NEGATED, and measured rather than reasoned: with the bundle's own sign
+      // the wall built downward from its top course. `homePos` is decomposed
+      // from the placement matrices, and the piece's own frame conversion has
+      // already been through one Y mirror by then — which is exactly the kind
+      // of sign nobody gets right from the type. Lowest-first is what `height`
+      // promises, and this is the sign that delivers it.
+      if (order === 'height') return -s.homePos[idx * 3 + 1];
+      if (order === 'step' && steps) return steps[idx] ?? idx;
+      return i;
+    });
+    const lo = Math.min(...rank);
+    const hi = Math.max(...rank);
+    const span = hi - lo;
+    const out = new Float32Array(rank.length);
+    for (let i = 0; i < rank.length; i++) out[i] = span <= 0 ? 0 : (rank[i] - lo) / span;
+    offsetCache.set(key, out);
+    return out;
+  }
 
   function applyMaterial(b: BoundTarget, property: MaterialProperty, value: number) {
     const s = b.scene!;

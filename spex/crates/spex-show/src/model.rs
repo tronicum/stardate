@@ -302,6 +302,21 @@ pub enum MaterialProperty {
     EdgeOpacity,
 }
 
+/// What "first" means for a staggered dissolve. A closed set for the same
+/// reason `MaterialProperty` is one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DissolveOrder {
+    /// Bundle order — the order the recipe or the `.ldr` placed them in.
+    Index,
+    /// The instance's real `0 STEP` stage, where the scene has them. Falls
+    /// back to index where it does not, exactly as the assembly generator does.
+    Step,
+    /// Lowest first: a wall rises, a tower grows. This is the one A2-S01 needs
+    /// and the reason the whole field exists.
+    Height,
+}
+
 /// Post-chain parameters M58 exposes. Same closed-set reasoning.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -319,7 +334,24 @@ pub enum PostProperty {
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum Track {
     Transform { target: String, keys: Vec<Keyframe<TransformValue>> },
-    Dissolve { target: String, keys: Vec<Keyframe<f64>> },
+    /// `stagger` hands the ramp over from the first instance to the last
+    /// rather than dissolving every instance together, and `order` says what
+    /// "first" means. Absent is the old behaviour exactly: one amount for the
+    /// whole scene.
+    ///
+    /// A2-S01's screenplay asks for a wall that builds "one course per beat,
+    /// twelve courses in three bars". The erosion noise cannot express that —
+    /// it is sampled in world position, so a scene arrives as a spreading
+    /// stain — and no authoring of the keys can either, because every instance
+    /// shares the key's value.
+    Dissolve {
+        target: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        stagger: Option<f64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        order: Option<DissolveOrder>,
+        keys: Vec<Keyframe<f64>>,
+    },
     Material { target: String, property: MaterialProperty, keys: Vec<Keyframe<f64>> },
     /// The one material property that is not a scalar, and therefore not a
     /// `MaterialProperty`.
@@ -691,9 +723,7 @@ mod tests {
     #[test]
     fn keyframes_must_not_go_backwards() {
         let mut s = shot("X", 2.0, Scaling::Stretch);
-        s.tracks = vec![Track::Dissolve {
-            target: "monolith/*".into(),
-            keys: vec![
+        s.tracks = vec![Track::Dissolve { target: "monolith/*".into(), stagger: None, order: None, keys: vec![
                 Keyframe { t: 0.6, value: 0.0, easing: Easing::Linear, snap_to_beat: false },
                 Keyframe { t: 0.2, value: 1.0, easing: Easing::Linear, snap_to_beat: false },
             ],

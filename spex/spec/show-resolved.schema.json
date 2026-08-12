@@ -262,6 +262,8 @@
           "properties": {
             "kind": { "const": "dissolve" },
             "target": { "$ref": "#/$defs/targetBinding" },
+            "stagger": { "type": "number", "minimum": 0, "maximum": 1 },
+            "order": { "enum": ["index", "step", "height"] },
             "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKey" } }
           }
         },

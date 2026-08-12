@@ -39,6 +39,7 @@ import type {
   ResolvedShot,
   ResolvedShow,
   ResolvedTrack,
+  DissolveOrder,
   TargetBinding,
   TransformValue,
   Vec3,
@@ -70,7 +71,13 @@ export interface CameraOut {
 
 export interface TrackSinks {
   transform?(target: TargetBinding, value: Readonly<TransformOut>, shot: ResolvedShot): void;
-  dissolve?(target: TargetBinding, value: number, shot: ResolvedShot): void;
+  dissolve?(
+    target: TargetBinding,
+    value: number,
+    shot: ResolvedShot,
+    stagger?: number,
+    order?: DissolveOrder,
+  ): void;
   material?(target: TargetBinding, property: MaterialProperty, value: number, shot: ResolvedShot): void;
   /** Linear RGB. The array is scratch and is reused every frame — a sink that
    * keeps it must copy it, exactly like the camera's. */
@@ -218,7 +225,7 @@ export class Timeline {
       }
       case 'dissolve': {
         if (!sinks.dissolve) return;
-        sinks.dissolve(track.target, this.sampleNumber(track.keys, t), shot);
+        sinks.dissolve(track.target, this.sampleNumber(track.keys, t), shot, track.stagger, track.order);
         return;
       }
       case 'material': {

@@ -361,6 +361,16 @@
           "properties": {
             "kind": { "const": "dissolve" },
             "target": { "type": "string" },
+            "stagger": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "How much of the ramp is spent handing over from the first instance to the last. Absent or 0 is one amount for the whole scene, which is what every dissolve did before this existed. A2-S01's wall needs it: the erosion noise is sampled in world position, so without a stagger a scene arrives as a spreading stain and never as courses."
+            },
+            "order": {
+              "enum": ["index", "step", "height"],
+              "description": "What \"first\" means. `height` is lowest-first — a wall rises. `step` uses the scene's real `0 STEP` stages where it has them, falling back to index where it does not, exactly as the assembly generator does."
+            },
             "keys": { "type": "array", "items": { "$ref": "#/$defs/numberKeyframe" } }
           }
         },

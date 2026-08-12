@@ -434,6 +434,8 @@
             {
               "kind": "dissolve",
               "target": "stonehenge/**",
+              "stagger": 0.7,
+              "order": "height",
               "keys": [
                 { "t": 0, "value": 1, "easing": "cubicOut" },
                 { "t": 0.55, "value": 0, "easing": "cubicOut" }
@@ -487,6 +489,8 @@
             {
               "kind": "dissolve",
               "target": "uruk/**",
+              "stagger": 0.85,
+              "order": "height",
               "keys": [
                 { "t": 0, "value": 1, "easing": "linear" },
                 { "t": 0.75, "value": 0, "easing": "linear" }

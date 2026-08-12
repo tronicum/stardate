@@ -187,6 +187,34 @@ export interface DissolveTarget {
 
 /** Drives a dissolve or a materialise across a set of instances, and owns the
  * flash that ends a materialise. */
+/** One instance's own amount, given the shot's and where the instance sits in
+ * the order.
+ *
+ * `offset` is 0 for the instance that goes first and 1 for the one that goes
+ * last; `span` is how much of the ramp is spent handing over between them, and
+ * comes from the authored `stagger`. At span 0 every instance shares the
+ * shot's amount, which is what every dissolve in the piece did before this
+ * existed and is still the default.
+ *
+ * WHY THIS IS NOT THE EROSION NOISE. The noise is sampled in world position,
+ * so a scene dissolves as a spreading stain — right for a brick coming apart,
+ * wrong for a wall that is supposed to rise course by course, which A2-S01's
+ * screenplay asks for in those words and which no amount of noise can express.
+ * The two compose: an instance still erodes, it just starts eroding at its own
+ * moment.
+ *
+ * Deliberately the same shape as `staggeredProgress` in `choreography.ts` — a
+ * shot that staggers its assembly and its dissolve should hand over at the
+ * same rate, and two rates that are meant to match are one function. */
+export function staggeredAmount(amount: number, offset: number, span = 1): number {
+  const s = span <= 0 ? 0 : span > 1 ? 1 : span;
+  if (s === 0) return amount;
+  const width = 1 - s;
+  const start = offset * s;
+  const v = (amount - start) / (width <= 0 ? 1e-6 : width);
+  return v < 0 ? 0 : v > 1 ? 1 : v;
+}
+
 export class DissolveController {
   /** Flash amount, 0..1, decaying. Read by whatever owns the materials. */
   flash = 0;
@@ -203,12 +231,28 @@ export class DissolveController {
    * object is 30 % gone" does not depend on which direction it is heading,
    * and a mode would be one more thing to get out of sync with the
    * timeline. */
-  set(target: DissolveTarget, ids: readonly string[], amount: number): void {
+  set(
+    target: DissolveTarget,
+    ids: readonly string[],
+    amount: number,
+    offsets?: ArrayLike<number>,
+    span = 1,
+  ): void {
     const a = amount < 0 ? 0 : amount > 1 ? 1 : amount;
-    for (const id of ids) {
-      if (this.lastAmount.get(id) === a) continue;
-      this.lastAmount.set(id, a);
-      target.setDissolve(id, a);
+    if (!offsets) {
+      for (const id of ids) {
+        if (this.lastAmount.get(id) === a) continue;
+        this.lastAmount.set(id, a);
+        target.setDissolve(id, a);
+      }
+      target.flush();
+      return;
+    }
+    for (let i = 0; i < ids.length; i++) {
+      const v = staggeredAmount(a, offsets[i] ?? 0, span);
+      if (this.lastAmount.get(ids[i]) === v) continue;
+      this.lastAmount.set(ids[i], v);
+      target.setDissolve(ids[i], v);
     }
     target.flush();
   }

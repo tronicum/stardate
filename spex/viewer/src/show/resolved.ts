@@ -74,6 +74,9 @@ export interface CameraValue {
   fovDeg?: number;
 }
 
+/** What "first" means for a staggered dissolve. See `Track::Color`'s Rust twin. */
+export type DissolveOrder = 'index' | 'step' | 'height';
+
 export type MaterialProperty =
   | 'opacity'
   | 'roughness'
@@ -93,7 +96,16 @@ export type PostProperty =
 
 export type ResolvedTrack =
   | { kind: 'transform'; target: TargetBinding; keys: ResolvedKey<TransformValue>[] }
-  | { kind: 'dissolve'; target: TargetBinding; keys: ResolvedKey<number>[] }
+  | {
+      kind: 'dissolve';
+      target: TargetBinding;
+      /** 0..1 of the ramp spent handing over from the first instance to the
+       * last. Absent is every dissolve authored before this existed: one
+       * amount for the whole scene. */
+      stagger?: number;
+      order?: DissolveOrder;
+      keys: ResolvedKey<number>[];
+    }
   | { kind: 'material'; target: TargetBinding; property: MaterialProperty; keys: ResolvedKey<number>[] }
   /** Linear RGB, not sRGB — the same numbers `mesh.json` already carries, on
    * the same footing. See `Track::Color` in `crates/spex-show/src/model.rs`. */

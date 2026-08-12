@@ -193,7 +193,14 @@ impl TargetBinding {
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum ResolvedTrack {
     Transform { target: TargetBinding, keys: Vec<ResolvedKey<TransformValue>> },
-    Dissolve { target: TargetBinding, keys: Vec<ResolvedKey<f64>> },
+    Dissolve {
+        target: TargetBinding,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        stagger: Option<f64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        order: Option<DissolveOrder>,
+        keys: Vec<ResolvedKey<f64>>,
+    },
     Material { target: TargetBinding, property: MaterialProperty, keys: Vec<ResolvedKey<f64>> },
     /// Linear RGB. See `Track::Color`.
     Color { target: TargetBinding, keys: Vec<ResolvedKey<[f64; 3]>> },
@@ -598,9 +605,12 @@ fn absolutise(c: &Candidate, start: f64, bar: f64, beat: f64) -> ResolvedShot {
                     })
                     .collect(),
             },
-            Track::Dissolve { target, keys } => {
-                ResolvedTrack::Dissolve { target: TargetBinding::unbound(target), keys: map_keys(keys) }
-            }
+            Track::Dissolve { target, stagger, order, keys } => ResolvedTrack::Dissolve {
+                target: TargetBinding::unbound(target),
+                stagger: *stagger,
+                order: *order,
+                keys: map_keys(keys),
+            },
             Track::Material { target, property, keys } => ResolvedTrack::Material {
                 target: TargetBinding::unbound(target),
                 property: *property,
@@ -958,9 +968,7 @@ mod tests {
     #[test]
     fn a_snapped_keyframe_lands_on_a_beat_and_never_outside_its_shot() {
         let mut s = shot("A", 1.0, Scaling::Stretch, 8.0, Some(1.0), Some(400.0), Tier::Always);
-        s.tracks.push(Track::Dissolve {
-            target: "x/**".into(),
-            keys: vec![
+        s.tracks.push(Track::Dissolve { target: "x/**".into(), stagger: None, order: None, keys: vec![
                 Keyframe { t: 0.37, value: 1.0, easing: Easing::Linear, snap_to_beat: true },
                 Keyframe { t: 1.0, value: 0.0, easing: Easing::Linear, snap_to_beat: true },
             ],
