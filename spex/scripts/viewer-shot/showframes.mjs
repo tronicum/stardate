@@ -108,7 +108,15 @@ async function shoot(query, marks, prefix) {
       };
     }, t);
     await page.waitForTimeout(200);
-    await page.screenshot({ path: `${outDir}/${prefix}${name}.png` });
+    // Playwright's default screenshot timeout is 30 s, and Stonehenge's 28 090
+    // instances walked straight past it: the director frame sits at t=62, which
+    // is now A1-S06, and the whole strip died on its last picture with every
+    // other frame already written. The frame is not wrong and the piece is not
+    // slow — this container has no GPU. A documentation still is allowed to
+    // take three minutes; what is not allowed is a probe that reports nothing
+    // because the machine it ran on was the machine it was always going to
+    // run on.
+    await page.screenshot({ path: `${outDir}/${prefix}${name}.png`, timeout: 240000 });
     console.log(`${prefix}${name}  t=${t}s  ${info.shot}  scenes[${info.scenes.join(',')}]  cam ${info.cam}  ${info.draws} draws`);
   }
   await page.close();
