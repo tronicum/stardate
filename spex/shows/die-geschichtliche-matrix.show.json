@@ -448,6 +448,14 @@
                 { "t": 0, "value": 0.35, "easing": "quadInOut" },
                 { "t": 1, "value": 0.55, "easing": "quadInOut" }
               ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.7, "easing": "linear" },
+                { "t": 1, "value": 0.28, "easing": "cubicInOut" }
+              ]
             }
           ],
           "cues": [
@@ -458,7 +466,7 @@
             },
             { "t": 0.3, "kind": "hud", "payload": { "element": "caption", "text": "c. 2500 BCE" } }
           ],
-          "note": "Stonehenge rises behind the monolith, Steingrau, materialising from the ground up at a scale that reveals the monolith was small all along. Camera dollies back. Voice 4 enters; the exposition is complete in four voices. The caption dates the sarsens, lintels, mortices and tenons — c. 2500 BCE — NOT the c. 3000 BCE ditch, which is a different monument on the same ground."
+          "note": "Stonehenge rises behind the monolith, Steingrau, materialising from the ground up at a scale that reveals the monolith was small all along. Camera dollies back. Voice 4 enters; the exposition is complete in four voices. The caption dates the sarsens, lintels, mortices and tenons — c. 2500 BCE — NOT the c. 3000 BCE ditch, which is a different monument on the same ground. EXPOSURE, measured rather than chosen: at the default 0.7 the sarsens rendered at a median luminance of 206 against their own material value of 150 sRGB (baseColor 0.305 linear, LDraw 71), and — the number that actually matters — the whole ring spanned only 24 counts from p5 to p95. Nothing was clipped; the ACES shoulder was simply compressing every surface orientation onto the same value, so the circle read as a flat white cut-out rather than as stone with sides. Six exposures at t=73.4 s: 0.7 -> median 206 / spread 24, 0.55 -> 193/26, 0.45 -> 181/28, 0.35 -> 165/30, 0.28 -> 149/31, 0.22 -> 131/31. 0.28 is where the median lands on the material's own value and where the spread stops growing — below it the picture only gets darker, not more legible. The ramp rather than a step because the monolith fills the frame at t=0 and 0.7 is right for it; the light opens out as the ring is revealed, which is the shot's sentence anyway. A2-S01 restores 0.7, because a post track's last value persists into the following shots (see `resetSharedState`) and Act II was authored at the default."
         }
       ]
     },
@@ -494,6 +502,14 @@
               "keys": [
                 { "t": 0, "value": 1, "easing": "linear" },
                 { "t": 0.75, "value": 0, "easing": "linear" }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                { "t": 0, "value": 0.28, "easing": "linear" },
+                { "t": 0.4, "value": 0.7, "easing": "cubicInOut" }
               ]
             }
           ],
