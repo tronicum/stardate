@@ -4,175 +4,633 @@
   "title": "Die Geschichtliche Matrix",
   "subtitle": "Akt I — Archäologie der Fuge",
   "archiveSignature": "IA-2026-002",
-  "tempo": { "bpm": 84, "beatsPerBar": 4 },
+  "tempo": {
+    "bpm": 84,
+    "beatsPerBar": 4
+  },
   "baseDurationBars": 84,
   "seed": 263865,
   "palette": {
-    "terrakotta": [0.462077, 0.162029, 0.076185],
-    "elektrum": [0.658375, 0.42869, 0.038204],
-    "terminalgruen": [0.0, 0.791298, 0.033105],
-    "schwarz": [0.01096, 0.023153, 0.03434],
-    "patentweiss": [0.887923, 0.863157, 0.791298],
-    "steingrau": [0.14996, 0.155926, 0.138432],
-    "kante": [0.099899, 0.099899, 0.099899],
-    "grundOben": [0.004025, 0.006049, 0.009721],
-    "grundUnten": [0.001518, 0.002125, 0.003035]
+    "terrakotta": [
+      0.462077,
+      0.162029,
+      0.076185
+    ],
+    "elektrum": [
+      0.658375,
+      0.42869,
+      0.038204
+    ],
+    "terminalgruen": [
+      0.0,
+      0.791298,
+      0.033105
+    ],
+    "schwarz": [
+      0.01096,
+      0.023153,
+      0.03434
+    ],
+    "patentweiss": [
+      0.887923,
+      0.863157,
+      0.791298
+    ],
+    "steingrau": [
+      0.14996,
+      0.155926,
+      0.138432
+    ],
+    "kante": [
+      0.099899,
+      0.099899,
+      0.099899
+    ],
+    "grundOben": [
+      0.004025,
+      0.006049,
+      0.009721
+    ],
+    "grundUnten": [
+      0.001518,
+      0.002125,
+      0.003035
+    ]
   },
   "audio": {
     "version": 1,
     "bpm": 84,
-    "meter": [4, 4],
-    "mode": { "tonic": 62, "name": "dorian" },
+    "meter": [
+      4,
+      4
+    ],
+    "mode": {
+      "tonic": 62,
+      "name": "dorian"
+    },
     "voices": 4,
     "_subject": "A3 D4 G4 F4 E4 B4 A4 D4 — two bars, D Dorian. Opens on the dominant so the answer must be tonal; carries 1:4:9 as tonic, opening fourth, and a compass of a ninth; holds the Dorian sixth on the downbeat of bar 2.",
     "subject": [
-      { "degree": 4, "octave": -1, "beats": 1 },
-      { "degree": 0, "octave": 0, "beats": 1 },
-      { "degree": 3, "octave": 0, "beats": 0.5 },
-      { "degree": 2, "octave": 0, "beats": 0.5 },
-      { "degree": 1, "octave": 0, "beats": 1 },
-      { "degree": 5, "octave": 0, "beats": 2 },
-      { "degree": 4, "octave": 0, "beats": 1 },
-      { "degree": 0, "octave": 0, "beats": 1 }
+      {
+        "degree": 4,
+        "octave": -1,
+        "beats": 1
+      },
+      {
+        "degree": 0,
+        "octave": 0,
+        "beats": 1
+      },
+      {
+        "degree": 3,
+        "octave": 0,
+        "beats": 0.5
+      },
+      {
+        "degree": 2,
+        "octave": 0,
+        "beats": 0.5
+      },
+      {
+        "degree": 1,
+        "octave": 0,
+        "beats": 1
+      },
+      {
+        "degree": 5,
+        "octave": 0,
+        "beats": 2
+      },
+      {
+        "degree": 4,
+        "octave": 0,
+        "beats": 1
+      },
+      {
+        "degree": 0,
+        "octave": 0,
+        "beats": 1
+      }
     ],
     "_countersubject": "(two beats rest) E4 C4 D4 G4 F4 B3. The rests are structural: a countersubject cannot cover the subject head, because the head is the one part that differs in the answer. Invertible at the octave against both — checked by spex-fugue, not asserted.",
     "countersubject": [
-      { "beats": 1, "rest": true },
-      { "beats": 1, "rest": true },
-      { "degree": 1, "octave": 0, "beats": 1 },
-      { "degree": 6, "octave": -1, "beats": 1 },
-      { "degree": 0, "octave": 0, "beats": 1 },
-      { "degree": 3, "octave": 0, "beats": 1 },
-      { "degree": 2, "octave": 0, "beats": 1 },
-      { "degree": 5, "octave": -1, "beats": 1 }
+      {
+        "beats": 1,
+        "rest": true
+      },
+      {
+        "beats": 1,
+        "rest": true
+      },
+      {
+        "degree": 1,
+        "octave": 0,
+        "beats": 1
+      },
+      {
+        "degree": 6,
+        "octave": -1,
+        "beats": 1
+      },
+      {
+        "degree": 0,
+        "octave": 0,
+        "beats": 1
+      },
+      {
+        "degree": 3,
+        "octave": 0,
+        "beats": 1
+      },
+      {
+        "degree": 2,
+        "octave": 0,
+        "beats": 1
+      },
+      {
+        "degree": 5,
+        "octave": -1,
+        "beats": 1
+      }
     ],
     "plan": [
-      { "kind": "exposition", "entries": [
-        { "voice": 1, "transposition": "tonic",    "atBar": 5 },
-        { "voice": 0, "transposition": "dominant", "atBar": 7 },
-        { "voice": 2, "transposition": "tonic",    "atBar": 11 },
-        { "voice": 3, "transposition": "dominant", "atBar": 14 }
-      ] },
-      { "kind": "episode", "atBar": 9,  "bars": 2, "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 0 },
-      { "kind": "episode", "atBar": 13, "bars": 1, "sequenceInterval": -1, "motifFrom": "countersubjectTail", "targetDegree": 4 },
-      { "kind": "entry", "voice": 2, "degree": 3, "atBar": 17 },
-      { "kind": "episode", "atBar": 19, "bars": 2, "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 5 },
-      { "kind": "entry", "voice": 0, "degree": 5, "atBar": 21 },
-      { "kind": "episode", "atBar": 23, "bars": 2, "sequenceInterval": 1,  "motifFrom": "countersubjectTail", "targetDegree": 1 },
-      { "kind": "entry", "voice": 3, "degree": 1, "atBar": 25 },
-      { "kind": "episode", "atBar": 27, "bars": 3, "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 0 },
-      { "kind": "cadence", "atBar": 30, "bars": 1, "type": "authentic" },
-      { "kind": "episode", "atBar": 31, "bars": 3, "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 0 },
-      { "kind": "cadence", "atBar": 34, "bars": 3, "type": "authentic" },
-      { "kind": "entry", "voice": 1, "degree": 0, "atBar": 37, "inversion": true },
-      { "kind": "episode", "atBar": 39, "bars": 4, "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 3 },
-      { "kind": "entry", "voice": 3, "degree": 3, "atBar": 43, "augmentation": 2 },
-      { "kind": "episode", "atBar": 47, "bars": 5, "sequenceInterval": 1,  "motifFrom": "countersubjectTail", "targetDegree": 0 },
-      { "kind": "stretto", "atBar": 53, "bars": 4, "overlapBeats": 4, "voices": [3, 2, 1, 0] },
-      { "kind": "episode", "atBar": 57, "bars": 6,  "sequenceInterval": -1, "motifFrom": "subjectHead",        "targetDegree": 0 },
-      { "kind": "episode", "atBar": 63, "bars": 13, "sequenceInterval": -1, "motifFrom": "countersubjectTail", "targetDegree": 0 },
-      { "kind": "entry", "voice": 3, "degree": 0, "atBar": 76, "augmentation": 0.25 },
-      { "kind": "pedal", "atBar": 80, "bars": 3.5, "voice": 3, "degree": 0 },
-      { "kind": "cadence", "atBar": 83.5, "bars": 0.5, "type": "authentic" }
+      {
+        "kind": "exposition",
+        "entries": [
+          {
+            "voice": 1,
+            "transposition": "tonic",
+            "atBar": 5
+          },
+          {
+            "voice": 0,
+            "transposition": "dominant",
+            "atBar": 7
+          },
+          {
+            "voice": 2,
+            "transposition": "tonic",
+            "atBar": 11
+          },
+          {
+            "voice": 3,
+            "transposition": "dominant",
+            "atBar": 14
+          }
+        ]
+      },
+      {
+        "kind": "episode",
+        "atBar": 9,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 0
+      },
+      {
+        "kind": "episode",
+        "atBar": 13,
+        "bars": 1,
+        "sequenceInterval": -1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 4
+      },
+      {
+        "kind": "entry",
+        "voice": 2,
+        "degree": 3,
+        "atBar": 17
+      },
+      {
+        "kind": "episode",
+        "atBar": 19,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 5
+      },
+      {
+        "kind": "entry",
+        "voice": 0,
+        "degree": 5,
+        "atBar": 21
+      },
+      {
+        "kind": "episode",
+        "atBar": 23,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 1
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 1,
+        "atBar": 25
+      },
+      {
+        "kind": "episode",
+        "atBar": 27,
+        "bars": 3,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 0
+      },
+      {
+        "kind": "cadence",
+        "atBar": 30,
+        "bars": 1,
+        "type": "authentic"
+      },
+      {
+        "kind": "episode",
+        "atBar": 31,
+        "bars": 3,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 0
+      },
+      {
+        "kind": "cadence",
+        "atBar": 34,
+        "bars": 3,
+        "type": "authentic"
+      },
+      {
+        "kind": "entry",
+        "voice": 1,
+        "degree": 0,
+        "atBar": 37,
+        "inversion": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 39,
+        "bars": 4,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 3
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 3,
+        "atBar": 43,
+        "augmentation": 2
+      },
+      {
+        "kind": "episode",
+        "atBar": 47,
+        "bars": 5,
+        "sequenceInterval": 1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 0
+      },
+      {
+        "kind": "stretto",
+        "atBar": 53,
+        "bars": 4,
+        "overlapBeats": 4,
+        "voices": [
+          3,
+          2,
+          1,
+          0
+        ]
+      },
+      {
+        "kind": "episode",
+        "atBar": 57,
+        "bars": 6,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 0
+      },
+      {
+        "kind": "episode",
+        "atBar": 63,
+        "bars": 13,
+        "sequenceInterval": -1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 0
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 76,
+        "augmentation": 0.25
+      },
+      {
+        "kind": "pedal",
+        "atBar": 80,
+        "bars": 3.5,
+        "voice": 3,
+        "degree": 0
+      },
+      {
+        "kind": "cadence",
+        "atBar": 83.5,
+        "bars": 0.5,
+        "type": "authentic"
+      }
     ],
-    "pulse": { "enterAtSec": 180, "bpmMultiplier": 2, "finalAccentAtSec": 238.571 }
+    "pulse": {
+      "enterAtSec": 180,
+      "bpmMultiplier": 2,
+      "finalAccentAtSec": 238.571
+    }
   },
   "scenes": [
     {
       "id": "brick",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/brick-1x1.ldr" },
+      "source": {
+        "kind": "ldr",
+        "path": "ldraw-scenes/brick-1x1.ldr"
+      },
       "prefix": "brick"
     },
     {
       "id": "monolith",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/monolith.ldr" },
+      "source": {
+        "kind": "ldr",
+        "path": "ldraw-scenes/monolith.ldr"
+      },
       "prefix": "monolith"
     },
     {
       "id": "uruk",
-      "source": { "kind": "build", "recipe": "recipes/uruk-wall.json" },
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/uruk-wall.json"
+      },
       "prefix": "uruk"
     },
     {
       "id": "bulla",
-      "source": { "kind": "build", "recipe": "recipes/bulla.json" },
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/bulla.json"
+      },
       "prefix": "bulla"
     },
     {
       "id": "tokens",
-      "source": { "kind": "build", "recipe": "recipes/tokens.json" },
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/tokens.json"
+      },
       "prefix": "tokens"
     },
     {
       "id": "tokensUeberlauf",
-      "source": { "kind": "build", "recipe": "recipes/tokens-ueberlauf.json" },
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/tokens-ueberlauf.json"
+      },
       "prefix": "tokensUeberlauf"
     },
     {
       "id": "coin",
-      "source": { "kind": "build", "recipe": "recipes/coin.json" },
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/coin.json"
+      },
       "prefix": "coin"
     },
     {
       "id": "stonehenge",
-      "source": { "kind": "build", "recipe": "recipes/stonehenge.json" },
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/stonehenge.json"
+      },
       "prefix": "stonehenge"
     },
     {
       "id": "rom",
-      "source": { "kind": "build", "recipe": "recipes/rom.json" },
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/rom.json"
+      },
       "prefix": "rom"
     },
     {
       "id": "batima",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/batima.ldr" },
+      "source": {
+        "kind": "ldr",
+        "path": "ldraw-scenes/batima.ldr"
+      },
       "prefix": "batima"
     },
     {
       "id": "kiddicraft",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/kiddicraft.ldr" },
+      "source": {
+        "kind": "ldr",
+        "path": "ldraw-scenes/kiddicraft.ldr"
+      },
       "prefix": "kiddicraft"
     },
     {
       "id": "lego",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/lego.ldr" },
+      "source": {
+        "kind": "ldr",
+        "path": "ldraw-scenes/lego.ldr"
+      },
       "prefix": "lego"
     },
     {
       "id": "saeule",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/saeule.ldr" },
+      "source": {
+        "kind": "ldr",
+        "path": "ldraw-scenes/saeule.ldr"
+      },
       "prefix": "saeule"
     },
     {
       "id": "klemme",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/klemme.ldr" },
+      "source": {
+        "kind": "ldr",
+        "path": "ldraw-scenes/klemme.ldr"
+      },
       "prefix": "klemme"
     },
     {
       "id": "feld",
-      "source": { "kind": "build", "recipe": "recipes/feld.json" },
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/feld.json"
+      },
       "prefix": "feld"
     },
     {
       "id": "letzterStein",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/letzter-stein.ldr" },
+      "source": {
+        "kind": "ldr",
+        "path": "ldraw-scenes/letzter-stein.ldr"
+      },
       "prefix": "letzterStein"
     },
     {
       "id": "gitter",
-      "source": { "kind": "build", "recipe": "recipes/gitter.json" },
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/gitter.json"
+      },
       "prefix": "gitter"
     },
     {
       "id": "tokenStrom",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/token-strom.ldr" },
+      "source": {
+        "kind": "ldr",
+        "path": "ldraw-scenes/token-strom.ldr"
+      },
       "prefix": "tokenStrom"
     },
     {
       "id": "begleiter",
-      "source": { "kind": "ldr", "path": "ldraw-scenes/monolith.ldr" },
+      "source": {
+        "kind": "ldr",
+        "path": "ldraw-scenes/monolith.ldr"
+      },
       "prefix": "begleiter",
       "_note": "THE SAME FILE as the `monolith` scene, on purpose. The screenplay asks for the monolith at the edge of frame in A2-S02, A3-S04 and A4-S01 -- three shots, in three acts, staged between 2.4 and 9.5 metres from the origin the real monolith stands on. A second bundle costs nine instances and makes the piece's only continuity object reachable by a transform track; a second .ldr would be nine placements that could disagree with the first nine, silently, for ever. The piece is a montage and not a simulation: this object is CARRIED, and the document says so here rather than implying it walked. Each shot places it with a two-key constant transform at a lateral offset computed from that shot's own field of view, so it sits AT the frame edge rather than merely near it."
+    },
+    {
+      "id": "atlasGiza",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/giza.json"
+      },
+      "prefix": "atlasGiza"
+    },
+    {
+      "id": "atlasKolosseum",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/kolosseum.json"
+      },
+      "prefix": "atlasKolosseum"
+    },
+    {
+      "id": "atlasAkropolis",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/akropolis.json"
+      },
+      "prefix": "atlasAkropolis"
+    },
+    {
+      "id": "atlasTajMahal",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/taj-mahal.json"
+      },
+      "prefix": "atlasTajMahal"
+    },
+    {
+      "id": "atlasBorobudur",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/borobudur.json"
+      },
+      "prefix": "atlasBorobudur"
+    },
+    {
+      "id": "atlasKoelnerDom",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/koelner-dom.json"
+      },
+      "prefix": "atlasKoelnerDom"
+    },
+    {
+      "id": "atlasPontDuGard",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/pont-du-gard.json"
+      },
+      "prefix": "atlasPontDuGard"
+    },
+    {
+      "id": "atlasGrosseMauer",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/grosse-mauer.json"
+      },
+      "prefix": "atlasGrosseMauer"
+    },
+    {
+      "id": "atlasMachuPicchu",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/machu-picchu.json"
+      },
+      "prefix": "atlasMachuPicchu"
+    },
+    {
+      "id": "atlasGrandPlace",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/grand-place.json"
+      },
+      "prefix": "atlasGrandPlace"
+    },
+    {
+      "id": "atlasJelling",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/jelling.json"
+      },
+      "prefix": "atlasJelling"
+    },
+    {
+      "id": "atlasSegovia",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/segovia.json"
+      },
+      "prefix": "atlasSegovia"
+    },
+    {
+      "id": "atlasChichenItza",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/chichen-itza.json"
+      },
+      "prefix": "atlasChichenItza"
+    },
+    {
+      "id": "atlasGreatZimbabwe",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/great-zimbabwe.json"
+      },
+      "prefix": "atlasGreatZimbabwe"
+    },
+    {
+      "id": "atlasHimeji",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/himeji.json"
+      },
+      "prefix": "atlasHimeji"
+    },
+    {
+      "id": "atlasSydneyOpera",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/sydney-opera.json"
+      },
+      "prefix": "atlasSydneyOpera"
+    },
+    {
+      "id": "atlasPetra",
+      "source": {
+        "kind": "build",
+        "recipe": "recipes/heritage/petra.json"
+      },
+      "prefix": "atlasPetra"
     }
   ],
   "movements": [
@@ -195,7 +653,18 @@
               {
                 "t": 0,
                 "easing": "linear",
-                "value": { "position": [0, 4.8, 300], "lookAt": [0, 4.8, 0] }
+                "value": {
+                  "position": [
+                    0,
+                    4.8,
+                    300
+                  ],
+                  "lookAt": [
+                    0,
+                    4.8,
+                    0
+                  ]
+                }
               }
             ]
           },
@@ -204,9 +673,21 @@
               "kind": "hud",
               "element": "seed-point",
               "keys": [
-                { "t": 0, "value": 0.55, "easing": "linear" },
-                { "t": 0.5, "value": 1, "easing": "quadInOut" },
-                { "t": 1, "value": 0.55, "easing": "quadInOut" }
+                {
+                  "t": 0,
+                  "value": 0.55,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.5,
+                  "value": 1,
+                  "easing": "quadInOut"
+                },
+                {
+                  "t": 1,
+                  "value": 0.55,
+                  "easing": "quadInOut"
+                }
               ]
             }
           ],
@@ -214,7 +695,11 @@
             {
               "t": 0,
               "kind": "audio",
-              "payload": { "event": "sine", "hz": 55, "fadeInSec": 4 }
+              "payload": {
+                "event": "sine",
+                "hz": 55,
+                "fadeInSec": 4
+              }
             }
           ],
           "note": "Black. One point, Terminalgrün, at frame centre, one device pixel; it pulses once, slowly. Fixed in every cut, because this frame must be byte-identical to the last frame of the piece — see DER KICK. There is no geometry in this shot at all: the point is a HUD element, which is why it can be one device pixel rather than one projected millimetre."
@@ -228,24 +713,56 @@
           "minBars": 2,
           "maxBars": 7,
           "tier": 1,
-          "scenes": ["brick"],
+          "scenes": [
+            "brick"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 28,
-            "dolly": { "from": [0, 4.8, 300], "to": [0, 6, 90], "lookAt": [0, 4.8, 0] }
+            "dolly": {
+              "from": [
+                0,
+                4.8,
+                300
+              ],
+              "to": [
+                0,
+                6,
+                90
+              ],
+              "lookAt": [
+                0,
+                4.8,
+                0
+              ]
+            }
           },
           "tracks": [
             {
               "kind": "pointCloud",
               "target": "brick/**",
-              "keys": [{ "t": 0, "value": 1, "easing": "linear" }]
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                }
+              ]
             },
             {
               "kind": "hud",
               "element": "seed-point",
               "keys": [
-                { "t": 0, "value": 0.55, "easing": "linear" },
-                { "t": 0.12, "value": 0, "easing": "quadOut" }
+                {
+                  "t": 0,
+                  "value": 0.55,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.12,
+                  "value": 0,
+                  "easing": "quadOut"
+                }
               ]
             }
           ],
@@ -261,7 +778,9 @@
           "minBars": 2,
           "maxBars": 11,
           "tier": 1,
-          "scenes": ["brick"],
+          "scenes": [
+            "brick"
+          ],
           "camera": {
             "mode": "keyed",
             "fovDeg": 28,
@@ -269,7 +788,18 @@
               {
                 "t": 0,
                 "easing": "linear",
-                "value": { "position": [0, 6, 90], "lookAt": [0, 4.8, 0] }
+                "value": {
+                  "position": [
+                    0,
+                    6,
+                    90
+                  ],
+                  "lookAt": [
+                    0,
+                    4.8,
+                    0
+                  ]
+                }
               }
             ]
           },
@@ -278,8 +808,17 @@
               "kind": "pointCloud",
               "target": "brick/**",
               "keys": [
-                { "t": 0, "value": 1, "easing": "cubicInOut" },
-                { "t": 0.33, "value": 0, "easing": "cubicInOut", "snapToBeat": true }
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "cubicInOut"
+                },
+                {
+                  "t": 0.33,
+                  "value": 0,
+                  "easing": "cubicInOut",
+                  "snapToBeat": true
+                }
               ]
             },
             {
@@ -287,25 +826,69 @@
               "target": "brick/**",
               "property": "edgeOpacity",
               "keys": [
-                { "t": 0, "value": 0, "easing": "step" },
-                { "t": 0.33, "value": 1, "easing": "step", "snapToBeat": true }
+                {
+                  "t": 0,
+                  "value": 0,
+                  "easing": "step"
+                },
+                {
+                  "t": 0.33,
+                  "value": 1,
+                  "easing": "step",
+                  "snapToBeat": true
+                }
               ]
             },
             {
               "kind": "transform",
               "target": "brick/**",
               "keys": [
-                { "t": 0.33, "easing": "linear", "value": { "rotation": [0, 0, 0] }, "snapToBeat": true },
-                { "t": 1, "easing": "linear", "value": { "rotation": [0, 360, 0] } }
+                {
+                  "t": 0.33,
+                  "easing": "linear",
+                  "value": {
+                    "rotation": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  "snapToBeat": true
+                },
+                {
+                  "t": 1,
+                  "easing": "linear",
+                  "value": {
+                    "rotation": [
+                      0,
+                      360,
+                      0
+                    ]
+                  }
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 0.33, "kind": "marker", "payload": { "event": "legibility" } },
+            {
+              "t": 0.33,
+              "kind": "marker",
+              "payload": {
+                "event": "legibility"
+              }
+            },
             {
               "t": 0.66,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 1, "range": "alt", "subject": "subject", "target": { "scene": "brick" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 1,
+                "range": "alt",
+                "subject": "subject",
+                "target": {
+                  "scene": "brick"
+                }
+              }
             }
           ],
           "note": "The crossfade, and the centre of the piece. The swarm collapses onto the real mesh of a single 1x1 brick, Black. The edge lines arrive in ONE frame — hence easing 'step' on edgeOpacity, not a fade: legibility is a threshold event, a statistical cloud becoming a thing that can be counted. Then hold silence for one bar; voice 1 enters with the subject AFTER the image has landed, alone. Then the brick makes one full revolution at constant angular velocity — 'linear' is the direction, not laziness."
@@ -319,22 +902,53 @@
           "minBars": 3,
           "maxBars": 14,
           "tier": 1,
-          "scenes": ["brick", "monolith"],
+          "scenes": [
+            "brick",
+            "monolith"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 32,
-            "dolly": { "from": [70, 30, 150], "to": [30, 55, 210], "lookAt": [0, 36.8, 0] }
+            "dolly": {
+              "from": [
+                70,
+                30,
+                150
+              ],
+              "to": [
+                30,
+                55,
+                210
+              ],
+              "lookAt": [
+                0,
+                36.8,
+                0
+              ]
+            }
           },
           "tracks": [
             {
               "kind": "dissolve",
               "target": "brick/**",
-              "keys": [{ "t": 0, "value": 1, "easing": "step" }]
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "step"
+                }
+              ]
             },
             {
               "kind": "dissolve",
               "target": "monolith/**",
-              "keys": [{ "t": 0, "value": 0, "easing": "step" }]
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0,
+                  "easing": "step"
+                }
+              ]
             }
           ],
           "cues": [
@@ -353,12 +967,23 @@
             {
               "t": 0,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 2, "range": "sopran", "subject": "answer", "target": { "scene": "monolith" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 2,
+                "range": "sopran",
+                "subject": "answer",
+                "target": {
+                  "scene": "monolith"
+                }
+              }
             },
             {
               "t": 0,
               "kind": "marker",
-              "payload": { "event": "landingAccent", "perLanding": true }
+              "payload": {
+                "event": "landingAccent",
+                "perLanding": true
+              }
             }
           ],
           "note": "The assembly. Nine real parts (7x 3010.dat + 1x 3710.dat + 1x 2431.dat, Black) fly in from the scattered start and settle into ldraw-scenes/monolith.ldr, staggered by real build step. The scatter is NOT authored as keyframes: it descends from a per-placement splitmix seed, so the document declares the generator and its constants and the choreography (M63) produces the placements. Nine hand-written transform tracks would be nine numbers that could disagree with the model. Voice 2 enters with the tonal answer as the first part lands."
@@ -372,12 +997,18 @@
           "minBars": 2,
           "maxBars": 32,
           "tier": 1,
-          "scenes": ["monolith"],
+          "scenes": [
+            "monolith"
+          ],
           "camera": {
             "mode": "orbit",
             "fovDeg": 32,
             "orbit": {
-              "center": [0, 36.8, 0],
+              "center": [
+                0,
+                36.8,
+                0
+              ],
               "radius": 150,
               "height": 18,
               "startDeg": -90,
@@ -390,10 +1021,26 @@
               "kind": "hud",
               "element": "monolith-metrics",
               "keys": [
-                { "t": 0, "value": 0, "easing": "linear" },
-                { "t": 0.15, "value": 1, "easing": "quadOut" },
-                { "t": 0.9, "value": 1, "easing": "linear" },
-                { "t": 1, "value": 0, "easing": "quadIn" }
+                {
+                  "t": 0,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.15,
+                  "value": 1,
+                  "easing": "quadOut"
+                },
+                {
+                  "t": 0.9,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0,
+                  "easing": "quadIn"
+                }
               ]
             }
           ],
@@ -409,7 +1056,15 @@
             {
               "t": 0.2,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 3, "range": "tenor", "subject": "subject", "target": { "scene": "monolith" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 3,
+                "range": "tenor",
+                "subject": "subject",
+                "target": {
+                  "scene": "monolith"
+                }
+              }
             }
           ],
           "note": "The monolith stands. Camera orbits 180 degrees from low, the object filling ~80% of frame height. Hairline HUD, lower right. The key light rakes across the studs so the module count is countable — the HUD says nine, and the picture has to be able to say it too. maxBars 32: this is one of the shots the 60:00 cut lives in."
@@ -423,11 +1078,30 @@
           "minBars": 2,
           "maxBars": 42,
           "tier": 1,
-          "scenes": ["monolith", "stonehenge"],
+          "scenes": [
+            "monolith",
+            "stonehenge"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 36,
-            "dolly": { "from": [0, 40, 180], "to": [0, 380, 1500], "lookAt": [0, 36.8, 0] },
+            "dolly": {
+              "from": [
+                0,
+                40,
+                180
+              ],
+              "to": [
+                0,
+                380,
+                1500
+              ],
+              "lookAt": [
+                0,
+                36.8,
+                0
+              ]
+            },
             "motionBlur": 0.2
           },
           "tracks": [
@@ -437,24 +1111,48 @@
               "stagger": 0.7,
               "order": "height",
               "keys": [
-                { "t": 0, "value": 1, "easing": "cubicOut" },
-                { "t": 0.55, "value": 0, "easing": "cubicOut" }
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "cubicOut"
+                },
+                {
+                  "t": 0.55,
+                  "value": 0,
+                  "easing": "cubicOut"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "vignette",
               "keys": [
-                { "t": 0, "value": 0.35, "easing": "quadInOut" },
-                { "t": 1, "value": 0.55, "easing": "quadInOut" }
+                {
+                  "t": 0,
+                  "value": 0.35,
+                  "easing": "quadInOut"
+                },
+                {
+                  "t": 1,
+                  "value": 0.55,
+                  "easing": "quadInOut"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.7, "easing": "linear" },
-                { "t": 1, "value": 0.28, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.7,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "cubicInOut"
+                }
               ]
             }
           ],
@@ -462,9 +1160,24 @@
             {
               "t": 0.1,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "answer", "target": { "scene": "monolith" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 4,
+                "range": "bass",
+                "subject": "answer",
+                "target": {
+                  "scene": "monolith"
+                }
+              }
             },
-            { "t": 0.3, "kind": "hud", "payload": { "element": "caption", "text": "c. 2500 BCE" } }
+            {
+              "t": 0.3,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "c. 2500 BCE"
+              }
+            }
           ],
           "note": "Stonehenge rises behind the monolith, Steingrau, materialising from the ground up at a scale that reveals the monolith was small all along. Camera dollies back. Voice 4 enters; the exposition is complete in four voices. The caption dates the sarsens, lintels, mortices and tenons — c. 2500 BCE — NOT the c. 3000 BCE ditch, which is a different monument on the same ground. EXPOSURE, measured rather than chosen: at the default 0.7 the sarsens rendered at a median luminance of 206 against their own material value of 150 sRGB (baseColor 0.305 linear, LDraw 71), and — the number that actually matters — the whole ring spanned only 24 counts from p5 to p95. Nothing was clipped; the ACES shoulder was simply compressing every surface orientation onto the same value, so the circle read as a flat white cut-out rather than as stone with sides. Six exposures at t=73.4 s: 0.7 -> median 206 / spread 24, 0.55 -> 193/26, 0.45 -> 181/28, 0.35 -> 165/30, 0.28 -> 149/31, 0.22 -> 131/31. 0.28 is where the median lands on the material's own value and where the spread stops growing — below it the picture only gets darker, not more legible. The ramp rather than a step because the monolith fills the frame at t=0 and 0.7 is right for it; the light opens out as the ring is revealed, which is the shot's sentence anyway. A2-S01 restores 0.7, because a post track's last value persists into the following shots (see `resetSharedState`) and Act II was authored at the default."
         }
@@ -484,13 +1197,45 @@
           "minBars": 2,
           "maxBars": 21,
           "tier": 1,
-          "scenes": ["uruk"],
+          "scenes": [
+            "uruk"
+          ],
           "camera": {
             "mode": "keyed",
             "fovDeg": 34,
             "keys": [
-              { "t": 0, "easing": "linear", "value": { "position": [150, 72, 270], "lookAt": [96, 52, 8] } },
-              { "t": 1, "easing": "linear", "value": { "position": [150, 72, 270], "lookAt": [96, 52, 8] } }
+              {
+                "t": 0,
+                "easing": "linear",
+                "value": {
+                  "position": [
+                    150,
+                    72,
+                    270
+                  ],
+                  "lookAt": [
+                    96,
+                    52,
+                    8
+                  ]
+                }
+              },
+              {
+                "t": 1,
+                "easing": "linear",
+                "value": {
+                  "position": [
+                    150,
+                    72,
+                    270
+                  ],
+                  "lookAt": [
+                    96,
+                    52,
+                    8
+                  ]
+                }
+              }
             ]
           },
           "tracks": [
@@ -500,16 +1245,32 @@
               "stagger": 0.85,
               "order": "height",
               "keys": [
-                { "t": 0, "value": 1, "easing": "linear" },
-                { "t": 0.75, "value": 0, "easing": "linear" }
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.75,
+                  "value": 0,
+                  "easing": "linear"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.28, "easing": "linear" },
-                { "t": 0.4, "value": 0.7, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.4,
+                  "value": 0.7,
+                  "easing": "cubicInOut"
+                }
               ]
             }
           ],
@@ -524,11 +1285,30 @@
           "minBars": 2,
           "maxBars": 25,
           "tier": 1,
-          "scenes": ["uruk", "bulla"],
+          "scenes": [
+            "uruk",
+            "bulla"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 34,
-            "dolly": { "from": [150, 72, 270], "to": [2455, 46, 118], "lookAt": [2440, 22, 0] },
+            "dolly": {
+              "from": [
+                150,
+                72,
+                270
+              ],
+              "to": [
+                2455,
+                46,
+                118
+              ],
+              "lookAt": [
+                2440,
+                22,
+                0
+              ]
+            },
             "motionBlur": 0.12
           },
           "tracks": [
@@ -536,16 +1316,32 @@
               "kind": "dissolve",
               "target": "uruk/**",
               "keys": [
-                { "t": 0.35, "value": 0, "easing": "linear" },
-                { "t": 0.85, "value": 1, "easing": "cubicInOut" }
+                {
+                  "t": 0.35,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.85,
+                  "value": 1,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "bulla/**",
               "keys": [
-                { "t": 0.3, "value": 1, "easing": "linear" },
-                { "t": 0.9, "value": 0, "easing": "cubicOut" }
+                {
+                  "t": 0.3,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.9,
+                  "value": 0,
+                  "easing": "cubicOut"
+                }
               ]
             }
           ],
@@ -560,11 +1356,31 @@
           "minBars": 3,
           "maxBars": 32,
           "tier": 1,
-          "scenes": ["bulla", "tokens", "tokensUeberlauf"],
+          "scenes": [
+            "bulla",
+            "tokens",
+            "tokensUeberlauf"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 40,
-            "dolly": { "from": [2455, 46, 118], "to": [4500, 300, 900], "lookAt": [4500, 6, 0] },
+            "dolly": {
+              "from": [
+                2455,
+                46,
+                118
+              ],
+              "to": [
+                4500,
+                300,
+                900
+              ],
+              "lookAt": [
+                4500,
+                6,
+                0
+              ]
+            },
             "motionBlur": 0.1
           },
           "tracks": [
@@ -572,29 +1388,60 @@
               "kind": "dissolve",
               "target": "bulla/**",
               "keys": [
-                { "t": 0.1, "value": 0, "easing": "linear" },
-                { "t": 0.45, "value": 1, "easing": "cubicIn" }
+                {
+                  "t": 0.1,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.45,
+                  "value": 1,
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "tokens/**",
               "keys": [
-                { "t": 0.15, "value": 1, "easing": "linear" },
-                { "t": 0.9, "value": 0, "easing": "linear" }
+                {
+                  "t": 0.15,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.9,
+                  "value": 0,
+                  "easing": "linear"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "tokensUeberlauf/**",
               "keys": [
-                { "t": 0.55, "value": 1, "easing": "linear" },
-                { "t": 1, "value": 0, "easing": "cubicIn" }
+                {
+                  "t": 0.55,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0,
+                  "easing": "cubicIn"
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 0.75, "kind": "hud", "payload": { "element": "caption", "text": "Ein Konto, das man nicht ändern kann, ohne es zu zerbrechen." } }
+            {
+              "t": 0.75,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Ein Konto, das man nicht ändern kann, ohne es zu zerbrechen."
+              }
+            }
           ],
           "note": "The tokens arrive one per beat and then keep arriving past what the row can hold -- the camera pulls back and they still run out of frame. THAT SECOND HALF WAS A SENTENCE AND NOT AN IMAGE UNTIL NOW: the scene was forty counters in a line, and forty in a line is the one number a viewer CAN count, in the one shot that is about counting ceasing to work. `tokensUeberlauf` is two hundred more, scattered around and past the row, with its own dissolve starting at t=0.55 -- a second scene rather than a longer recipe, because a dissolve writes ONE amount to every instance of a scene and the erosion noise is sampled in world position, so one scene of 240 would arrive as a single spreading stain and never as 'the row, and then the overrun'. Measured on the real frames: 21 separable counters at t=0.5, 61 at t=0.7, and at t=0.95 twice the token pixels in FEWER separable blobs -- they have stopped being objects and become a heap, which is the whole historical point and is why the bulla was sealed. NO numeral and no HUD counter: tallying by object ceasing to scale is the actual historical reason the bulla was sealed, and it is an image rather than a caption on a caption. The linear dissolve ramp is what makes the arrival even, one token a beat, rather than eased into a flourish."
         },
@@ -607,11 +1454,31 @@
           "minBars": 2,
           "maxBars": 25,
           "tier": 1,
-          "scenes": ["tokens", "tokensUeberlauf", "coin"],
+          "scenes": [
+            "tokens",
+            "tokensUeberlauf",
+            "coin"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 30,
-            "dolly": { "from": [4500, 300, 900], "to": [6415, 26, 62], "lookAt": [6408, 15, 8] },
+            "dolly": {
+              "from": [
+                4500,
+                300,
+                900
+              ],
+              "to": [
+                6415,
+                26,
+                62
+              ],
+              "lookAt": [
+                6408,
+                15,
+                8
+              ]
+            },
             "motionBlur": 0.2
           },
           "tracks": [
@@ -619,39 +1486,85 @@
               "kind": "dissolve",
               "target": "tokens/**",
               "keys": [
-                { "t": 0.1, "value": 0, "easing": "linear" },
-                { "t": 0.55, "value": 1, "easing": "cubicIn" }
+                {
+                  "t": 0.1,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.55,
+                  "value": 1,
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "tokensUeberlauf/**",
               "keys": [
-                { "t": 0, "value": 0, "easing": "linear" },
-                { "t": 0.4, "value": 1, "easing": "cubicIn" }
+                {
+                  "t": 0,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.4,
+                  "value": 1,
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "coin/**",
               "keys": [
-                { "t": 0.35, "value": 1, "easing": "linear" },
-                { "t": 0.7, "value": 0, "easing": "cubicOut" }
+                {
+                  "t": 0.35,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "cubicOut"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "bloomStrength",
               "keys": [
-                { "t": 0, "value": 0.45, "easing": "linear" },
-                { "t": 0.74, "value": 0.45, "easing": "linear" },
-                { "t": 0.75, "value": 1.6, "easing": "linear" },
-                { "t": 0.82, "value": 0.45, "easing": "cubicOut" }
+                {
+                  "t": 0,
+                  "value": 0.45,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.74,
+                  "value": 0.45,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.75,
+                  "value": 1.6,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.82,
+                  "value": 0.45,
+                  "easing": "cubicOut"
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 0.75, "kind": "marker", "payload": { "event": "dieStrike" } }
+            {
+              "t": 0.75,
+              "kind": "marker",
+              "payload": {
+                "event": "dieStrike"
+              }
+            }
           ],
           "note": "The strike is on the beat and it is one event in three channels: the die lands, the bloom goes to 1.6 for a single key and comes back, and the marker cue is there for M71's binder to hang the audio accent on. The bloom keys are deliberately one frame apart at t=0.74/0.75 -- a ramp would read as an exposure drift, and this is a hammer."
         },
@@ -664,15 +1577,34 @@
           "minBars": 2,
           "maxBars": 21,
           "tier": 1,
-          "scenes": ["coin"],
+          "scenes": [
+            "coin"
+          ],
           "camera": {
             "mode": "orbit",
             "fovDeg": 22,
-            "orbit": { "center": [6408, 15, 8], "radius": 120, "height": 30, "startDeg": -40, "endDeg": 40 },
+            "orbit": {
+              "center": [
+                6408,
+                15,
+                8
+              ],
+              "radius": 120,
+              "height": 30,
+              "startDeg": -40,
+              "endDeg": 40
+            },
             "motionBlur": 0.08
           },
           "cues": [
-            { "t": 0.25, "kind": "hud", "payload": { "element": "caption", "text": "Nicht die erste Münze. Die erste, die man nicht prüfen musste." } }
+            {
+              "t": 0.25,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Nicht die erste Münze. Die erste, die man nicht prüfen musste."
+              }
+            }
           ],
           "note": "Macro, rotating, chrome reflections off M56's synthetic environment -- the one place in the piece where the metal finish is the subject. The fugue reaches its first full cadence here, which is why the shot is short and the camera arc small: nothing should compete with the cadence. The caption is the corrected claim -- early electrum varied in its gold-to-silver ratio and could be manipulated; fungibility arrives with Kroisos's bimetallic reform, which is a better fact for this thesis than the one rev 1 had."
         }
@@ -693,14 +1625,29 @@
           "minBars": 1.5,
           "maxBars": 21,
           "tier": 1,
-          "scenes": ["coin", "rom"],
+          "scenes": [
+            "coin",
+            "rom"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 34,
             "dolly": {
-              "from": [7360, 620, 1050],
-              "to": [7356, 150, 190],
-              "lookAt": [7356, 0, 100]
+              "from": [
+                7360,
+                620,
+                1050
+              ],
+              "to": [
+                7356,
+                150,
+                190
+              ],
+              "lookAt": [
+                7356,
+                0,
+                100
+              ]
             },
             "motionBlur": 0.1
           },
@@ -709,8 +1656,16 @@
               "kind": "dissolve",
               "target": "coin/**",
               "keys": [
-                { "t": 0, "value": 0, "easing": "linear" },
-                { "t": 0.22, "value": 1, "easing": "cubicIn" }
+                {
+                  "t": 0,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.22,
+                  "value": 1,
+                  "easing": "cubicIn"
+                }
               ]
             }
           ],
@@ -718,9 +1673,24 @@
             {
               "t": 0,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 1, "range": "alt", "subject": "inversion", "target": { "scene": "rom" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 1,
+                "range": "alt",
+                "subject": "inversion",
+                "target": {
+                  "scene": "rom"
+                }
+              }
             },
-            { "t": 0.55, "kind": "hud", "payload": { "element": "caption", "text": "Rom · um 110 n. Chr. — das Modul mit Aktenzeichen." } }
+            {
+              "t": 0.55,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Rom · um 110 n. Chr. — das Modul mit Aktenzeichen."
+              }
+            }
           ],
           "note": "The screenplay offered two images here and rev 1 conflated them. This is the second: not the Pont du Gard (dry-laid limestone ashlar, no brick in it at all) but a Roman wall in opus mixtum -- grey stone facing courses with brick bonding courses running through them -- and, on the ground in front of it, a brick stamp. A standard module WITH AN AUDIT TRAIL is the thesis of this act, and it is what makes the three patent numbers in S02-S04 a continuation rather than a change of subject. The stamp reads COS, the abbreviation that dates a real Roman brick by consul, and it is enormously enlarged: at this scale a real stamp would be one stud, which is a stamp nobody can read. The camera descends from a wide framing of the wall onto the stamp, one dolly, one lookAt -- the wall is behind the stamp for the whole move rather than being cut away from. Voice 1 enters INVERTED on the first beat: the subject turned upside down, over a wall that is the same module turned into an industry."
         },
@@ -733,13 +1703,45 @@
           "minBars": 1.5,
           "maxBars": 21,
           "tier": 1,
-          "scenes": ["batima"],
+          "scenes": [
+            "batima"
+          ],
           "camera": {
             "mode": "keyed",
             "fovDeg": 30,
             "keys": [
-              { "t": 0, "easing": "linear", "value": { "position": [8000, 52, 92], "lookAt": [8000, 4, 0] } },
-              { "t": 1, "easing": "linear", "value": { "position": [8000, 52, 92], "lookAt": [8000, 4, 0] } }
+              {
+                "t": 0,
+                "easing": "linear",
+                "value": {
+                  "position": [
+                    8000,
+                    52,
+                    92
+                  ],
+                  "lookAt": [
+                    8000,
+                    4,
+                    0
+                  ]
+                }
+              },
+              {
+                "t": 1,
+                "easing": "linear",
+                "value": {
+                  "position": [
+                    8000,
+                    52,
+                    92
+                  ],
+                  "lookAt": [
+                    8000,
+                    4,
+                    0
+                  ]
+                }
+              }
             ]
           },
           "tracks": [
@@ -747,33 +1749,86 @@
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 3.4, "easing": "step" },
-                { "t": 0.035, "value": 0.22, "easing": "step" }
+                {
+                  "t": 0,
+                  "value": 3.4,
+                  "easing": "step"
+                },
+                {
+                  "t": 0.035,
+                  "value": 0.22,
+                  "easing": "step"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "bloomStrength",
               "keys": [
-                { "t": 0, "value": 1.8, "easing": "step" },
-                { "t": 0.06, "value": 0.20, "easing": "cubicOut", "snapToBeat": true }
+                {
+                  "t": 0,
+                  "value": 1.8,
+                  "easing": "step"
+                },
+                {
+                  "t": 0.06,
+                  "value": 0.2,
+                  "easing": "cubicOut",
+                  "snapToBeat": true
+                }
               ]
             },
             {
               "kind": "transform",
               "target": "batima/**",
               "keys": [
-                { "t": 0.06, "easing": "linear", "value": { "rotation": [0, 0, 0] }, "snapToBeat": true },
-                { "t": 1, "easing": "linear", "value": { "rotation": [0, 360, 0] } }
+                {
+                  "t": 0.06,
+                  "easing": "linear",
+                  "value": {
+                    "rotation": [
+                      0,
+                      0,
+                      0
+                    ]
+                  },
+                  "snapToBeat": true
+                },
+                {
+                  "t": 1,
+                  "easing": "linear",
+                  "value": {
+                    "rotation": [
+                      0,
+                      360,
+                      0
+                    ]
+                  }
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 0.12, "kind": "hud", "payload": { "element": "caption", "text": "Le Batima Soc. · FR 588985, angemeldet 1924 — der Stein ist älter" } },
+            {
+              "t": 0.12,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Le Batima Soc. · FR 588985, angemeldet 1924 — der Stein ist älter"
+              }
+            },
             {
               "t": 0.5,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "augmentation", "target": { "scene": "batima" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 4,
+                "range": "bass",
+                "subject": "augmentation",
+                "target": {
+                  "scene": "batima"
+                }
+              }
             }
           ],
           "note": "The one genuinely great cut in the piece, and it is protected by being the only shock of its magnitude. Patentweiss is authored as a THREE-FRAME BLANK rather than as a background colour: exposure steps to 3.4 and back to the grade's own 0.7, bloom to 1.8 and back, both on 'step' -- a ramp would read as an exposure drift and this is a cut. The piece's ground stays black; the white is the flash and the brick. The block then turns once, at constant angular velocity, exactly as A1-S03's brick did -- the same shot at a different point in the argument. THE GEOMETRY IS NOW THE REAL OBJECT, from photographs of Stefan's own set: hollow studs with a bore through each, a body flatter than a brick, cast stone rather than plastic, and an underside of sockets. The camera looks DOWN on it at 26 mm rather than across at 14, because the bore in the stud is the whole difference and it cannot be seen edge-on. Exposure 0.22 rather than the 0.16 the white bricks want: 503 Very_Light_Grey is not colour 15. AND IT IS NOW THE REAL SIZE -- 38 x 30 x 6 mm, measured on the object -- which makes it much larger and much flatter than the two bricks that follow, so the camera stands at 92 mm where it stood at 40. A 1924 Batima does not even share a size with a 1949 brick, and the act shows that rather than normalising it. Voice 4 enters AUGMENTED at half speed on bar 43, which is t=0.5 of this shot: the subject stretched to twice its length under the first of the three patents. The patent number is FR 588985 and not BE 311029 / 1923, which could not be confirmed. THE LOWER THIRD IS NOW CORRECT ABOUT THE PATENT AND HONEST ABOUT THE OBJECT. It used to say 'Patent FR 588985, erteilt 1924', and that was wrong in the one place it claimed to be exact: Google Patents gives FR588985A 'Jeu de construction', Le Batima Soc., PRIORITY 6 June 1923, FILED 5 June 1924, PUBLISHED 18 May 1925. 1924 is the filing year and nothing was granted in it. Worse, the sentence implied the patent was the object's origin, and the sources say the opposite -- architoys.net dates the toy 1900-10, a PBA Galleries lot c. 1905, a collectors' thread names a series from 1900 to 1914 beside the 1924-1949 boxes. So the caption now reads 'FR 588985, angemeldet 1924 - der Stein ist aelter', which is the shot's actual claim: this is the ancestor that already had the idea, and its own patent arrives twenty years late. (The classification is A63H33/088, 'building blocks with holes', which is the bore through the stud.) And there is a SECOND Batima -- wooden bricks with studs and tubes, introduced 1954 by Nazaire Beeusaert of Deinze -- which is not this object and must never end up in this caption. The reference is set as 'caption' rather than a lower third because 'caption' is one of the four HUD names with real layout; inventing a fifth would put text at an unstyled origin."
@@ -787,14 +1842,62 @@
           "minBars": 1.5,
           "maxBars": 16,
           "tier": 1,
-          "scenes": ["batima", "kiddicraft"],
+          "scenes": [
+            "batima",
+            "kiddicraft"
+          ],
           "camera": {
             "mode": "keyed",
             "fovDeg": 30,
             "keys": [
-              { "t": 0, "easing": "cubicInOut", "value": { "position": [8000, 52, 92], "lookAt": [8000, 4, 0] } },
-              { "t": 0.4, "easing": "linear", "value": { "position": [8024, 15, 100], "lookAt": [8024, 5, 0] } },
-              { "t": 1, "easing": "linear", "value": { "position": [8024, 15, 100], "lookAt": [8024, 5, 0] } }
+              {
+                "t": 0,
+                "easing": "cubicInOut",
+                "value": {
+                  "position": [
+                    8000,
+                    52,
+                    92
+                  ],
+                  "lookAt": [
+                    8000,
+                    4,
+                    0
+                  ]
+                }
+              },
+              {
+                "t": 0.4,
+                "easing": "linear",
+                "value": {
+                  "position": [
+                    8024,
+                    15,
+                    100
+                  ],
+                  "lookAt": [
+                    8024,
+                    5,
+                    0
+                  ]
+                }
+              },
+              {
+                "t": 1,
+                "easing": "linear",
+                "value": {
+                  "position": [
+                    8024,
+                    15,
+                    100
+                  ],
+                  "lookAt": [
+                    8024,
+                    5,
+                    0
+                  ]
+                }
+              }
             ]
           },
           "tracks": [
@@ -802,24 +1905,48 @@
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.16, "easing": "linear" },
-                { "t": 1, "value": 0.16, "easing": "linear" }
+                {
+                  "t": 0,
+                  "value": 0.16,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.16,
+                  "easing": "linear"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "bloomStrength",
               "keys": [
-                { "t": 0, "value": 0.18, "easing": "linear" },
-                { "t": 1, "value": 0.18, "easing": "linear" }
+                {
+                  "t": 0,
+                  "value": 0.18,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.18,
+                  "easing": "linear"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "kiddicraft/**",
               "keys": [
-                { "t": 0, "value": 1, "easing": "linear" },
-                { "t": 0.35, "value": 0, "easing": "cubicOut" }
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.35,
+                  "value": 0,
+                  "easing": "cubicOut"
+                }
               ]
             },
             {
@@ -827,13 +1954,28 @@
               "target": "kiddicraft/**",
               "property": "transmission",
               "keys": [
-                { "t": 0.55, "value": 0, "easing": "linear" },
-                { "t": 0.8, "value": 0.6, "easing": "cubicInOut" }
+                {
+                  "t": 0.55,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.8,
+                  "value": 0.6,
+                  "easing": "cubicInOut"
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 0.1, "kind": "hud", "payload": { "element": "caption", "text": "GB 529580 · Hilary Fisher Page, eingereicht 17. April 1939" } }
+            {
+              "t": 0.1,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "GB 529580 · Hilary Fisher Page, eingereicht 17. April 1939"
+              }
+            }
           ],
           "note": "A rhyme, and a rhyme must be shorter than what it rhymes with -- three bars against four. Same part, same colour, same ground plane, same lighting; the camera widens by 36 mm to hold two bricks where it held one, and nothing else changes. The 'cutaway' that reveals the anti-stud is a transmission ramp on the second brick's material rather than a clipped section: the tubes are real geometry already inside the part, and making the shell glassy is the honest way to look through a thing this piece insists is real. Kiddicraft's brick and the 1949 one are colour 15 and the same DIMENSIONS because they are the same object, which is the entire content of Interlego v Tyco -- but they are no longer the same part: the Brighton Toy and Model Index says Lego dropped Page's rounded vertical edges and flattened his bobbled stud tops, so `kiddicraft-2x2.dat` has both and `abb-2x2.dat` has neither, and everything else about them is identical to the LDU. BATIMA IS NOT, and the photographs settle it: hollow studs into conical sockets, in cast stone. So the act now says something better than 'three of the same' -- 1924 is a different system that already had the idea, and 1940 and 1949 are one object twice. The rhyme is between the second and the third, which is also why this shot is the shorter one. AND THE DATE WAS BACKWARDS. This note used to say '17 April 1940 is the filing date; 1939 is the date usually quoted and is the date of neither the filing nor the publication'. Google Patents on GB529580A, 'Improvements in toy building blocks', H. F. Page: PRIORITY and FILING both 17 April 1939, PUBLICATION 25 November 1940 -- which is the ordinary shape of a GB specification of that era, applied for in one year and accepted in the next. 1939 was right and 17 April 1940 was the acceptance. The caption now says 'eingereicht 17. April 1939'. The patent's own abstract is also the best evidence this piece has for why these bricks are tubeless: a hollow cube with 'four circular bosses on its upper face, so that the walls of a superimposed block will contact the bosses tangentially so preventing lateral movement' -- the grip is studs against walls, stated by Page, twenty years before the tube."
         },
@@ -846,14 +1988,31 @@
           "minBars": 1.5,
           "maxBars": 20,
           "tier": 1,
-          "scenes": ["batima", "kiddicraft", "lego", "saeule"],
+          "scenes": [
+            "batima",
+            "kiddicraft",
+            "lego",
+            "saeule"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 28,
             "dolly": {
-              "from": [8024, 15, 100],
-              "to": [8288, 26, 80],
-              "lookAt": [8288, 17, 0]
+              "from": [
+                8024,
+                15,
+                100
+              ],
+              "to": [
+                8288,
+                26,
+                80
+              ],
+              "lookAt": [
+                8288,
+                17,
+                0
+              ]
             },
             "motionBlur": 0.12
           },
@@ -862,55 +2021,118 @@
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.16, "easing": "linear" },
-                { "t": 1, "value": 0.16, "easing": "linear" }
+                {
+                  "t": 0,
+                  "value": 0.16,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.16,
+                  "easing": "linear"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "bloomStrength",
               "keys": [
-                { "t": 0, "value": 0.18, "easing": "linear" },
-                { "t": 1, "value": 0.18, "easing": "linear" }
+                {
+                  "t": 0,
+                  "value": 0.18,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.18,
+                  "easing": "linear"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "lego/**",
               "keys": [
-                { "t": 0, "value": 1, "easing": "linear" },
-                { "t": 0.2, "value": 0, "easing": "cubicOut" },
-                { "t": 0.45, "value": 0, "easing": "linear" },
-                { "t": 0.62, "value": 1, "easing": "cubicIn" }
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.2,
+                  "value": 0,
+                  "easing": "cubicOut"
+                },
+                {
+                  "t": 0.45,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.62,
+                  "value": 1,
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "batima/**",
               "keys": [
-                { "t": 0.36, "value": 0, "easing": "linear" },
-                { "t": 0.56, "value": 1, "easing": "cubicIn" }
+                {
+                  "t": 0.36,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.56,
+                  "value": 1,
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "kiddicraft/**",
               "keys": [
-                { "t": 0.4, "value": 0, "easing": "linear" },
-                { "t": 0.59, "value": 1, "easing": "cubicIn" }
+                {
+                  "t": 0.4,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.59,
+                  "value": 1,
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "saeule/**",
               "keys": [
-                { "t": 0.42, "value": 1, "easing": "linear" },
-                { "t": 0.68, "value": 0, "easing": "cubicOut" }
+                {
+                  "t": 0.42,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.68,
+                  "value": 0,
+                  "easing": "cubicOut"
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 0.2, "kind": "hud", "payload": { "element": "caption", "text": "Automatic Binding Bricks · 1949" } }
+            {
+              "t": 0.2,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Automatic Binding Bricks · 1949"
+              }
+            }
           ],
           "note": "A third brick joins the two, then all three go and the column arrives -- a rebuild, not a morph, the same grammar A2-S02 used for the bulla, because the whole thesis is that things are re-assembled rather than transformed. THE COLUMN IS TUBELESS. `saeule.ldr` stacks three of `parts/brick-2x2-tubeless.dat`: studs on top, hollow underneath, nothing inside to grip them. It stands because it is stacked, not because it is clutched, and that is the reason the next shot exists. THE MONOLITH IS NOT HERE, AND THAT IS NOW A DECISION RATHER THAN AN OMISSION. A second copy exists as the `begleiter` scene and was placed here -- 400 mm behind the column, 122 mm to the side, geometrically inside the 21.7-degree half-field. It is invisible anyway, and the reason is the exposure: this shot is stopped to 0.16 for a white brick, and Steingrau is linear 0.15. A stone object at that stop is black on black. The white-studio shots and the continuity object are incompatible requirements in one frame -- the same shape as PR #42's third finding about the monolith and Stonehenge. It is carried in A4-S01 instead, where the exposure runs 0.24 to 0.9 and it reads."
         },
@@ -923,14 +2145,29 @@
           "minBars": 1.5,
           "maxBars": 16,
           "tier": 1,
-          "scenes": ["saeule", "klemme"],
+          "scenes": [
+            "saeule",
+            "klemme"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 20,
             "dolly": {
-              "from": [8288, 26, 80],
-              "to": [8492, 21, 26],
-              "lookAt": [8480, 20.4, 0]
+              "from": [
+                8288,
+                26,
+                80
+              ],
+              "to": [
+                8492,
+                21,
+                26
+              ],
+              "lookAt": [
+                8480,
+                20.4,
+                0
+              ]
             },
             "motionBlur": 0.12
           },
@@ -939,46 +2176,111 @@
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.16, "easing": "linear" },
-                { "t": 0.55, "value": 0.085, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.16,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.55,
+                  "value": 0.085,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "bloomStrength",
               "keys": [
-                { "t": 0, "value": 0.18, "easing": "linear" },
-                { "t": 0.45, "value": 0.05, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.18,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.45,
+                  "value": 0.05,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "saeule/**",
               "keys": [
-                { "t": 0.05, "value": 0, "easing": "linear" },
-                { "t": 0.3, "value": 1, "easing": "cubicIn" }
+                {
+                  "t": 0.05,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.3,
+                  "value": 1,
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "klemme/**",
               "keys": [
-                { "t": 0.08, "value": 1, "easing": "linear" },
-                { "t": 0.34, "value": 0, "easing": "cubicOut" }
+                {
+                  "t": 0.08,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.34,
+                  "value": 0,
+                  "easing": "cubicOut"
+                }
               ]
             },
             {
               "kind": "transform",
               "target": "klemme/3003/2",
               "keys": [
-                { "t": 0.45, "easing": "linear", "value": { "position": [0, 0, 0] } },
-                { "t": 0.9, "easing": "cubicInOut", "value": { "position": [0, -2.4, 0] } }
+                {
+                  "t": 0.45,
+                  "easing": "linear",
+                  "value": {
+                    "position": [
+                      0,
+                      0,
+                      0
+                    ]
+                  }
+                },
+                {
+                  "t": 0.9,
+                  "easing": "cubicInOut",
+                  "value": {
+                    "position": [
+                      0,
+                      -2.4,
+                      0
+                    ]
+                  }
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 0.12, "kind": "hud", "payload": { "element": "caption", "text": "Das Kupplungsrohr · 1958" } },
-            { "t": 0.9, "kind": "marker", "payload": { "event": "clutchSeated" } }
+            {
+              "t": 0.12,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Das Kupplungsrohr · 1958"
+              }
+            },
+            {
+              "t": 0.9,
+              "kind": "marker",
+              "payload": {
+                "event": "clutchSeated"
+              }
+            }
           ],
           "note": "THE CORRECTION, AND THE TITLE IMAGE. The tube inside the brick is the 1958 patent -- it is what made the clutch hold. Rev 3 put this macro under a 1949 lower third, which is a 1958 image with a pre-1958 caption and precisely the claim this act makes; splitting the shot in two fixes it and makes the argument stronger, because the clutch now ARRIVES rather than having always been there. The tubeless column dissolves and the official 3003 column takes its place -- a rebuild again, and the only difference between the two objects is the thing the shot is about. THE CLEARANCE IS AUTHORED AND SAYS SO: LDraw's stud outer diameter and tube inner diameter are both nominally 12 LDU, so in a correct model they interpenetrate exactly and nothing can be seen entering anything. klemme.ldr lifts the top brick 6 LDU (2.4 mm) and the transform track seats it, so the departure is a starting condition the shot resolves. At 28.6 mm from the joint with a 20-degree field of view the frame is 10 mm high and the gap is a quarter of it -- a framing that was impossible before the near plane started following the camera rather than the scene's diagonal."
         },
@@ -991,14 +2293,29 @@
           "minBars": 1.5,
           "maxBars": 21,
           "tier": 1,
-          "scenes": ["klemme", "feld"],
+          "scenes": [
+            "klemme",
+            "feld"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 40,
             "dolly": {
-              "from": [8508, 21, 48],
-              "to": [9000, 700, 1300],
-              "lookAt": [9000, 0, 0]
+              "from": [
+                8508,
+                21,
+                48
+              ],
+              "to": [
+                9000,
+                700,
+                1300
+              ],
+              "lookAt": [
+                9000,
+                0,
+                0
+              ]
             },
             "motionBlur": 0.18
           },
@@ -1007,32 +2324,64 @@
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.16, "easing": "linear" },
-                { "t": 1, "value": 0.24, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.16,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.24,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "feld/**",
               "keys": [
-                { "t": 0, "value": 1, "easing": "linear" },
-                { "t": 0.62, "value": 0, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.62,
+                  "value": 0,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "dissolve",
               "target": "klemme/**",
               "keys": [
-                { "t": 0.45, "value": 0, "easing": "linear" },
-                { "t": 0.75, "value": 1, "easing": "cubicIn" }
+                {
+                  "t": 0.45,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.75,
+                  "value": 1,
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "bloomStrength",
               "keys": [
-                { "t": 0, "value": 0.18, "easing": "linear" },
-                { "t": 0.8, "value": 0.42, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.18,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.8,
+                  "value": 0.42,
+                  "easing": "cubicInOut"
+                }
               ]
             }
           ],
@@ -1040,24 +2389,63 @@
             {
               "t": 0,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "stretto", "target": { "scene": "feld" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 4,
+                "range": "bass",
+                "subject": "stretto",
+                "target": {
+                  "scene": "feld"
+                }
+              }
             },
             {
               "t": 0.25,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 3, "range": "tenor", "subject": "stretto", "target": { "scene": "feld" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 3,
+                "range": "tenor",
+                "subject": "stretto",
+                "target": {
+                  "scene": "feld"
+                }
+              }
             },
             {
               "t": 0.5,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 1, "range": "alt", "subject": "stretto", "target": { "scene": "feld" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 1,
+                "range": "alt",
+                "subject": "stretto",
+                "target": {
+                  "scene": "feld"
+                }
+              }
             },
             {
               "t": 0.75,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 2, "range": "sopran", "subject": "stretto", "target": { "scene": "feld" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 2,
+                "range": "sopran",
+                "subject": "stretto",
+                "target": {
+                  "scene": "feld"
+                }
+              }
             },
-            { "t": 0.62, "kind": "hud", "payload": { "element": "caption", "text": "Interlego AG v Tyco Industries Inc · [1988] UKPC 3 — der Fall, der die Zeichnungen beendete." } }
+            {
+              "t": 0.62,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Interlego AG v Tyco Industries Inc · [1988] UKPC 3 — der Fall, der die Zeichnungen beendete."
+              }
+            }
           ],
           "note": "The stretto begins on bar 53, which is t=0 of this shot, and the four entries at t=0, 0.25, 0.5, 0.75 are the plan's own voices [3,2,1,0] one bar apart. That is the point of the shot: the visual multiplication and the contrapuntal multiplication are the same event, so they are the same four timestamps rather than two things that happen to look alike. The field is one Mosaic of 3600 modules with every eighth row and column in a second grey -- a white plane is a plane, and a ruled one is a grid, which is the shot's own word for what the column becomes. Four voices lighting four quarters of it is what M71's binder does with a voiceEntry cue's target. OPEN: 'marching outward' is currently a dissolve, which is a 3D-noise threshold and reads as materialising rather than as marching. A radial reveal keyed off distance from the column would be the true image and wants a track kind that does not exist yet."
         }
@@ -1078,14 +2466,30 @@
           "minBars": 1.5,
           "maxBars": 42,
           "tier": 1,
-          "scenes": ["feld", "klemme", "begleiter"],
+          "scenes": [
+            "feld",
+            "klemme",
+            "begleiter"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 40,
             "dolly": {
-              "from": [9000, 700, 1300],
-              "to": [9700, 380, 820],
-              "lookAt": [9200, 0, 0]
+              "from": [
+                9000,
+                700,
+                1300
+              ],
+              "to": [
+                9700,
+                380,
+                820
+              ],
+              "lookAt": [
+                9200,
+                0,
+                0
+              ]
             },
             "motionBlur": 0.2
           },
@@ -1094,54 +2498,124 @@
               "kind": "transform",
               "target": "begleiter/**",
               "keys": [
-                { "t": 0, "easing": "linear", "value": { "position": [8900, 0, 260] } },
-                { "t": 1, "easing": "linear", "value": { "position": [8900, 0, 260] } }
+                {
+                  "t": 0,
+                  "easing": "linear",
+                  "value": {
+                    "position": [
+                      8900,
+                      0,
+                      260
+                    ]
+                  }
+                },
+                {
+                  "t": 1,
+                  "easing": "linear",
+                  "value": {
+                    "position": [
+                      8900,
+                      0,
+                      260
+                    ]
+                  }
+                }
               ]
             },
             {
               "kind": "pointCloud",
               "target": "begleiter/**",
               "keys": [
-                { "t": 0.3, "value": 0, "easing": "linear" },
-                { "t": 0.95, "value": 1, "easing": "cubicInOut" }
+                {
+                  "t": 0.3,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.95,
+                  "value": 1,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "pointCloud",
               "target": "feld/**",
               "keys": [
-                { "t": 0.1, "value": 0, "easing": "linear" },
-                { "t": 0.75, "value": 1, "easing": "cubicInOut" }
+                {
+                  "t": 0.1,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.75,
+                  "value": 1,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "pointCloud",
               "target": "klemme/**",
               "keys": [
-                { "t": 0.2, "value": 0, "easing": "linear" },
-                { "t": 0.85, "value": 1, "easing": "cubicInOut" }
+                {
+                  "t": 0.2,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.85,
+                  "value": 1,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.24, "easing": "linear" },
-                { "t": 0.3, "value": 0.7, "easing": "cubicInOut" },
-                { "t": 1, "value": 0.9, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.24,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.3,
+                  "value": 0.7,
+                  "easing": "cubicInOut"
+                },
+                {
+                  "t": 1,
+                  "value": 0.9,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "bloomStrength",
               "keys": [
-                { "t": 0, "value": 0.42, "easing": "linear" },
-                { "t": 1, "value": 0.6, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.42,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.6,
+                  "easing": "cubicInOut"
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 0.12, "kind": "marker", "payload": { "event": "pulseEnters" } }
+            {
+              "t": 0.12,
+              "kind": "marker",
+              "payload": {
+                "event": "pulseEnters"
+              }
+            }
           ],
           "note": "Everything on screen becomes its own swarm. The crossfade is the SAME mechanism A1-S03 used to make a swarm into a brick, run the other way — one pointCloud track per scene, staggered so the field goes before the column rather than with it. The pulse enters underneath at half time; `audio.pulse.enterAtSec` is 180 and this shot contains it. The monolith IS here — `begleiter`, the near copy, with its own transform and its own crossfade, after three shots had asked for it and one at the origin nine metres away had answered none of them. The screenplay's other line for this shot, 'Terrakotta und Steingrau drain from the palette', is now true of the piece rather than of this shot: nothing on screen here is terracotta any more (71 Light_Bluish_Grey, 15 White, 0 Black), and the drain that sentence describes happens in A4-S01b, on the last object in the piece that still has that colour. Draining it HERE would put the network's arrival before the brick's departure, which is the one ordering A4-S01b exists to forbid."
         },
@@ -1152,13 +2626,45 @@
           "scaling": "fixed",
           "durationBars": 2,
           "tier": 1,
-          "scenes": ["letzterStein"],
+          "scenes": [
+            "letzterStein"
+          ],
           "camera": {
             "mode": "keyed",
             "fovDeg": 28,
             "keys": [
-              { "t": 0, "easing": "linear", "value": { "position": [10000, 22, 76], "lookAt": [10000, 5, 0] } },
-              { "t": 1, "easing": "linear", "value": { "position": [10000, 22, 76], "lookAt": [10000, 5, 0] } }
+              {
+                "t": 0,
+                "easing": "linear",
+                "value": {
+                  "position": [
+                    10000,
+                    22,
+                    76
+                  ],
+                  "lookAt": [
+                    10000,
+                    5,
+                    0
+                  ]
+                }
+              },
+              {
+                "t": 1,
+                "easing": "linear",
+                "value": {
+                  "position": [
+                    10000,
+                    22,
+                    76
+                  ],
+                  "lookAt": [
+                    10000,
+                    5,
+                    0
+                  ]
+                }
+              }
             ]
           },
           "tracks": [
@@ -1166,29 +2672,68 @@
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.25, "easing": "linear" },
-                { "t": 1, "value": 0.25, "easing": "linear" }
+                {
+                  "t": 0,
+                  "value": 0.25,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.25,
+                  "easing": "linear"
+                }
               ]
             },
             {
               "kind": "color",
               "target": "letzterStein/**",
               "keys": [
-                { "t": 0, "value": [0.40197787, 0.2050787, 0.09084173], "easing": "linear" },
-                { "t": 0.6, "value": [0.238692, 0.238692, 0.238692], "easing": "cubicIn" }
+                {
+                  "t": 0,
+                  "value": [
+                    0.40197787,
+                    0.2050787,
+                    0.09084173
+                  ],
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.6,
+                  "value": [
+                    0.238692,
+                    0.238692,
+                    0.238692
+                  ],
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "pointCloud",
               "target": "letzterStein/**",
               "keys": [
-                { "t": 0.55, "value": 0, "easing": "linear" },
-                { "t": 1, "value": 1, "easing": "cubicIn" }
+                {
+                  "t": 0.55,
+                  "value": 0,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 1,
+                  "easing": "cubicIn"
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 0.05, "kind": "hud", "payload": { "element": "caption", "text": "Der letzte Stein." } }
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Der letzte Stein."
+              }
+            }
           ],
           "note": "FIXED in every cut, like the Kick, and weight 0 — this shot is two bars at 4:00 and two bars at 60:00, because it is a held breath and a held breath does not scale. One brick, Terrakotta, alone in black, no camera move at all, going to points LAST of everything on screen. The colour drains first, over the opening 0.6, and only then does it go to points: 84 Medium_Nougat's own linear [0.402, 0.205, 0.091] to the GREY OF THE SAME LUMINANCE, 0.2387 — Rec. 709 weights on the same linear numbers. Draining to black would be the brick dying; draining to a grey of its own brightness is the brick keeping exactly the light it had and losing only what colour it was, which is what the screenplay asks for and is a thing that can be measured off a frame. This needed the `color` track, which the format did not have until it was the only way to shoot the shot as written."
         },
@@ -1201,14 +2746,28 @@
           "minBars": 1.5,
           "maxBars": 50,
           "tier": 1,
-          "scenes": ["gitter"],
+          "scenes": [
+            "gitter"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 38,
             "dolly": {
-              "from": [10000, 22, 76],
-              "to": [11060, 520, 980],
-              "lookAt": [11060, 0, 4]
+              "from": [
+                10000,
+                22,
+                76
+              ],
+              "to": [
+                11060,
+                520,
+                980
+              ],
+              "lookAt": [
+                11060,
+                0,
+                4
+              ]
             },
             "motionBlur": 0.16
           },
@@ -1217,21 +2776,44 @@
               "kind": "pointCloud",
               "target": "gitter/**",
               "keys": [
-                { "t": 0, "value": 1, "easing": "linear" },
-                { "t": 0.7, "value": 0, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.9, "easing": "linear" },
-                { "t": 1, "value": 0.6, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.9,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.6,
+                  "easing": "cubicInOut"
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 0.78, "kind": "hud", "payload": { "element": "caption", "text": "1 921 Module · 289 Knoten · ein Stücklistenverzeichnis" } }
+            {
+              "t": 0.78,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "1 921 Module · 289 Knoten · ein Stücklistenverzeichnis"
+              }
+            }
           ],
           "note": "The points reorganise into a lattice, and the shot's whole job is to make 'neuronales Netz' and 'Noppenraster' the same picture — so it is rendered as an INVENTORY, counted, and not as science fiction. The caption is the recipe's own two numbers. The crossfade runs points-to-mesh, which is A1-S03's direction again: the piece's two legibility events are the first brick and the last field, and they are the same shot."
         },
@@ -1244,14 +2826,29 @@
           "minBars": 2,
           "maxBars": 50,
           "tier": 1,
-          "scenes": ["gitter", "tokenStrom"],
+          "scenes": [
+            "gitter",
+            "tokenStrom"
+          ],
           "camera": {
             "mode": "dolly",
             "fovDeg": 34,
             "dolly": {
-              "from": [11060, 520, 980],
-              "to": [11330, 300, 560],
-              "lookAt": [11060, 0, 4]
+              "from": [
+                11060,
+                520,
+                980
+              ],
+              "to": [
+                11330,
+                300,
+                560
+              ],
+              "lookAt": [
+                11060,
+                0,
+                4
+              ]
             },
             "motionBlur": 0.1
           },
@@ -1260,8 +2857,16 @@
               "kind": "post",
               "property": "bloomStrength",
               "keys": [
-                { "t": 0, "value": 0.6, "easing": "linear" },
-                { "t": 1, "value": 0.75, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.6,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.75,
+                  "easing": "cubicInOut"
+                }
               ]
             }
           ],
@@ -1272,18 +2877,37 @@
               "payload": {
                 "generator": "tokens",
                 "scene": "tokenStrom",
-                "originMm": [10804, 12, -252],
+                "originMm": [
+                  10804,
+                  12,
+                  -252
+                ],
                 "pitchMm": 32,
                 "nodes": 17,
                 "hops": 14,
                 "arcMm": 26
               }
             },
-            { "t": 0.3, "kind": "hud", "payload": { "element": "caption", "text": "2017 — das Jahr, in dem das Modul die einzige Einheit wurde." } },
+            {
+              "t": 0.3,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "2017 — das Jahr, in dem das Modul die einzige Einheit wurde."
+              }
+            },
             {
               "t": 0,
               "kind": "audio",
-              "payload": { "event": "voiceEntry", "voice": 4, "range": "bass", "subject": "diminution", "target": { "scene": "gitter" } }
+              "payload": {
+                "event": "voiceEntry",
+                "voice": 4,
+                "range": "bass",
+                "subject": "diminution",
+                "target": {
+                  "scene": "gitter"
+                }
+              }
             }
           ],
           "note": "The fugue's subject is in the bass here, quantised to a quarter of its length — same intervals, different century — and `audio.plan` puts that entry at bar 76, which is where this shot sits. No paper title on screen: it would date the day it renders, and subword tokenisation predates that paper anyway. OPEN: the screenplay asks for a glyph emitted by each node, travelling an edge, and absorbed. Nothing in this format can move a thing along an edge — there is no per-node emitter and no path — so what carries the shot today is three bloom pulses on the beat over the whole lattice. That is an accent, not a token, and it should be replaced rather than defended: the honest fix is a small emitter track kind that takes a target glob and a path, which does not exist."
@@ -1297,13 +2921,45 @@
           "minBars": 1.5,
           "maxBars": 20,
           "tier": 1,
-          "scenes": ["gitter"],
+          "scenes": [
+            "gitter"
+          ],
           "camera": {
             "mode": "keyed",
             "fovDeg": 34,
             "keys": [
-              { "t": 0, "easing": "linear", "value": { "position": [11330, 300, 560], "lookAt": [11060, 0, 4] } },
-              { "t": 1, "easing": "linear", "value": { "position": [11330, 300, 560], "lookAt": [11060, 0, 4] } }
+              {
+                "t": 0,
+                "easing": "linear",
+                "value": {
+                  "position": [
+                    11330,
+                    300,
+                    560
+                  ],
+                  "lookAt": [
+                    11060,
+                    0,
+                    4
+                  ]
+                }
+              },
+              {
+                "t": 1,
+                "easing": "linear",
+                "value": {
+                  "position": [
+                    11330,
+                    300,
+                    560
+                  ],
+                  "lookAt": [
+                    11060,
+                    0,
+                    4
+                  ]
+                }
+              }
             ]
           },
           "tracks": [
@@ -1311,24 +2967,48 @@
               "kind": "post",
               "property": "bloomStrength",
               "keys": [
-                { "t": 0, "value": 0.7, "easing": "linear" },
-                { "t": 1, "value": 1.45, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.7,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 1.45,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.6, "easing": "linear" },
-                { "t": 1, "value": 0.95, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.6,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.95,
+                  "easing": "cubicInOut"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "vignette",
               "keys": [
-                { "t": 0, "value": 0.35, "easing": "linear" },
-                { "t": 1, "value": 0.1, "easing": "cubicInOut" }
+                {
+                  "t": 0,
+                  "value": 0.35,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.1,
+                  "easing": "cubicInOut"
+                }
               ]
             }
           ],
@@ -1342,14 +3022,20 @@
           "scaling": "fixed",
           "durationBars": 0.5,
           "tier": 1,
-          "scenes": ["gitter"],
+          "scenes": [
+            "gitter"
+          ],
           "camera": {
             "mode": "exponentialZoom",
             "fovDeg": 34,
             "exponentialZoom": {
               "from": 690,
               "to": 6900000,
-              "lookAt": [11060, 0, 4]
+              "lookAt": [
+                11060,
+                0,
+                4
+              ]
             },
             "motionBlur": 0.9
           },
@@ -1358,41 +3044,1447 @@
               "kind": "post",
               "property": "bloomStrength",
               "keys": [
-                { "t": 0, "value": 1.45, "easing": "linear" },
-                { "t": 0.8, "value": 0.2, "easing": "cubicIn" },
-                { "t": 1, "value": 0, "easing": "linear" }
+                {
+                  "t": 0,
+                  "value": 1.45,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.8,
+                  "value": 0.2,
+                  "easing": "cubicIn"
+                },
+                {
+                  "t": 1,
+                  "value": 0,
+                  "easing": "linear"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "exposure",
               "keys": [
-                { "t": 0, "value": 0.95, "easing": "linear" },
-                { "t": 1, "value": 0.7, "easing": "cubicIn" }
+                {
+                  "t": 0,
+                  "value": 0.95,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.7,
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "post",
               "property": "vignette",
               "keys": [
-                { "t": 0, "value": 0.1, "easing": "linear" },
-                { "t": 1, "value": 0.55, "easing": "cubicIn" }
+                {
+                  "t": 0,
+                  "value": 0.1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.55,
+                  "easing": "cubicIn"
+                }
               ]
             },
             {
               "kind": "hud",
               "element": "seed-point",
               "keys": [
-                { "t": 0, "value": 0, "easing": "step" },
-                { "t": 0.82, "value": 0, "easing": "step" },
-                { "t": 0.86, "value": 0.55, "easing": "step" }
+                {
+                  "t": 0,
+                  "value": 0,
+                  "easing": "step"
+                },
+                {
+                  "t": 0.82,
+                  "value": 0,
+                  "easing": "step"
+                },
+                {
+                  "t": 0.86,
+                  "value": 0.55,
+                  "easing": "step"
+                }
               ]
             }
           ],
           "cues": [
-            { "t": 1, "kind": "marker", "payload": { "event": "KICK" } }
+            {
+              "t": 1,
+              "kind": "marker",
+              "payload": {
+                "event": "KICK"
+              }
+            }
           ],
           "note": "Two beats, 1.429 s, `fixed` in every cut — 800 ms would be neither one beat nor two and could not be frame-exact against its own accent, and at 10000x zoom it is a flash where the collapse should be SEEN collapsing. The distance runs 690 mm to 6900 m, which is the screenplay's 10^4 stated as the two numbers rather than as a factor. The last thing on screen is the `seed-point` HUD element at 0.55, which is the value A1-S01's own track opens on: the closing frame is not a picture of the opening frame, it is the same element at the same value, so the loop closes on one device pixel rather than on one projected millimetre. `finalAccentAtSec` is 238.571 and a half-bar fixed shot at the end of a 240 s cut begins at 238.571 — the accent and the zoom are one event by construction and not by a number anybody typed twice."
+        }
+      ]
+    },
+    {
+      "id": "atlas",
+      "title": "DER ATLAS",
+      "romanNumeral": "V",
+      "note": "Siebzehn Welterbestätten, jede aus zitierten Maßen gebaut, jede mit null Illegalitäten, und mehrere davon ausdrücklich als das, was dieses Vokabular NICHT kann. Tier 2: der Vier-Minuten-Schnitt bleibt unberührt, der Zehn-Minuten-Schnitt bekommt den Atlas.",
+      "shots": [
+        {
+          "id": "ATL-a",
+          "title": "Grand-Place, Brüssel",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasGrandPlace"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 38,
+            "dolly": {
+              "from": [
+                40,
+                20,
+                -40
+              ],
+              "to": [
+                180,
+                120,
+                -200
+              ],
+              "lookAt": [
+                55,
+                20,
+                34
+              ]
+            },
+            "motionBlur": 0.15
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasGrandPlace/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Grand-Place, Brüssel"
+              }
+            }
+          ],
+          "note": "BE — der erste Postillen-Adressat. 5 835 Steine bei 0,7 Studs/m, das Pflaster vollständig, weil 'entirely paved' eine zitierte Tatsache ist."
+        },
+        {
+          "id": "ATL-b",
+          "title": "Jelling",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasJelling"
+          ],
+          "camera": {
+            "mode": "orbit",
+            "fovDeg": 40,
+            "orbit": {
+              "center": [
+                18,
+                3,
+                52
+              ],
+              "radius": 190,
+              "height": 90,
+              "startDeg": 0,
+              "endDeg": 75
+            }
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasJelling/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Jelling"
+              }
+            }
+          ],
+          "note": "DK — der zweite. Zwei runde Hügelgräber, eine Kirche dazwischen, ein Palisadenquadrat von 1 440 m Umfang."
+        },
+        {
+          "id": "ATL-c",
+          "title": "Giza",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasGiza"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 34,
+            "dolly": {
+              "from": [
+                10,
+                8,
+                -30
+              ],
+              "to": [
+                90,
+                60,
+                -160
+              ],
+              "lookAt": [
+                -20,
+                10,
+                30
+              ]
+            },
+            "motionBlur": 0.12
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasGiza/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Giza"
+              }
+            }
+          ],
+          "note": "Drei Pyramiden auf ihrer echten Diagonale. Die Neigung ist die des Primitivs (0,6) gegen Khufus 0,637 — 6 % zu flach, und die zitierten Höhen stehen ungenutzt im Rezept, damit die Abweichung sichtbar bleibt."
+        },
+        {
+          "id": "ATL-d",
+          "title": "Kolosseum",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasKolosseum"
+          ],
+          "camera": {
+            "mode": "orbit",
+            "fovDeg": 36,
+            "orbit": {
+              "center": [
+                0,
+                10,
+                0
+              ],
+              "radius": 120,
+              "height": 55,
+              "startDeg": 20,
+              "endDeg": 110
+            }
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasKolosseum/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Kolosseum"
+              }
+            }
+          ],
+          "note": "Zwei Arkaden von je achtzig Bögen. Ein Kreis, wo das Gebäude eine Ellipse von 189 × 156 m ist: arrangeOn kennt Kreis und Bogen, und eine Ellipse wäre das Erste, was spex-build dafür bräuchte."
+        },
+        {
+          "id": "ATL-e",
+          "title": "Akropolis",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasAkropolis"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 36,
+            "dolly": {
+              "from": [
+                -20,
+                6,
+                -25
+              ],
+              "to": [
+                95,
+                40,
+                -70
+              ],
+              "lookAt": [
+                35,
+                8,
+                16
+              ]
+            },
+            "motionBlur": 0.1
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasAkropolis/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Akropolis"
+              }
+            }
+          ],
+          "note": "Der Parthenon ohne Architrav — ein Balken über Säulenköpfen hat unter seiner Mitte nichts, und validate() hat recht."
+        },
+        {
+          "id": "ATL-f",
+          "title": "Pont du Gard",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasPontDuGard"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 32,
+            "dolly": {
+              "from": [
+                -30,
+                10,
+                -60
+              ],
+              "to": [
+                260,
+                70,
+                -120
+              ],
+              "lookAt": [
+                120,
+                20,
+                4
+              ]
+            },
+            "motionBlur": 0.18
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasPontDuGard/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Pont du Gard"
+              }
+            }
+          ],
+          "note": "Die sauberste Stätte des Atlas: zwei Etagen Bögen und nichts sonst, jede Länge, Bogenzahl, Pfeilerstärke und Bogenhöhe aus einer Tabelle zitiert."
+        },
+        {
+          "id": "ATL-g",
+          "title": "Segovia",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasSegovia"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 34,
+            "dolly": {
+              "from": [
+                0,
+                6,
+                -40
+              ],
+              "to": [
+                200,
+                50,
+                -90
+              ],
+              "lookAt": [
+                100,
+                14,
+                2
+              ]
+            },
+            "motionBlur": 0.15
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasSegovia/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Segovia"
+              }
+            }
+          ],
+          "note": "24 von 167 Bögen. Bei 5,1 m Bogen und 1 Stud/m wären die 167 achthundert Meter Aquädukt, die kein Bild fasst — die Zahl steht in der Notiz, nicht im Modell."
+        },
+        {
+          "id": "ATL-h",
+          "title": "Die Große Mauer",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasGrosseMauer"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 36,
+            "dolly": {
+              "from": [
+                -20,
+                8,
+                -30
+              ],
+              "to": [
+                240,
+                45,
+                -60
+              ],
+              "lookAt": [
+                120,
+                6,
+                3
+              ]
+            },
+            "motionBlur": 0.2
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasGrosseMauer/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Die Große Mauer"
+              }
+            }
+          ],
+          "note": "400 m des zitierten Jinshanling-Profils, nicht 8 850 km. Das steht im Titel des Rezepts."
+        },
+        {
+          "id": "ATL-i",
+          "title": "Borobudur",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasBorobudur"
+          ],
+          "camera": {
+            "mode": "orbit",
+            "fovDeg": 38,
+            "orbit": {
+              "center": [
+                31,
+                8,
+                31
+              ],
+              "radius": 110,
+              "height": 60,
+              "startDeg": 200,
+              "endDeg": 290
+            }
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasBorobudur/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Borobudur"
+              }
+            }
+          ],
+          "note": "Acht, sechs und vier Stupas, wo das Monument 72 hat: arc_point rastet auf das Halb-Stud-Gitter, und zwei Nachbarn auf einem kleinen Kreis runden auf dieselben Studs."
+        },
+        {
+          "id": "ATL-j",
+          "title": "Taj Mahal",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasTajMahal"
+          ],
+          "camera": {
+            "mode": "orbit",
+            "fovDeg": 36,
+            "orbit": {
+              "center": [
+                24,
+                10,
+                24
+              ],
+              "radius": 95,
+              "height": 45,
+              "startDeg": 230,
+              "endDeg": 320
+            }
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasTajMahal/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Taj Mahal"
+              }
+            }
+          ],
+          "note": "Die Kuppel ist 23 m über einer 18,4-m-Trommel — höher als eine Halbkugel, und genau der Grund, warum Dome in Jelling eine eigene Höhe bekam."
+        },
+        {
+          "id": "ATL-k",
+          "title": "Chichén Itzá",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasChichenItza"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 36,
+            "dolly": {
+              "from": [
+                -15,
+                5,
+                -25
+              ],
+              "to": [
+                80,
+                55,
+                -95
+              ],
+              "lookAt": [
+                28,
+                12,
+                28
+              ]
+            },
+            "motionBlur": 0.12
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasChichenItza/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Chichén Itzá"
+              }
+            }
+          ],
+          "note": "Neun Terrassen. Die 365 Stufen sind nicht gebaut: eine Stufe ist 0,26 m und damit unter einer Platte."
+        },
+        {
+          "id": "ATL-l",
+          "title": "Great Zimbabwe",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasGreatZimbabwe"
+          ],
+          "camera": {
+            "mode": "orbit",
+            "fovDeg": 38,
+            "orbit": {
+              "center": [
+                30,
+                6,
+                32
+              ],
+              "radius": 100,
+              "height": 40,
+              "startDeg": 40,
+              "endDeg": 130
+            }
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasGreatZimbabwe/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Great Zimbabwe"
+              }
+            }
+          ],
+          "note": "Trockenmauerwerk: geschichtet, mörtellos, modular. Eine Klemmbausteinmauer ist von nichts auf dieser Liste ein näheres Modell."
+        },
+        {
+          "id": "ATL-m",
+          "title": "Himeji-jo",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasHimeji"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 34,
+            "dolly": {
+              "from": [
+                -10,
+                4,
+                -20
+              ],
+              "to": [
+                70,
+                50,
+                -80
+              ],
+              "lookAt": [
+                15,
+                20,
+                15
+              ]
+            },
+            "motionBlur": 0.1
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasHimeji/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Himeji-jo"
+              }
+            }
+          ],
+          "note": "Sechs Stockwerke, von außen als fünf lesbar. Die Dächer sind gestufte Lagen und keine Traufen — eine japanische Dachkurve schneidet dieses Kit nicht."
+        },
+        {
+          "id": "ATL-n",
+          "title": "Machu Picchu",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasMachuPicchu"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 36,
+            "dolly": {
+              "from": [
+                -20,
+                8,
+                -25
+              ],
+              "to": [
+                90,
+                45,
+                -90
+              ],
+              "lookAt": [
+                30,
+                12,
+                36
+              ]
+            },
+            "motionBlur": 0.12
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasMachuPicchu/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Machu Picchu"
+              }
+            }
+          ],
+          "note": "Eine zitierte Maßangabe von fünfundzwanzig Zahlen. Die Quellen beschreiben es über Höhenlage, Fläche und Gebäudezahl — kaum über Baubares. Der Atlas liefert hier eine Anordnung aus, keine Messung."
+        },
+        {
+          "id": "ATL-o",
+          "title": "Petra",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasPetra"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 34,
+            "dolly": {
+              "from": [
+                -8,
+                4,
+                -30
+              ],
+              "to": [
+                45,
+                35,
+                -70
+              ],
+              "lookAt": [
+                15,
+                18,
+                3
+              ]
+            },
+            "motionBlur": 0.1
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasPetra/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Petra"
+              }
+            }
+          ],
+          "note": "Eine zitierte Zahl, und die ist ein Volumen. Jede Abmessung dieser Fassade ist die des Modellierers, und das Rezept sagt es."
+        },
+        {
+          "id": "ATL-p",
+          "title": "Kölner Dom",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasKoelnerDom"
+          ],
+          "camera": {
+            "mode": "dolly",
+            "fovDeg": 32,
+            "dolly": {
+              "from": [
+                -25,
+                3,
+                -25
+              ],
+              "to": [
+                60,
+                90,
+                -140
+              ],
+              "lookAt": [
+                20,
+                30,
+                10
+              ]
+            },
+            "motionBlur": 0.14
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasKoelnerDom/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Kölner Dom"
+              }
+            }
+          ],
+          "note": "157 m Turm über 144 m Kirche. Drei zitierte Zahlen und nichts sonst — keine Quelle hier gibt die Höhe des Mittelschiffs."
+        },
+        {
+          "id": "ATL-q",
+          "title": "Sydney Opera House",
+          "weight": 2,
+          "scaling": "stretch",
+          "durationBars": 4,
+          "minBars": 2,
+          "maxBars": 12,
+          "tier": 2,
+          "scenes": [
+            "atlasSydneyOpera"
+          ],
+          "camera": {
+            "mode": "orbit",
+            "fovDeg": 38,
+            "orbit": {
+              "center": [
+                32,
+                8,
+                21
+              ],
+              "radius": 120,
+              "height": 50,
+              "startDeg": 150,
+              "endDeg": 240
+            }
+          },
+          "tracks": [
+            {
+              "kind": "dissolve",
+              "target": "atlasSydneyOpera/**",
+              "stagger": 0.85,
+              "order": "height",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 1,
+                  "easing": "linear"
+                },
+                {
+                  "t": 0.7,
+                  "value": 0,
+                  "easing": "linear"
+                }
+              ]
+            },
+            {
+              "kind": "post",
+              "property": "exposure",
+              "keys": [
+                {
+                  "t": 0,
+                  "value": 0.28,
+                  "easing": "linear"
+                },
+                {
+                  "t": 1,
+                  "value": 0.28,
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "cues": [
+            {
+              "t": 0.05,
+              "kind": "hud",
+              "payload": {
+                "element": "caption",
+                "text": "Sydney Opera House"
+              }
+            }
+          ],
+          "note": "DER EHRLICHE FEHLSCHLAG. Utzons Schalen sind Ausschnitte einer Kugel von zitierten 75,2 m Radius, hochkant und geneigt. Eine Dome-Kappe kann sich nicht neigen. Was hier steht, ist die Form, die dieses Vokabular hervorbringt, wenn man es danach fragt — und es ist nicht das Opernhaus."
         }
       ]
     }
