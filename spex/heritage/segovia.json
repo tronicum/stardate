@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "slug": "segovia",
+  "qid": "Q1088399",
+  "tier": "C",
+  "name": "Old Town of Segovia and its Aqueduct",
+  "studsPerMetre": 1.0,
+  "uncitedBudget": 6,
+  "scaleNote": "1 stud per metre. The aqueduct is 28.5 m at its tallest and its subject is 167 arches; the arches have to be countable.",
+  "palette": {
+    "granit": 72
+  },
+  "dimensions": {
+    "height": {
+      "m": 28.5,
+      "source": "Wikipedia, Aqueduct of Segovia: 'At its tallest, the aqueduct reaches a height of 28.5 m (93 ft 6 in), including nearly 6 m (19 ft 8 in) of foundation.'"
+    },
+    "archWidth": {
+      "m": 5.1,
+      "source": "Wikipedia, Aqueduct of Segovia: 'On the upper level, the arches are 5.1 metres (16.1 ft) wide.'"
+    },
+    "pillarTop": {
+      "m": 1.8,
+      "source": "Wikipedia, Aqueduct of Segovia: 'The top of each pillar has a cross-section measuring 1.8 by 2.5 metres'."
+    },
+    "pillarBase": {
+      "m": 2.4,
+      "source": "Wikipedia, Aqueduct of Segovia: 'the base cross-section measures 2.4 by 3 metres'."
+    }
+  },
+  "note": "167 ARCHES IN TWO LEVELS, of which this builds 24 and 24. '75 single arches and 44 double arches (or 88 when counted individually), followed by four single arches, totalling 167 arches in all' -- at 1 stud/m and a 5.1 m arch that is 850 m of aqueduct, which no frame holds. What the shot needs is the two-level rhythm at its full 28.5 m height, and that is what is here. The count is in this note; the model does not pretend to it. The pitch is 12 m, not the 7.6 m of the first attempt: an  is its span PLUS twice its thickness, so a 5.1 m arch on 3-stud piers is 11.1 m wide and 24 of them at 7.6 m overlapped their neighbours 1 996 times.",
+  "massing": [
+    {
+      "primitive": "Arch",
+      "count": 24,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 12.0,
+        "axis": "x"
+      },
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "spanM": "archWidth",
+        "riseM": 13.0,
+        "thicknessStuds": 3,
+        "color": "granit"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": -1.0,
+        "yM": {
+          "onTopOf": 0
+        }
+      },
+      "params": {
+        "widthM": 300.0,
+        "depthM": "pillarBase",
+        "heightM": 1.5,
+        "bond": "Stack",
+        "color": "granit"
+      }
+    },
+    {
+      "primitive": "Arch",
+      "count": 24,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 12.0,
+        "axis": "x"
+      },
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": {
+          "onTopOf": 1
+        }
+      },
+      "params": {
+        "spanM": "archWidth",
+        "riseM": 11.0,
+        "thicknessStuds": 2,
+        "color": "granit"
+      }
+    }
+  ]
+}

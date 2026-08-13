@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "slug": "chichen-itza",
+  "qid": "Q5859",
+  "tier": "C",
+  "name": "Chichén Itzá — El Castillo",
+  "studsPerMetre": 1.0,
+  "uncitedBudget": 4,
+  "scaleNote": "1 stud per metre. The pyramid is 55.3 m square and 30 m tall including its temple; nine terraces have to be nine readable courses.",
+  "palette": {
+    "kalkstein": 19,
+    "tempel": 72
+  },
+  "dimensions": {
+    "base": {
+      "m": 55.3,
+      "source": "Wikipedia, El Castillo, Chichen Itza: 'The square base measures 55.3 m (181 ft) across.'"
+    },
+    "pyramidHeight": {
+      "m": 24,
+      "source": "Wikipedia, El Castillo: 'The structure is 24 m (79 ft) high, plus an additional 6 m (20 ft) for the temple at the top.'"
+    },
+    "templeHeight": {
+      "m": 6,
+      "source": "Wikipedia, El Castillo: '...plus an additional 6 m (20 ft) for the temple at the top.'"
+    }
+  },
+  "note": "NINE TERRACES AND FOUR STAIRWAYS OF 91 STEPS, and the steps are not built. 'All four sides of the temple have approximately 91 steps which, when added together and including the temple platform on top as the final step, may produce a total of 365 steps' -- one step is 0.26 m, which at 1 stud/m is under a plate. The terraces are the Ziggurat and the number is in this note.",
+  "massing": [
+    {
+      "primitive": "Ziggurat",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "baseM": "base",
+        "tiers": 9,
+        "tierHeightM": 2.7,
+        "setbackM": 2.6,
+        "color": "kalkstein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 23.0,
+        "zM": 23.0,
+        "yM": {
+          "onTopOf": 0
+        }
+      },
+      "params": {
+        "widthM": 10.0,
+        "depthM": 10.0,
+        "heightM": "templeHeight",
+        "bond": "Running",
+        "color": "tempel"
+      }
+    }
+  ]
+}

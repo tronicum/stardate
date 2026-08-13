@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "slug": "petra",
+  "qid": "Q5788",
+  "tier": "C",
+  "name": "Petra — Al-Khazneh",
+  "studsPerMetre": 1.0,
+  "uncitedBudget": 12,
+  "scaleNote": "1 stud per metre. The Treasury's six lower columns are the shot; they have to be more than one stud thick.",
+  "palette": {
+    "fels": 70,
+    "schatten": 72
+  },
+  "dimensions": {
+    "interiorVolume": {
+      "m": 2000,
+      "source": "Wikipedia, Al-Khazneh: 'an interior volume of around 2,000 m3 (71,000 cu ft)' for the main chamber and three antechambers."
+    }
+  },
+  "note": "ONE CITED FIGURE, AND IT IS A VOLUME. Wikipedia's Al-Khazneh article gives the interior volume and no facade dimension at all -- no height, no width, no column height. The commonly repeated 39 m x 25 m is not in the article read for this sheet, so it is not in `dimensions` and every figure in this massing is counted as the modeller's.\n\nThat is a worse ratio than Machu Picchu's. If the Atlas ships Petra it ships a proportioned guess at a rock-cut facade, and this note is the disclosure. A dimensioned survey of Al-Khazneh would fix it in one edit.\n\nWHAT IT IS: two storeys of Colonnade cut into a Wall face, which is what a rock-cut facade is -- a wall with an order in front of it.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 30.0,
+        "depthM": 6.0,
+        "heightM": 40.0,
+        "bond": "Running",
+        "color": "fels"
+      }
+    },
+    {
+      "primitive": "Colonnade",
+      "at": {
+        "xM": 3.0,
+        "zM": -3.0,
+        "yM": 0
+      },
+      "params": {
+        "columns": 6,
+        "spacingM": 5.0,
+        "architrave": false,
+        "column": {
+          "heightM": 13.0,
+          "diameterM": 2.0,
+          "color": "fels"
+        }
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 3.0,
+        "zM": -3.0,
+        "yM": {
+          "onTopOf": 1
+        }
+      },
+      "params": {
+        "widthM": 27.0,
+        "depthM": 3.0,
+        "heightM": 2.0,
+        "bond": "Stack",
+        "color": "schatten"
+      }
+    },
+    {
+      "primitive": "Colonnade",
+      "at": {
+        "xM": 6.0,
+        "zM": -3.0,
+        "yM": {
+          "onTopOf": 2
+        }
+      },
+      "params": {
+        "columns": 4,
+        "spacingM": 5.0,
+        "architrave": false,
+        "column": {
+          "heightM": 11.0,
+          "diameterM": 2.0,
+          "color": "fels"
+        }
+      }
+    }
+  ]
+}

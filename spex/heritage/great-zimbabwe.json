@@ -1,0 +1,113 @@
+{
+  "version": 1,
+  "slug": "great-zimbabwe",
+  "qid": "Q186356",
+  "tier": "C",
+  "name": "Great Zimbabwe National Monument",
+  "studsPerMetre": 1.0,
+  "uncitedBudget": 6,
+  "scaleNote": "1 stud per metre. The Great Enclosure's wall is 11 m high over 250 m of run: the wall IS the site, and it has to read as coursed.",
+  "palette": {
+    "granit": 72
+  },
+  "dimensions": {
+    "wallHeight": {
+      "m": 11,
+      "source": "Wikipedia, Great Zimbabwe: '11 m (36 ft) high dry stone walls'."
+    },
+    "wallRun": {
+      "m": 250,
+      "source": "Wikipedia, Great Zimbabwe: 'walls as high as 11 m (36 ft) extending approximately 250 m (820 ft)'."
+    },
+    "towerHeight": {
+      "m": 9,
+      "source": "Wikipedia, Great Zimbabwe: the Conical Tower is '9 m (30 ft) high'."
+    },
+    "towerDiameter": {
+      "m": 5.5,
+      "source": "Wikipedia, Great Zimbabwe: the Conical Tower is '5.5 m (18 ft) in diameter'."
+    }
+  },
+  "note": "THE MOST LITERAL WALL IN THE ATLAS: dry stone, coursed, mortarless, modular -- a Klemmbaustein wall is a closer model of Great Zimbabwe than of anything else on this list. The enclosure is built as a ring of straight runs rather than a true circle, because `arrangeOn` bends instances and not walls; the cited 250 m of run is preserved.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": {
+          "dim": "wallRun",
+          "x": 0.25
+        },
+        "depthM": 4.0,
+        "heightM": "wallHeight",
+        "bond": "Running",
+        "color": "granit"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 62.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": {
+          "dim": "wallRun",
+          "x": 0.25
+        },
+        "depthM": 4.0,
+        "heightM": "wallHeight",
+        "bond": "Running",
+        "color": "granit"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 4.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 4.0,
+        "depthM": 58.0,
+        "heightM": "wallHeight",
+        "bond": "Running",
+        "color": "granit"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 58.0,
+        "zM": 4.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 4.0,
+        "depthM": 58.0,
+        "heightM": "wallHeight",
+        "bond": "Running",
+        "color": "granit"
+      }
+    },
+    {
+      "primitive": "Column",
+      "at": {
+        "xM": 26.0,
+        "zM": 26.0,
+        "yM": 0
+      },
+      "params": {
+        "diameterM": "towerDiameter",
+        "heightM": "towerHeight",
+        "color": "granit"
+      }
+    }
+  ]
+}
