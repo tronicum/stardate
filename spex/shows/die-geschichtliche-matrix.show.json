@@ -3132,7 +3132,7 @@
       "id": "atlas",
       "title": "DER ATLAS",
       "romanNumeral": "V",
-      "note": "Siebzehn Welterbestätten, jede aus zitierten Maßen gebaut, jede mit null Illegalitäten, und mehrere davon ausdrücklich als das, was dieses Vokabular NICHT kann. Tier 2: der Vier-Minuten-Schnitt bleibt unberührt, der Zehn-Minuten-Schnitt bekommt den Atlas.",
+      "note": "Siebzehn Welterbestätten, jede aus zitierten Maßen gebaut, jede mit null Illegalitäten, und mehrere davon ausdrücklich als das, was dieses Vokabular NICHT kann. Tier 2: der Vier-Minuten-Schnitt bleibt unberührt, der Zehn-Minuten-Schnitt bekommt den Atlas.\n\nNICHT AUF DIESEM RECHNER GEMESSEN. Der Zehn-Minuten-Schnitt lädt 36 Mesh-Bundles und 21 MB, bevor der Player bereit ist, und der Software-Rasterizer dieses Containers erreicht `__spexShow` in fünf Minuten nicht. Eine auf drei Atlas-Szenen reduzierte Probe (Giza, Kolosseum, Sydney — zusammen 16 452 Instanzen) erreichte sie in zehn Minuten ebenfalls nicht, OBWOHL dieselben Bundles im Galerie-Modus in etwa einer Minute rendern. Der Unterschied ist das Bereitschafts-Gate des Show-Players, nicht die Geometrie: die Galerie zeichnet, sobald ein Bundle da ist, der Player wartet auf alle. Das ist eine gemessene Aussage über diesen Rechner und eine offene Frage an den Player, und es steht hier statt in einer Fußnote, weil der Atlas damit die einzige Bewegung des Stücks ist, deren Bild niemand geprüft hat.",
       "shots": [
         {
           "id": "ATL-a",
