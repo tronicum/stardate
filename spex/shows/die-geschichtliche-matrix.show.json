@@ -334,13 +334,501 @@
         "atBar": 83.5,
         "bars": 0.5,
         "type": "authentic"
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 85,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 87,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 0,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 89,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 91,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 4,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 4,
+        "atBar": 93,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 95,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 1,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 97,
+        "_passacaglia": true,
+        "inversion": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 99,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 5,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 3,
+        "atBar": 101,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 103,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 3,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 105,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 107,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 0,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 5,
+        "atBar": 109,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 111,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 2,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 113,
+        "_passacaglia": true,
+        "inversion": true,
+        "augmentation": 2
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 117,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 119,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 0,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 121,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 123,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 4,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 4,
+        "atBar": 125,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 127,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 1,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 129,
+        "_passacaglia": true,
+        "inversion": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 131,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 5,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 3,
+        "atBar": 133,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 135,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 3,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 137,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 139,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 0,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 5,
+        "atBar": 141,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 143,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 2,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 145,
+        "_passacaglia": true,
+        "inversion": true,
+        "augmentation": 2
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 149,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 151,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 0,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 153,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 155,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 4,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 4,
+        "atBar": 157,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 159,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 1,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 161,
+        "_passacaglia": true,
+        "inversion": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 163,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 5,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 3,
+        "atBar": 165,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 167,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 3,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 169,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 171,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 0,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 5,
+        "atBar": 173,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 175,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 2,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 177,
+        "_passacaglia": true,
+        "inversion": true,
+        "augmentation": 2
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 181,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 183,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 0,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 185,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 187,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 4,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 4,
+        "atBar": 189,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 191,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 1,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 193,
+        "_passacaglia": true,
+        "inversion": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 195,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 5,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 3,
+        "atBar": 197,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 199,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 3,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 0,
+        "atBar": 201,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 203,
+        "bars": 2,
+        "sequenceInterval": 1,
+        "motifFrom": "subjectHead",
+        "targetDegree": 0,
+        "_passacaglia": true
+      },
+      {
+        "kind": "entry",
+        "voice": 3,
+        "degree": 5,
+        "atBar": 205,
+        "_passacaglia": true
+      },
+      {
+        "kind": "episode",
+        "atBar": 207,
+        "bars": 2,
+        "sequenceInterval": -1,
+        "motifFrom": "countersubjectTail",
+        "targetDegree": 2,
+        "_passacaglia": true
+      },
+      {
+        "kind": "cadence",
+        "atBar": 209,
+        "bars": 2,
+        "type": "authentic",
+        "_passacaglia": true
       }
     ],
     "pulse": {
       "enterAtSec": 180,
       "bpmMultiplier": 2,
       "finalAccentAtSec": 238.571
-    }
+    },
+    "_passacaglia": "Bars 85-210 are the Atlas's music and exist because the ten-minute cut ran out of fugue at 240 s and played six minutes of silence. The form is a PASSACAGLIA on the fugue's own subject: the ground returns in the bass every four bars, thirty-one times, inverted every fourth statement and augmented every eighth, with an episode in the gap. No new material -- the same eight notes, rebuilt. That is the piece's own claim about bricks, stated in the only other medium it has.",
+    "_pulseCutCoupling": "DEFEKT, GEMESSEN, NICHT BEHOBEN. `pulse.finalAccentAtSec` steht bei 238,571 s -- der Landung von DER KICK im Vier-Minuten-Schnitt. Im Zehn-Minuten-Schnitt beginnt A4-KICK bei 362,857 s. Der Akzent und sein Bild liegen dort 124,3 s auseinander. Die Ursache ist, dass der Puls in ABSOLUTEN Sekunden geschrieben ist, die Position einer Einstellung aber vom Auflösen des jeweiligen Schnitts abhaengt: dieselbe Zahl kann nicht fuer vier Schnitte stimmen. Die Behebung ist, den Akzent an die Einstellung zu binden statt an die Uhr -- ein `audio`-Cue auf A4-KICK, wie es M71 fuer jeden anderen Akzent schon tut -- und sie braucht eine Aenderung in spex-fugue, nicht in diesem Dokument. Bis dahin ist der Kick nur im Vier-Minuten-Schnitt synchron, und das steht hier, damit niemand den Zehn-Minuten-Schnitt fuer fertig haelt."
   },
   "scenes": [
     {
