@@ -1,0 +1,81 @@
+{
+  "version": 1,
+  "slug": "sigiriya",
+  "qid": "Q205336",
+  "tier": "C",
+  "name": "Ancient City of Sigiriya",
+  "studsPerMetre": 0.35,
+  "uncitedBudget": 8,
+  "scaleNote": "0.35 Studs pro Meter. Bei der ersten Wahl waren es 83 808 Steine -- eine massive Ziggurat waechst mit dem Kubus des Massstabs, und ein Berg als Vollkoerper ist der teuerste Koerper im Atlas.",
+  "palette": {
+    "fels": 70,
+    "palast": 71,
+    "garten": 288
+  },
+  "dimensions": {
+    "rockHeight": {
+      "m": 180,
+      "source": "Wikipedia, Sigiriya: the rock is 'approximately 180 m (590 ft) high' above the surrounding plain."
+    },
+    "frescoWidth": {
+      "m": 140,
+      "source": "Wikipedia, Sigiriya: the paintings covered 'an area 140 m (460 ft) long and 40 m (130 ft) high' on the western face -- the only width this article gives for the rock at all."
+    },
+    "frescoHeight": {
+      "m": 40,
+      "source": "Wikipedia, Sigiriya: 'an area 140 m (460 ft) long and 40 m (130 ft) high'."
+    }
+  },
+  "note": "THE ONLY WIDTH IN THE SOURCE IS THE WIDTH OF A PAINTING. Wikipedia gives the rock's height and then, for anything horizontal, only the extent of the frescoes on its western face -- 140 m long. This sheet uses that 140 m as the rock's footprint, which is a substitution and not a measurement: the painted area is not the rock. It is stated here rather than quietly rounded into `dimensions` as if it were a survey.\n\nNo summit-plateau dimensions, no moat, no Lion Gate paws in the article. The gardens at the foot are proportion.\n\nDer Gartensockel ist 5 m hoch und nicht 2: bei 0,35 Studs/m sind 2 m weniger als eine Steinlage, und `validate()` hat das Blatt zurueckgewiesen, statt eine Wand zu bauen, die still gar nichts emittiert haette. Das alte 0,6-Rezept blieb dabei auf der Platte liegen -- ein abgelehntes Blatt ueberschreibt sein Rezept nicht, was richtig ist und beim Nachmessen kurz verwirrt.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 260.0,
+        "depthM": 200.0,
+        "heightM": 5.0,
+        "bond": "Running",
+        "color": "garten"
+      }
+    },
+    {
+      "primitive": "Ziggurat",
+      "at": {
+        "xM": 60.0,
+        "zM": 30.0,
+        "yM": {
+          "onTopOf": 0
+        }
+      },
+      "params": {
+        "baseM": "frescoWidth",
+        "tiers": 9,
+        "tierHeightM": 20.0,
+        "setbackM": 4.0,
+        "color": "fels"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 104.0,
+        "zM": 74.0,
+        "yM": {
+          "onTopOf": 1
+        }
+      },
+      "params": {
+        "widthM": 52.0,
+        "depthM": 52.0,
+        "heightM": 6.0,
+        "bond": "Running",
+        "color": "palast"
+      }
+    }
+  ]
+}

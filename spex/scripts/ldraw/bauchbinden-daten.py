@@ -5,7 +5,7 @@
 the pipeline is reproducible from the repository rather than from a /tmp file
 that happened to exist on one machine.
 
-    python3 scripts/ldraw/bauchbinden-daten.py > heritage/bauchbinden.json
+    python3 scripts/ldraw/bauchbinden-daten.py > scripts/heritage-data/bauchbinden.json
 """
 import glob, json, pathlib, sys
 
@@ -17,8 +17,6 @@ rows = {r["id"]: r for r in (snap["sites"] if isinstance(snap, dict) else snap)}
 
 out, missing = {}, []
 for f in sorted(pathlib.Path("heritage").glob("*.json")):
-    if f.name == "bauchbinden.json":
-        continue
     d = json.loads(f.read_text())
     r = rows.get(d.get("qid"))
     if r is None:

@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "slug": "angkor-wat",
+  "qid": "Q188236",
+  "tier": "C",
+  "name": "Angkor — Angkor Wat",
+  "studsPerMetre": 0.35,
+  "uncitedBudget": 15,
+  "scaleNote": "0.35 studs per metre. The outer wall alone is 1 024 x 802 m; at 1 stud/m nothing else would fit beside it.",
+  "palette": {
+    "sandstein": 71,
+    "laterit": 70,
+    "wasser": 73
+  },
+  "dimensions": {
+    "wallX": {
+      "m": 1024,
+      "source": "Wikipedia, Angkor Wat: 'an outer wall, 1,024 m (3,360 ft) by 802 m (2,631 ft) and 4.5 m (15 ft) high.'"
+    },
+    "wallZ": {
+      "m": 802,
+      "source": "Wikipedia, Angkor Wat: 'an outer wall, 1,024 m (3,360 ft) by 802 m (2,631 ft) and 4.5 m (15 ft) high.'"
+    },
+    "wallHeight": {
+      "m": 4.5,
+      "source": "Wikipedia, Angkor Wat: the outer wall is '4.5 m (15 ft) high'."
+    },
+    "towerHeight": {
+      "m": 65,
+      "source": "Wikipedia, Angkor Wat: 'The tower above the central shrine rises 43 m (141 ft) to a height of 65 m (213 ft) above the ground'."
+    },
+    "outerGalleryX": {
+      "m": 215,
+      "source": "Wikipedia, Angkor Wat: the outer gallery measures '187 m (614 ft) by 215 m (705 ft)'."
+    },
+    "outerGalleryZ": {
+      "m": 187,
+      "source": "Wikipedia, Angkor Wat: the outer gallery measures '187 m (614 ft) by 215 m (705 ft)'."
+    },
+    "secondEnclosureX": {
+      "m": 115,
+      "source": "Wikipedia, Angkor Wat: the second-level enclosure is '100 m (330 ft) by 115 m (377 ft)'."
+    },
+    "secondEnclosureZ": {
+      "m": 100,
+      "source": "Wikipedia, Angkor Wat: the second-level enclosure is '100 m (330 ft) by 115 m (377 ft)'."
+    },
+    "bakan": {
+      "m": 60,
+      "source": "Wikipedia, Angkor Wat: the inner gallery (Bakan) is 'a 60 m (200 ft) square'."
+    }
+  },
+  "note": "NINE CITED DIMENSIONS, THE MOST OF ANY SHEET IN THE ATLAS -- Angkor Wat is measured in its own article the way the Pont du Gard is, enclosure by enclosure, and every one of them is here. The three concentric rectangles are the building: 1 024 x 802, then 215 x 187, then 115 x 100, then a 60 m square, then the tower.\n\nWHAT IS NOT BUILT: the moat, '190 m (620 ft) wide and over 5 km (3.1 mi) in perimeter'. At 0.35 studs/m that is a 66-stud band of water around a 358-stud wall, which is more baseplate than temple and would make the temple a dot in the middle of it. The moat is the largest thing about Angkor Wat and it is in this note instead of in the model.\n\nThe quincunx of five towers is built; the article gives no total tower count for the complex, so none is claimed.\n\nDie vier Ecktuerme stehen einzeln im Blatt, weil `arrangeOn` nur `line` und `circle`/`arc` kennt -- ein `rect` gibt es nicht, und der erste Entwurf hat genau das erfunden. Vier Schritte statt einer Wiederholung ist der ehrliche Ausweg; ein `rect`-Arrangement waere die naechste Erweiterung.\n\nZwei Rundungsdefekte bei 0,35 Studs/m: die 4,5 m starke Aussenmauer ist 1,575 Studs und rundet auf 2, weshalb sich die vier Mauerzuege an den Ecken ueberlappten -- die Seitenmauern sitzen jetzt 7 m statt 4,5 m eingerueckt. Und der 36-m-Zentralturm ueberdeckte alle vier Ecktuerme; die Quincunx passt in das 60-m-Bakan nur mit 28 m Mitte und 14 m Ecken.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "wallX",
+        "depthM": "wallHeight",
+        "heightM": "wallHeight",
+        "bond": "Running",
+        "color": "laterit"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 797.5,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "wallX",
+        "depthM": "wallHeight",
+        "heightM": "wallHeight",
+        "bond": "Running",
+        "color": "laterit"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 7.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "wallHeight",
+        "depthM": 788.0,
+        "heightM": "wallHeight",
+        "bond": "Running",
+        "color": "laterit"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 1017.0,
+        "zM": 7.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "wallHeight",
+        "depthM": 788.0,
+        "heightM": "wallHeight",
+        "bond": "Running",
+        "color": "laterit"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 404.0,
+        "zM": 307.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "outerGalleryX",
+        "depthM": "outerGalleryZ",
+        "heightM": 9.0,
+        "bond": "Running",
+        "color": "sandstein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 454.0,
+        "zM": 350.0,
+        "yM": {
+          "onTopOf": 4
+        }
+      },
+      "params": {
+        "widthM": "secondEnclosureX",
+        "depthM": "secondEnclosureZ",
+        "heightM": 11.0,
+        "bond": "Running",
+        "color": "sandstein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 481.0,
+        "zM": 370.0,
+        "yM": {
+          "onTopOf": 5
+        }
+      },
+      "params": {
+        "widthM": "bakan",
+        "depthM": "bakan",
+        "heightM": 12.0,
+        "bond": "Running",
+        "color": "sandstein"
+      }
+    },
+    {
+      "primitive": "Pyramid",
+      "at": {
+        "xM": 497.0,
+        "zM": 386.0,
+        "yM": {
+          "onTopOf": 6
+        }
+      },
+      "params": {
+        "baseM": 28.0,
+        "heightM": 33.0,
+        "color": "sandstein"
+      }
+    },
+    {
+      "primitive": "Pyramid",
+      "at": {
+        "xM": 483.0,
+        "zM": 372.0,
+        "yM": {
+          "onTopOf": 6
+        }
+      },
+      "params": {
+        "baseM": 14.0,
+        "heightM": 15.0,
+        "color": "sandstein"
+      }
+    },
+    {
+      "primitive": "Pyramid",
+      "at": {
+        "xM": 527.0,
+        "zM": 372.0,
+        "yM": {
+          "onTopOf": 6
+        }
+      },
+      "params": {
+        "baseM": 14.0,
+        "heightM": 15.0,
+        "color": "sandstein"
+      }
+    },
+    {
+      "primitive": "Pyramid",
+      "at": {
+        "xM": 483.0,
+        "zM": 416.0,
+        "yM": {
+          "onTopOf": 6
+        }
+      },
+      "params": {
+        "baseM": 14.0,
+        "heightM": 15.0,
+        "color": "sandstein"
+      }
+    },
+    {
+      "primitive": "Pyramid",
+      "at": {
+        "xM": 527.0,
+        "zM": 416.0,
+        "yM": {
+          "onTopOf": 6
+        }
+      },
+      "params": {
+        "baseM": 14.0,
+        "heightM": 15.0,
+        "color": "sandstein"
+      }
+    }
+  ]
+}

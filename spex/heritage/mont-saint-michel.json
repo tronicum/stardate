@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "slug": "mont-saint-michel",
+  "qid": "Q1580131",
+  "tier": "C",
+  "name": "Mont-Saint-Michel and its Bay",
+  "studsPerMetre": 0.3,
+  "uncitedBudget": 8,
+  "scaleNote": "0.3 Studs pro Meter. Bei der ersten Wahl waren es 203 578 Steine -- eine massive Ziggurat waechst mit dem Kubus des Massstabs, und ein Berg als Vollkoerper ist der teuerste Koerper im Atlas.",
+  "palette": {
+    "granit": 72,
+    "abtei": 71,
+    "dach": 0
+  },
+  "dimensions": {
+    "peak": {
+      "m": 92,
+      "source": "Wikipedia, Mont-Saint-Michel: 'its highest point is 92 m (302 ft) above sea level'."
+    },
+    "circumference": {
+      "m": 960,
+      "source": "Wikipedia, Mont-Saint-Michel: 'The mount has a circumference of about 960 m (3,150 ft)'."
+    }
+  },
+  "note": "A CIRCUMFERENCE IS NOT A DIAMETER, and turning one into the other is arithmetic on a source rather than a source. 960 m of circumference is a 305.6 m diameter IF the mount were a circle, which it is not. The Ziggurat below uses that 305.6 m, and the step from the cited figure to the built one is this sentence.\n\nWikipedia gives the mount and nothing else: no spire height, no rampart height. So the abbey on top is proportion, not measurement, and it is inside the uncited budget where it belongs.\n\nA Ziggurat is a square with square setbacks and the mount is a rough cone. Twelve tiers read as a cone at this scale; the primitive cannot round them.",
+  "massing": [
+    {
+      "primitive": "Ziggurat",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "baseM": 305.6,
+        "tiers": 12,
+        "tierHeightM": 6.0,
+        "setbackM": 11.5,
+        "color": "granit"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 140.0,
+        "zM": 140.0,
+        "yM": {
+          "onTopOf": 0
+        }
+      },
+      "params": {
+        "widthM": 26.0,
+        "depthM": 26.0,
+        "heightM": 14.0,
+        "bond": "Running",
+        "color": "abtei"
+      }
+    },
+    {
+      "primitive": "Pyramid",
+      "at": {
+        "xM": 146.0,
+        "zM": 146.0,
+        "yM": {
+          "onTopOf": 1
+        }
+      },
+      "params": {
+        "baseM": 14.0,
+        "heightM": 18.0,
+        "color": "dach"
+      }
+    }
+  ]
+}

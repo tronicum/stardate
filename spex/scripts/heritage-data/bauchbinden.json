@@ -1,3 +1,4 @@
+WARNUNG: angkor-wat — Q188236 ist kein Welterbe-Datensatz im Snapshot
 {
  "akropolis": {
   "name": "Acropolis, Athens — the Parthenon",
@@ -7,6 +8,13 @@
   "states": [
    "GR"
   ]
+ },
+ "angkor-wat": {
+  "name": "Angkor — Angkor Wat",
+  "qid": "Q188236",
+  "year": null,
+  "crit": null,
+  "states": null
  },
  "borobudur": {
   "name": "Borobudur Temple Compounds",
