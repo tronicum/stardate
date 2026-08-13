@@ -1,0 +1,101 @@
+{
+  "version": 1,
+  "slug": "rapa-nui",
+  "qid": "Q159557",
+  "tier": "C",
+  "name": "Rapa Nui National Park — the moai of an ahu",
+  "studsPerMetre": 4.0,
+  "uncitedBudget": 7,
+  "scaleNote": "4 studs per metre. A 4 m moai is 16 studs; below that a statue is a peg, and the whole point of this site is that the objects are figures.",
+  "palette": {
+    "tuff": 70,
+    "ahu": 72
+  },
+  "dimensions": {
+    "avgHeight": {
+      "m": 4.0,
+      "source": "Wikipedia, Moai: 'The average height of the moai is about 4 m (13 ft)'."
+    },
+    "avgBase": {
+      "m": 1.6,
+      "source": "Wikipedia, Moai: 'with the average width at the base around 1.6 m (5.2 ft)'."
+    },
+    "paroHeight": {
+      "m": 10.0,
+      "source": "Wikipedia, Moai: 'The tallest moai erected, called Paro, was almost 10 metres (33 ft) high and weighed 82 tonnes'."
+    },
+    "gigante": {
+      "m": 21.0,
+      "source": "Wikipedia, Moai: one unfinished sculpture 'would be approximately 21 m (69 ft) tall, with a weight of about 145-165 tonnes'."
+    }
+  },
+  "note": "SEVEN MOAI OF MORE THAN 900. 'the production and transportation of the more than 900 statues is considered a remarkable creative and physical feat' -- this ahu builds seven at the cited average of 4 m x 1.6 m, plus Paro at his cited 10 m, plus El Gigante lying unfinished at his cited 21 m, which is the only figure here that was never erected and is built lying down for that reason.\n\nA moai is a carved head and torso and this vocabulary has no carving. What stands on the ahu is a tapered block of the cited proportion: right height, right base, wrong everything else. That is the honest limit of a stud grid at four studs to the metre, and this sheet does not claim more.\n\nParo stand im ersten Entwurf bei x=28 auf einer 26 m langen Ahu, also neben ihr in der Luft -- 660 schwebende Steine. Eine Plattform ist keine Grundplatte: was ueber ihre Kante hinausragt, steht auf nichts.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 27.0,
+        "depthM": 4.0,
+        "heightM": 1.5,
+        "bond": "Running",
+        "color": "ahu"
+      }
+    },
+    {
+      "primitive": "Column",
+      "count": 7,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 3.0,
+        "axis": "x"
+      },
+      "at": {
+        "xM": 1.5,
+        "zM": 1.2,
+        "yM": {
+          "onTopOf": 0
+        }
+      },
+      "params": {
+        "diameterM": "avgBase",
+        "heightM": "avgHeight",
+        "color": "tuff"
+      }
+    },
+    {
+      "primitive": "Column",
+      "at": {
+        "xM": 22.0,
+        "zM": 1.2,
+        "yM": {
+          "onTopOf": 0
+        }
+      },
+      "params": {
+        "diameterM": 2.4,
+        "heightM": "paroHeight",
+        "color": "tuff"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 8.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "gigante",
+        "depthM": 3.0,
+        "heightM": 2.4,
+        "bond": "Running",
+        "color": "tuff"
+      }
+    }
+  ]
+}
