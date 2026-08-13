@@ -47,7 +47,10 @@ See `docs/ARCHITECTURE.md` for the full reasoning and a worked example.
    verification actually happens here, how adapters are built, how to spend
    context/token budget well. Written from what concretely worked (and
    didn't) across many real sessions building this project with AI agents —
-   not generic advice. Start with `docs/agents/working-mode.md`.
+   not generic advice. Start with `docs/agents/working-mode.md`. If the task
+   is a World Heritage site, read `docs/agents/atlas-massing.md` **first** —
+   it is a list of defects that really happened, and most of them cost
+   several generations each to find.
 6. **`.claude/agents/`** — custom subagent definitions scoped to this repo
    (`spex-verifier`, `spex-adapter-writer`, `spex-ankerstein-data-collector`)
    that already know the playbooks in (5), so a coordinator can delegate
@@ -67,13 +70,26 @@ See `docs/ARCHITECTURE.md` for the full reasoning and a worked example.
 - **Pushing from a cloud session may be blocked.** The sandbox's git proxy
   can refuse to inject a credential for this repo ("not in this session's
   authorized repository set"), and the desktop-bridge VM has no network at
-  all — so neither side can reach GitHub. `git fetch` still works, which is
-  enough to verify afterwards. The working handoff: `git bundle create
-  /tmp/<name>.bundle origin/<branch>..<branch>`, write it into the user's
-  own clone through the device bridge, `git fetch <bundle>
-  refs/heads/<branch>:refs/heads/<branch>` there, and let the user run one
-  `git push`. One bundle per milestone. Note the bridge cannot delete files —
-  move a spent bundle into `_to_delete/` rather than trying to `rm` it.
+  all — so neither side can reach GitHub. `git fetch` often fails too, which
+  matters: a failed fetch leaves `FETCH_HEAD` pointing at the *previous*
+  fetch, so a follow-up `git merge FETCH_HEAD` reports "Already up to date"
+  and looks like the bundle was empty. It wasn't.
+
+  The handoff that works: `git bundle create <name>.bundle <base>..<branch>`
+  where `<base>` is a commit the user's clone already has (`origin/<branch>`
+  if it exists, otherwise the last commit you handed over — `git bundle
+  verify` prints which ref the bundle requires); `SendUserFile` it, then
+  `device_commit_files` the returned `file_uuid` straight into the user's
+  clone. Writing it into the repo itself beats routing through Downloads,
+  which may not be a connected folder. Then the user runs `git fetch
+  ./<name>.bundle <branch> && git merge FETCH_HEAD && git push`.
+
+  Rebundle from the same `<base>` each time rather than incrementally — one
+  cumulative bundle can be overwritten in place with `force: true` and there
+  is never a question of which ones the user has applied. Note the bridge
+  cannot delete files: move a spent bundle into `_to_delete/` rather than
+  trying to `rm` it. Expect a stop hook to keep reporting the unpushed
+  commits; that is accurate and there is nothing to do about it from here.
 - **Verify with the real thing, not just `cargo test`.** Tests prove the
   code is internally consistent; they don't prove a browser feature
   actually renders, or that a CLI command's output is sensible to a human.
@@ -82,6 +98,13 @@ See `docs/ARCHITECTURE.md` for the full reasoning and a worked example.
   before committing; screenshot only when the picture is *supposed* to
   change; regenerate every demo only at the end of a phase. Running all of it
   on every commit cost more than it caught.
+- **State what the artefact does not do, in the artefact.** Every Atlas sheet
+  names what it left out and why — 24 of Segovia's 167 arches, Angkor's moat,
+  Chichén Itzá's 365 steps. Sydney ships *because* the vocabulary cannot build
+  it: leaving it out would claim the Atlas can build everything it contains,
+  and putting it in costs a shot rather than a lie. The same discipline
+  applies to a measurement that was never taken — say "not measured here" and
+  name the machine, rather than quietly omitting it.
 - **Measure, don't assert.** An acceptance criterion should say "measure X
   and record the number", not "X must be ≥ N". Eight of Phase 1's ~30
   criteria were factually wrong, every one of them because it asserted a
