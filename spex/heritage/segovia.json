@@ -1,7 +1,7 @@
 {
   "version": 1,
   "slug": "segovia",
-  "qid": "Q1088399",
+  "qid": "Q15728389",
   "tier": "C",
   "name": "Old Town of Segovia and its Aqueduct",
   "studsPerMetre": 1.0,
@@ -28,7 +28,7 @@
       "source": "Wikipedia, Aqueduct of Segovia: 'the base cross-section measures 2.4 by 3 metres'."
     }
   },
-  "note": "167 ARCHES IN TWO LEVELS, of which this builds 24 and 24. '75 single arches and 44 double arches (or 88 when counted individually), followed by four single arches, totalling 167 arches in all' -- at 1 stud/m and a 5.1 m arch that is 850 m of aqueduct, which no frame holds. What the shot needs is the two-level rhythm at its full 28.5 m height, and that is what is here. The count is in this note; the model does not pretend to it. The pitch is 12 m, not the 7.6 m of the first attempt: an  is its span PLUS twice its thickness, so a 5.1 m arch on 3-stud piers is 11.1 m wide and 24 of them at 7.6 m overlapped their neighbours 1 996 times.",
+  "note": "167 ARCHES IN TWO LEVELS, of which this builds 24 and 24. '75 single arches and 44 double arches (or 88 when counted individually), followed by four single arches, totalling 167 arches in all' -- at 1 stud/m and a 5.1 m arch that is 850 m of aqueduct, which no frame holds. What the shot needs is the two-level rhythm at its full 28.5 m height, and that is what is here. The count is in this note; the model does not pretend to it. The pitch is 12 m, not the 7.6 m of the first attempt: an  is its span PLUS twice its thickness, so a 5.1 m arch on 3-stud piers is 11.1 m wide and 24 of them at 7.6 m overlapped their neighbours 1 996 times.\n\nQID KORRIGIERT: das Blatt trug die QID des BAUWERKS, der Wikidata-Snapshot fuehrt die WELTERBESTAETTE, und das sind verschiedene Entitaeten. `qid` ist jetzt Q15728389 (die Staette), das Bauwerk steht als `_qidMonument`. Ohne diese Korrektur fand der Snapshot-Lookup kein Einschreibungsjahr -- zehn von siebzehn Blaettern waren betroffen.",
   "massing": [
     {
       "primitive": "Arch",
@@ -89,5 +89,6 @@
         "color": "granit"
       }
     }
-  ]
+  ],
+  "_qidMonument": "Q1088399"
 }

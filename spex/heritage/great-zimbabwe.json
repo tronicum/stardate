@@ -1,7 +1,7 @@
 {
   "version": 1,
   "slug": "great-zimbabwe",
-  "qid": "Q186356",
+  "qid": "Q209217",
   "tier": "C",
   "name": "Great Zimbabwe National Monument",
   "studsPerMetre": 1.0,
@@ -28,7 +28,7 @@
       "source": "Wikipedia, Great Zimbabwe: the Conical Tower is '5.5 m (18 ft) in diameter'."
     }
   },
-  "note": "THE MOST LITERAL WALL IN THE ATLAS: dry stone, coursed, mortarless, modular -- a Klemmbaustein wall is a closer model of Great Zimbabwe than of anything else on this list. The enclosure is built as a ring of straight runs rather than a true circle, because `arrangeOn` bends instances and not walls; the cited 250 m of run is preserved.",
+  "note": "THE MOST LITERAL WALL IN THE ATLAS: dry stone, coursed, mortarless, modular -- a Klemmbaustein wall is a closer model of Great Zimbabwe than of anything else on this list. The enclosure is built as a ring of straight runs rather than a true circle, because `arrangeOn` bends instances and not walls; the cited 250 m of run is preserved.\n\nQID KORRIGIERT: das Blatt trug die QID des BAUWERKS, der Wikidata-Snapshot fuehrt die WELTERBESTAETTE, und das sind verschiedene Entitaeten. `qid` ist jetzt Q209217 (die Staette), das Bauwerk steht als `_qidMonument`. Ohne diese Korrektur fand der Snapshot-Lookup kein Einschreibungsjahr -- zehn von siebzehn Blaettern waren betroffen.",
   "massing": [
     {
       "primitive": "Wall",
@@ -109,5 +109,6 @@
         "color": "granit"
       }
     }
-  ]
+  ],
+  "_qidMonument": "Q186356"
 }

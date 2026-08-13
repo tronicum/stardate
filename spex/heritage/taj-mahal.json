@@ -8,7 +8,7 @@
   "uncitedBudget": 6,
   "scaleNote": "0.5 studs per metre. At 1 stud/m the 40 m mausoleum block alone was 26 907 placements; the dome, the four minarets and the plinth all still read at a half.",
   "palette": {
-    "marmor": 15,
+    "marmor": 71,
     "sandstein": 70
   },
   "dimensions": {
@@ -33,7 +33,7 @@
       "source": "Wikipedia, Taj Mahal: minarets 'more than 40 metres (130 ft) tall'."
     }
   },
-  "note": "The dome is a `Dome` with its own cited height -- 23 m over an 18.4 m drum, which is taller than a hemisphere and is exactly why `Dome` gained a height parameter at Jelling. Four minarets at the plinth's corners. The mausoleum block under the dome is uncited: no source read here gives its footprint.\n\nThe minarets stand on the plinth. At a 60 m arrangement radius about a 95.5 m plinth, two of the four hung over the edge and floated.",
+  "note": "The dome is a `Dome` with its own cited height -- 23 m over an 18.4 m drum, which is taller than a hemisphere and is exactly why `Dome` gained a height parameter at Jelling. Four minarets at the plinth's corners. The mausoleum block under the dome is uncited: no source read here gives its footprint.\n\nThe minarets stand on the plinth. At a 60 m arrangement radius about a 95.5 m plinth, two of the four hung over the edge and floated.\n\nPALETTE ABGEDUNKELT: Tan (19) und Weiss (15) brennen unter dem Bloom dieses Renderers zu reinweissen Kernen aus -- bei Giza waren zwei der drei Pyramiden im Bild nur noch Licht, waehrend die dritte in Reddish Brown lesbar blieb. Ersetzt durch Light Bluish Gray (71). Die Ursache ist der Bloom, nicht die Belichtung: der Regler der Galerie steht bereits auf seinem Minimum von 0,4.",
   "massing": [
     {
       "primitive": "Wall",

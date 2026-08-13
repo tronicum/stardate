@@ -1,7 +1,7 @@
 {
   "version": 1,
   "slug": "grosse-mauer",
-  "qid": "Q1099",
+  "qid": "Q65961372",
   "tier": "B",
   "name": "The Great Wall (Jinshanling section)",
   "studsPerMetre": 0.6,
@@ -25,7 +25,7 @@
       "source": "Wikipedia, Great Wall of China: at Jinshanling '6 m (19 ft 8 in) across the bottom, narrowing up to 5 m (16 ft 5 in) across the top'."
     }
   },
-  "note": "A SECTION, NOT THE WALL. The Ming wall is 8 850 km long; no scale renders that and no frame holds it. What this Atlas builds is 400 m of the cited Jinshanling profile with three watchtowers, and says so in its own title. Anything else would be a claim the model does not support.\n\nThe watchtower dimensions and spacing are uncited: the source read gives an estimated 25 000 watchtowers and no typical height or interval.\n\nThe towers stand BEHIND the wall rather than inside it. A real Ming watchtower straddles the rampart; two bricks cannot share a cubic millimetre, so the model abuts them at the wall's cited 6 m base width.",
+  "note": "A SECTION, NOT THE WALL. The Ming wall is 8 850 km long; no scale renders that and no frame holds it. What this Atlas builds is 400 m of the cited Jinshanling profile with three watchtowers, and says so in its own title. Anything else would be a claim the model does not support.\n\nThe watchtower dimensions and spacing are uncited: the source read gives an estimated 25 000 watchtowers and no typical height or interval.\n\nThe towers stand BEHIND the wall rather than inside it. A real Ming watchtower straddles the rampart; two bricks cannot share a cubic millimetre, so the model abuts them at the wall's cited 6 m base width.\n\nQID KORRIGIERT: das Blatt trug die QID des BAUWERKS, der Wikidata-Snapshot fuehrt die WELTERBESTAETTE, und das sind verschiedene Entitaeten. `qid` ist jetzt Q65961372 (die Staette), das Bauwerk steht als `_qidMonument`. Ohne diese Korrektur fand der Snapshot-Lookup kein Einschreibungsjahr -- zehn von siebzehn Blaettern waren betroffen.",
   "massing": [
     {
       "primitive": "Wall",
@@ -87,5 +87,6 @@
         "color": "stein"
       }
     }
-  ]
+  ],
+  "_qidMonument": "Q1099"
 }

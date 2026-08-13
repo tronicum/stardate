@@ -1,14 +1,14 @@
 {
   "version": 1,
   "slug": "pont-du-gard",
-  "qid": "Q131013x",
+  "qid": "Q189764",
   "tier": "B",
   "name": "Pont du Gard (Roman Aqueduct)",
   "studsPerMetre": 1.0,
   "uncitedBudget": 10,
   "scaleNote": "1 stud per metre. 275 m long and 49 m high, and the whole site is three tiers of arches: the arches have to be countable.",
   "palette": {
-    "kalkstein": 19
+    "kalkstein": 71
   },
   "dimensions": {
     "height": {
@@ -40,7 +40,7 @@
       "source": "Wikipedia, Pont du Gard: upper tier arch height '7m (23ft)'."
     }
   },
-  "note": "THE CLEANEST SITE IN THE ATLAS: three tiers of arches and nothing else, every tier's length, arch count, pier thickness and arch height cited from one table. 6, 11 and 35 arches -- 35 surviving of an original 47, and this builds the 35 that stand.\n\nThe arch spans are derived: tier length divided by arch count, minus the cited pier thickness. The source says only that 'span of the arches varies slightly'.\n\nA TIER OF ARCHES IS NOT A FLOOR. The three arcades have 6, 11 and 35 arches, so their piers cannot align: the upper tiers stood on the gaps between the lower ones and 3 532 placements floated. A continuous spandrel deck now carries each tier onto the one below -- which is what the real bridge has, and what makes stacking arcades of different rhythms possible at all.\n\nThe arcades are STRAIGHT ROWS, not arcs. The first version bent them onto a 400 m arc to get a row out of `arrangeOn`, which put every arch off the deck beneath it. The generator now expands a line into explicit steps; the engine still only knows circles and arcs, and does not need to know more.\n\nTHE UPPER TIER OF 35 ARCHES IS NOT BUILT HERE. Its arches are 7 m tall on a 275 m run, which at this scale is below what the kit can express as an arch at all. Two tiers of the three, stated rather than implied.\n\nTHE FIRST DECK IS 250 m, NOT THE LOWER TIER'S CITED 142 m. The middle tier is 242 m and the lower one 142: in the real bridge the middle arcade runs on past the lower one onto the valley sides. This model has no valley, so the deck carries it. The cited lengths are in `dimensions` and the deck's 250 is counted as the modeller's.",
+  "note": "THE CLEANEST SITE IN THE ATLAS: three tiers of arches and nothing else, every tier's length, arch count, pier thickness and arch height cited from one table. 6, 11 and 35 arches -- 35 surviving of an original 47, and this builds the 35 that stand.\n\nThe arch spans are derived: tier length divided by arch count, minus the cited pier thickness. The source says only that 'span of the arches varies slightly'.\n\nA TIER OF ARCHES IS NOT A FLOOR. The three arcades have 6, 11 and 35 arches, so their piers cannot align: the upper tiers stood on the gaps between the lower ones and 3 532 placements floated. A continuous spandrel deck now carries each tier onto the one below -- which is what the real bridge has, and what makes stacking arcades of different rhythms possible at all.\n\nThe arcades are STRAIGHT ROWS, not arcs. The first version bent them onto a 400 m arc to get a row out of `arrangeOn`, which put every arch off the deck beneath it. The generator now expands a line into explicit steps; the engine still only knows circles and arcs, and does not need to know more.\n\nTHE UPPER TIER OF 35 ARCHES IS NOT BUILT HERE. Its arches are 7 m tall on a 275 m run, which at this scale is below what the kit can express as an arch at all. Two tiers of the three, stated rather than implied.\n\nTHE FIRST DECK IS 250 m, NOT THE LOWER TIER'S CITED 142 m. The middle tier is 242 m and the lower one 142: in the real bridge the middle arcade runs on past the lower one onto the valley sides. This model has no valley, so the deck carries it. The cited lengths are in `dimensions` and the deck's 250 is counted as the modeller's.\n\nQID KORRIGIERT: das Blatt trug die QID des BAUWERKS, der Wikidata-Snapshot fuehrt die WELTERBESTAETTE, und das sind verschiedene Entitaeten. `qid` ist jetzt Q189764 (die Staette), das Bauwerk steht als `_qidMonument`. Ohne diese Korrektur fand der Snapshot-Lookup kein Einschreibungsjahr -- zehn von siebzehn Blaettern waren betroffen.\n\nPALETTE ABGEDUNKELT: Tan (19) und Weiss (15) brennen unter dem Bloom dieses Renderers zu reinweissen Kernen aus -- bei Giza waren zwei der drei Pyramiden im Bild nur noch Licht, waehrend die dritte in Reddish Brown lesbar blieb. Ersetzt durch Light Bluish Gray (71). Die Ursache ist der Bloom, nicht die Belichtung: der Regler der Galerie steht bereits auf seinem Minimum von 0,4.",
   "massing": [
     {
       "primitive": "Arch",
@@ -118,5 +118,6 @@
         "color": "kalkstein"
       }
     }
-  ]
+  ],
+  "_qidMonument": "Q131013x"
 }

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "slug": "jelling",
-  "qid": "Q1188278",
+  "qid": "Q4993586",
   "name": "Jelling Mounds, Runic Stones and Church",
   "tier": "A",
   "studsPerMetre": 0.5,
@@ -10,7 +10,7 @@
   "palette": {
     "erde": 288,
     "stein": 71,
-    "kirche": 15,
+    "kirche": 71,
     "runenstein": 484
   },
   "dimensions": {
@@ -35,7 +35,7 @@
       "source": "Kongernes Jelling (site museum), The Monument Area: the palisade is '1,440 meters long and several meters high'."
     }
   },
-  "note": "THE MOUNDS ARE ROUND, and they were not until this site was built:  was a  with a one-stud setback -- a square stepped mass -- and the two barrows came out as pyramids. A primitive whose name is a shape should build that shape. It now emits one filled circular course per brick course off a real hemisphere, row by row as chords so 's greedy tiling still applies. Colour 288 Dark_Green, because a Danish barrow is turf.\n\nTHE NORTH MOUND'S OWN DIMENSIONS ARE NOT CITED HERE, AND THAT IS A GAP RATHER THAN AN OMISSION. Every source reached for this sheet gives figures for the South Mound and none for the North, though the two are described throughout as comparable. The North Mound is therefore built at the South Mound's cited dimensions and its two figures are counted as UNCITED. If the number turns up -- Holst, Jessen et al. in Praehistorische Zeitschrift is the likely place -- it belongs in `dimensions` and the uncited count drops by two.\n\nThe palisade is cited by PERIMETER (1 440 m), so the 360 m side is arithmetic, not a source: 1440 / 4. That division is the modeller's reading of a square enclosure and is counted as uncited.\n\nThe ship setting is represented by its two ends rather than its 500 stones: at 1 stud/m a stone is one stud, and 500 of them at the true spacing is a dotted line the camera cannot read. What the shot needs is the ship's LENGTH against the mounds, which is the fact the site is about.",
+  "note": "THE MOUNDS ARE ROUND, and they were not until this site was built:  was a  with a one-stud setback -- a square stepped mass -- and the two barrows came out as pyramids. A primitive whose name is a shape should build that shape. It now emits one filled circular course per brick course off a real hemisphere, row by row as chords so 's greedy tiling still applies. Colour 288 Dark_Green, because a Danish barrow is turf.\n\nTHE NORTH MOUND'S OWN DIMENSIONS ARE NOT CITED HERE, AND THAT IS A GAP RATHER THAN AN OMISSION. Every source reached for this sheet gives figures for the South Mound and none for the North, though the two are described throughout as comparable. The North Mound is therefore built at the South Mound's cited dimensions and its two figures are counted as UNCITED. If the number turns up -- Holst, Jessen et al. in Praehistorische Zeitschrift is the likely place -- it belongs in `dimensions` and the uncited count drops by two.\n\nThe palisade is cited by PERIMETER (1 440 m), so the 360 m side is arithmetic, not a source: 1440 / 4. That division is the modeller's reading of a square enclosure and is counted as uncited.\n\nThe ship setting is represented by its two ends rather than its 500 stones: at 1 stud/m a stone is one stud, and 500 of them at the true spacing is a dotted line the camera cannot read. What the shot needs is the ship's LENGTH against the mounds, which is the fact the site is about.\n\nQID KORRIGIERT: das Blatt trug die QID des BAUWERKS, der Wikidata-Snapshot fuehrt die WELTERBESTAETTE, und das sind verschiedene Entitaeten. `qid` ist jetzt Q4993586 (die Staette), das Bauwerk steht als `_qidMonument`. Ohne diese Korrektur fand der Snapshot-Lookup kein Einschreibungsjahr -- zehn von siebzehn Blaettern waren betroffen.\n\nPALETTE ABGEDUNKELT: Tan (19) und Weiss (15) brennen unter dem Bloom dieses Renderers zu reinweissen Kernen aus -- bei Giza waren zwei der drei Pyramiden im Bild nur noch Licht, waehrend die dritte in Reddish Brown lesbar blieb. Ersetzt durch Light Bluish Gray (71). Die Ursache ist der Bloom, nicht die Belichtung: der Regler der Galerie steht bereits auf seinem Minimum von 0,4.",
   "massing": [
     {
       "primitive": "Dome",
@@ -176,5 +176,6 @@
         "color": "stein"
       }
     }
-  ]
+  ],
+  "_qidMonument": "Q1188278"
 }

@@ -8,7 +8,7 @@
   "uncitedBudget": 4,
   "scaleNote": "1 stud per metre. The pyramid is 55.3 m square and 30 m tall including its temple; nine terraces have to be nine readable courses.",
   "palette": {
-    "kalkstein": 19,
+    "kalkstein": 71,
     "tempel": 72
   },
   "dimensions": {
@@ -25,7 +25,7 @@
       "source": "Wikipedia, El Castillo: '...plus an additional 6 m (20 ft) for the temple at the top.'"
     }
   },
-  "note": "NINE TERRACES AND FOUR STAIRWAYS OF 91 STEPS, and the steps are not built. 'All four sides of the temple have approximately 91 steps which, when added together and including the temple platform on top as the final step, may produce a total of 365 steps' -- one step is 0.26 m, which at 1 stud/m is under a plate. The terraces are the Ziggurat and the number is in this note.",
+  "note": "NINE TERRACES AND FOUR STAIRWAYS OF 91 STEPS, and the steps are not built. 'All four sides of the temple have approximately 91 steps which, when added together and including the temple platform on top as the final step, may produce a total of 365 steps' -- one step is 0.26 m, which at 1 stud/m is under a plate. The terraces are the Ziggurat and the number is in this note.\n\nPALETTE ABGEDUNKELT: Tan (19) und Weiss (15) brennen unter dem Bloom dieses Renderers zu reinweissen Kernen aus -- bei Giza waren zwei der drei Pyramiden im Bild nur noch Licht, waehrend die dritte in Reddish Brown lesbar blieb. Ersetzt durch Light Bluish Gray (71). Die Ursache ist der Bloom, nicht die Belichtung: der Regler der Galerie steht bereits auf seinem Minimum von 0,4.",
   "massing": [
     {
       "primitive": "Ziggurat",

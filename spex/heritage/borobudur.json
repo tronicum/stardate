@@ -1,7 +1,7 @@
 {
   "version": 1,
   "slug": "borobudur",
-  "qid": "Q39231",
+  "qid": "Q29070",
   "tier": "B",
   "name": "Borobudur Temple Compounds",
   "studsPerMetre": 0.5,
@@ -25,7 +25,7 @@
       "source": "Wikipedia, Borobudur: '35 metres (115 ft) above ground level' at the central dome's top."
     }
   },
-  "note": "Nine platforms, the lower six square and the upper three circular, with seventy-two small stupas around one large central stupa (Wikipedia, Borobudur). The six square platforms are a `Ziggurat`; the three circular ones and the 72 stupas are `Dome`s on `arrangeOn` circles. The setback per terrace is uncited -- no source read gives it -- and is derived from the base divided by the terrace count.\n\nThe three stupa rings sit at 18, 13 and 8 m from the centre. The first attempt used 36, 26 and 16 m, which is wider than the sixth terrace: 123 m base less five 8 m setbacks leaves 21.5 m of half-width, so two of the three rings hung in the air.\n\nSIXTEEN, TWELVE AND EIGHT STUPAS, NOT 32/24/16, and the real number is 72. At 0.5 studs/m a ring of radius 18 m is 9 studs, a circumference of 57 studs, and 32 two-stud stupas on it overlap their neighbours. The count on screen is the count that fits; the real 72 is in this note and not in the model.\n\nThe innermost ring stands 13 m out and the central stupa is 4 m: at 8 m and 6.5 m the ring ran through the stupa, eight overlaps that no plan view shows because they are the same eight studs at two heights. Eight, six and four: below that the rings read as rings and above it the snapped arc points collide.  lands each instance on the half-stud lattice, so two neighbours on a small circle can round onto the same studs -- a real cost of putting a circle on a grid, and the reason the count on screen is not 72.",
+  "note": "Nine platforms, the lower six square and the upper three circular, with seventy-two small stupas around one large central stupa (Wikipedia, Borobudur). The six square platforms are a `Ziggurat`; the three circular ones and the 72 stupas are `Dome`s on `arrangeOn` circles. The setback per terrace is uncited -- no source read gives it -- and is derived from the base divided by the terrace count.\n\nThe three stupa rings sit at 18, 13 and 8 m from the centre. The first attempt used 36, 26 and 16 m, which is wider than the sixth terrace: 123 m base less five 8 m setbacks leaves 21.5 m of half-width, so two of the three rings hung in the air.\n\nSIXTEEN, TWELVE AND EIGHT STUPAS, NOT 32/24/16, and the real number is 72. At 0.5 studs/m a ring of radius 18 m is 9 studs, a circumference of 57 studs, and 32 two-stud stupas on it overlap their neighbours. The count on screen is the count that fits; the real 72 is in this note and not in the model.\n\nThe innermost ring stands 13 m out and the central stupa is 4 m: at 8 m and 6.5 m the ring ran through the stupa, eight overlaps that no plan view shows because they are the same eight studs at two heights. Eight, six and four: below that the rings read as rings and above it the snapped arc points collide.  lands each instance on the half-stud lattice, so two neighbours on a small circle can round onto the same studs -- a real cost of putting a circle on a grid, and the reason the count on screen is not 72.\n\nQID KORRIGIERT: das Blatt trug die QID des BAUWERKS, der Wikidata-Snapshot fuehrt die WELTERBESTAETTE, und das sind verschiedene Entitaeten. `qid` ist jetzt Q29070 (die Staette), das Bauwerk steht als `_qidMonument`. Ohne diese Korrektur fand der Snapshot-Lookup kein Einschreibungsjahr -- zehn von siebzehn Blaettern waren betroffen.",
   "massing": [
     {
       "primitive": "Ziggurat",
@@ -114,5 +114,6 @@
         "color": "stupa"
       }
     }
-  ]
+  ],
+  "_qidMonument": "Q39231"
 }

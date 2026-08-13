@@ -1,7 +1,7 @@
 {
   "version": 1,
   "slug": "machu-picchu",
-  "qid": "Q676203",
+  "qid": "Q3331815",
   "tier": "B",
   "name": "Historic Sanctuary of Machu Picchu",
   "studsPerMetre": 0.6,
@@ -17,7 +17,7 @@
       "source": "Wikipedia, Machu Picchu: '16 m (52 ft) x 16 m (52 ft) terrace' for the Sacred Plaza."
     }
   },
-  "note": "ONE CITED DIMENSION, AND THAT IS THE FINDING. Machu Picchu is described in the sources read here by elevation (2 430 m), by protected area (38 160.87 ha) and by building count ('approximately 200 buildings are arranged on wide parallel terraces around an east-west central square'), and almost never by the size of anything one could build. So the model is a terraced platform of the right character with a plaza of the one cited size, and every other figure in it is the modeller's.\n\nThat is a worse ratio than any other Tier B site, and it is recorded rather than disguised. If this Atlas ships Machu Picchu, it ships it as an arrangement rather than as a measurement.\n\nSIX WALL TERRACES, NOT A `Stair`. A `Stair` builds treads that overhang one another -- which is what a stair is, and which `validate()` reports as 1 024 floating placements. An Inca andén is a retaining wall with fill behind it, so it is a Wall of decreasing footprint, six times.",
+  "note": "ONE CITED DIMENSION, AND THAT IS THE FINDING. Machu Picchu is described in the sources read here by elevation (2 430 m), by protected area (38 160.87 ha) and by building count ('approximately 200 buildings are arranged on wide parallel terraces around an east-west central square'), and almost never by the size of anything one could build. So the model is a terraced platform of the right character with a plaza of the one cited size, and every other figure in it is the modeller's.\n\nThat is a worse ratio than any other Tier B site, and it is recorded rather than disguised. If this Atlas ships Machu Picchu, it ships it as an arrangement rather than as a measurement.\n\nSIX WALL TERRACES, NOT A `Stair`. A `Stair` builds treads that overhang one another -- which is what a stair is, and which `validate()` reports as 1 024 floating placements. An Inca andén is a retaining wall with fill behind it, so it is a Wall of decreasing footprint, six times.\n\nQID KORRIGIERT: das Blatt trug die QID des BAUWERKS, der Wikidata-Snapshot fuehrt die WELTERBESTAETTE, und das sind verschiedene Entitaeten. `qid` ist jetzt Q3331815 (die Staette), das Bauwerk steht als `_qidMonument`. Ohne diese Korrektur fand der Snapshot-Lookup kein Einschreibungsjahr -- zehn von siebzehn Blaettern waren betroffen.",
   "massing": [
     {
       "primitive": "Wall",
@@ -170,5 +170,6 @@
         "color": "granit"
       }
     }
-  ]
+  ],
+  "_qidMonument": "Q676203"
 }

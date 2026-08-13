@@ -8,8 +8,8 @@
   "uncitedBudget": 3,
   "scaleNote": "1 stud per metre. The building is 69.5 x 30.9 m and its subject is a colonnade of 8 x 17 columns, so the scale has to make a column more than one stud.",
   "palette": {
-    "marmor": 15,
-    "fels": 71
+    "marmor": 71,
+    "fels": 72
   },
   "dimensions": {
     "stylobateLength": {
@@ -29,7 +29,7 @@
       "source": "New World Encyclopedia, Parthenon: 'the Doric columns measure 1.9 meters (6.2 ft) in diameter and are 10.4 meters (34.1 ft) high'."
     }
   },
-  "note": "Octastyle peripteral: eight columns on the ends, seventeen on the sides (Wikipedia, Parthenon). Two Colonnades of seventeen and two of eight, on a stylobate. The spacing is derived from the stylobate divided by the column count rather than cited -- the intercolumniation is not in either source read for this sheet -- and is counted as uncited.\n\nNO ARCHITRAVE, and that is a real limit rather than a choice. `Colonnade`'s architrave is a continuous beam laid across the column tops; the kit's `validate` reports every span between two columns as floating, because it is -- a lintel bridging a gap has nothing under its middle. `Trilithon` gets away with it by making the lintel part of one primitive. A Parthenon without its entablature is a colonnade, which is still the thing the shot is about, and pretending otherwise would be a model that cannot be built.",
+  "note": "Octastyle peripteral: eight columns on the ends, seventeen on the sides (Wikipedia, Parthenon). Two Colonnades of seventeen and two of eight, on a stylobate. The spacing is derived from the stylobate divided by the column count rather than cited -- the intercolumniation is not in either source read for this sheet -- and is counted as uncited.\n\nNO ARCHITRAVE, and that is a real limit rather than a choice. `Colonnade`'s architrave is a continuous beam laid across the column tops; the kit's `validate` reports every span between two columns as floating, because it is -- a lintel bridging a gap has nothing under its middle. `Trilithon` gets away with it by making the lintel part of one primitive. A Parthenon without its entablature is a colonnade, which is still the thing the shot is about, and pretending otherwise would be a model that cannot be built.\n\nPALETTE ABGEDUNKELT: Tan (19) und Weiss (15) brennen unter dem Bloom dieses Renderers zu reinweissen Kernen aus -- bei Giza waren zwei der drei Pyramiden im Bild nur noch Licht, waehrend die dritte in Reddish Brown lesbar blieb. Ersetzt durch Light Bluish Gray (71). Die Ursache ist der Bloom, nicht die Belichtung: der Regler der Galerie steht bereits auf seinem Minimum von 0,4.",
   "massing": [
     {
       "primitive": "Wall",

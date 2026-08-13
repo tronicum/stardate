@@ -1,7 +1,7 @@
 {
   "version": 1,
   "slug": "grand-place",
-  "qid": "Q216225",
+  "qid": "Q215429",
   "name": "Grand-Place, Brussels",
   "tier": "A",
   "studsPerMetre": 0.7,
@@ -31,7 +31,7 @@
       "source": "Wikipedia, Grand-Place: the tower is 'capped by a 2.7 metres (8.9 ft)' statue of Saint Michael."
     }
   },
-  "note": "WHAT THIS IS AND IS NOT. It is the square's real footprint, the Town Hall's real tower height, and a ring of guildhall facades of the real square's real proportions. It is NOT a facade-by-facade reconstruction: the Grand-Place has 38 individually listed houses and each is its own baroque gable, which the seven primitives cannot express and which this Atlas does not claim. What the shot needs is a closed square with one tower breaking the skyline, and that is what the massing is. The facade height and depth are the modeller's judgement and are counted as such.\n\nTHE FACADES ARE 1.5 m DEEP, which is a facade and not a building. The Grand-Place's houses are real buildings with real depth, but the depth is behind the elevation and the camera never sees it; carrying it would triple the placement count for geometry that is occluded in every frame of the shot. Stated because an Atlas that quietly builds solid blocks and calls them buildings is an Atlas making a claim it has not earned.\n\nTHE PAVING IS A MOSAIC, NOT A WALL, and that is not a stylistic preference. A Wall builds in whole brick courses; the paving was first authored as a 0.35 m Wall, became one plate, and emitted zero placements without a word. The square came out as four ranges around nothing. 'The square measures 68 by 110 metres and is entirely paved' is a cited fact about this site, so the ground is 7 480 tiles and they are the largest single thing in the model.",
+  "note": "WHAT THIS IS AND IS NOT. It is the square's real footprint, the Town Hall's real tower height, and a ring of guildhall facades of the real square's real proportions. It is NOT a facade-by-facade reconstruction: the Grand-Place has 38 individually listed houses and each is its own baroque gable, which the seven primitives cannot express and which this Atlas does not claim. What the shot needs is a closed square with one tower breaking the skyline, and that is what the massing is. The facade height and depth are the modeller's judgement and are counted as such.\n\nTHE FACADES ARE 1.5 m DEEP, which is a facade and not a building. The Grand-Place's houses are real buildings with real depth, but the depth is behind the elevation and the camera never sees it; carrying it would triple the placement count for geometry that is occluded in every frame of the shot. Stated because an Atlas that quietly builds solid blocks and calls them buildings is an Atlas making a claim it has not earned.\n\nTHE PAVING IS A MOSAIC, NOT A WALL, and that is not a stylistic preference. A Wall builds in whole brick courses; the paving was first authored as a 0.35 m Wall, became one plate, and emitted zero placements without a word. The square came out as four ranges around nothing. 'The square measures 68 by 110 metres and is entirely paved' is a cited fact about this site, so the ground is 7 480 tiles and they are the largest single thing in the model.\n\nQID KORRIGIERT: das Blatt trug die QID des BAUWERKS, der Wikidata-Snapshot fuehrt die WELTERBESTAETTE, und das sind verschiedene Entitaeten. `qid` ist jetzt Q215429 (die Staette), das Bauwerk steht als `_qidMonument`. Ohne diese Korrektur fand der Snapshot-Lookup kein Einschreibungsjahr -- zehn von siebzehn Blaettern waren betroffen.",
   "massing": [
     {
       "primitive": "Mosaic",
@@ -147,5 +147,6 @@
         "color": "gold"
       }
     }
-  ]
+  ],
+  "_qidMonument": "Q216225"
 }

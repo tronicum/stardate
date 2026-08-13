@@ -8,7 +8,7 @@
   "uncitedBudget": 8,
   "scaleNote": "1 stud per metre. The keep is 46.4 m above its base; six storeys have to be six readable bands.",
   "palette": {
-    "putz": 15,
+    "putz": 71,
     "dach": 0,
     "sockel": 72
   },
@@ -22,7 +22,7 @@
       "source": "Wikipedia, Himeji Castle: 'The basement of the main keep has an area of 385 m2 (4,140 ft2)' -- a 19.6 m square, which is where the keep's footprint here comes from."
     }
   },
-  "note": "SIX FLOORS AND A BASEMENT, appearing as five from outside -- Wikipedia says so, and the model builds the six. The footprint is the square root of the cited basement area, which is arithmetic on a source rather than a measurement of the building: the keep tapers, so 19.6 m is its widest and the upper storeys step in. The roofs are stepped courses and not eaves; a Japanese roof is a curve this kit cannot cut.",
+  "note": "SIX FLOORS AND A BASEMENT, appearing as five from outside -- Wikipedia says so, and the model builds the six. The footprint is the square root of the cited basement area, which is arithmetic on a source rather than a measurement of the building: the keep tapers, so 19.6 m is its widest and the upper storeys step in. The roofs are stepped courses and not eaves; a Japanese roof is a curve this kit cannot cut.\n\nPALETTE ABGEDUNKELT: Tan (19) und Weiss (15) brennen unter dem Bloom dieses Renderers zu reinweissen Kernen aus -- bei Giza waren zwei der drei Pyramiden im Bild nur noch Licht, waehrend die dritte in Reddish Brown lesbar blieb. Ersetzt durch Light Bluish Gray (71). Die Ursache ist der Bloom, nicht die Belichtung: der Regler der Galerie steht bereits auf seinem Minimum von 0,4.",
   "massing": [
     {
       "primitive": "Wall",
