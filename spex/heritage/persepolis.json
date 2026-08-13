@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "slug": "persepolis",
+  "qid": "Q129072",
+  "tier": "C",
+  "name": "Persepolis — the terrace",
+  "studsPerMetre": 0.35,
+  "uncitedBudget": 12,
+  "scaleNote": "0.35 Studs pro Meter, Terrasse 6 m statt 14: bei 0,5 und 14 m waren es 97 338 Steine, und eine massive Terrasse waechst mit dem Kubus wie jeder Vollkoerper im Atlas.",
+  "palette": {
+    "kalkstein": 71,
+    "saeule": 72
+  },
+  "dimensions": {
+    "terraceArea": {
+      "m": 125000,
+      "source": "Wikipedia, Persepolis: a '125,000 m2 (1,350,000 sq ft) terrace'."
+    },
+    "gate": {
+      "m": 25,
+      "source": "Wikipedia, Persepolis: the Gate of All Nations is 'a square of approximately 25 m (82 ft) in length, with four columns'."
+    },
+    "throneHall": {
+      "m": 70,
+      "source": "Wikipedia, Persepolis: the Throne Hall's '70 m2 x 70 m2'."
+    }
+  },
+  "note": "THE TERRACE IS AN AREA, NOT A SHAPE. 125 000 m2 is the one figure the article gives for the platform, and an area does not say whether it is 350 m square or 500 x 250. This sheet builds 450 x 278 m, which is 125 100 m2 -- the right area in a rectangle nobody surveyed. That is arithmetic on a source dressed as a plan, and it is written here rather than left in `dimensions`.\n\nNO APADANA DIMENSIONS AT ALL. The article gives neither the hall's size nor its column height nor its column count -- for the building Persepolis is best known for. The Gate of All Nations gets 25 m and 'four columns', which is why the gate is the one structure here built to a cited number in both its size and its count.\n\nThe Throne Hall's '70 m2 x 70 m2' is how the source writes it; read as a 70 m square, since 70 m2 x 70 m2 is not a dimension anyone could build.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 450.0,
+        "depthM": 278.0,
+        "heightM": 6.0,
+        "bond": "Running",
+        "color": "kalkstein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 40.0,
+        "zM": 100.0,
+        "yM": {
+          "onTopOf": 0
+        }
+      },
+      "params": {
+        "widthM": "gate",
+        "depthM": "gate",
+        "heightM": 12.0,
+        "bond": "Running",
+        "color": "kalkstein"
+      }
+    },
+    {
+      "primitive": "Colonnade",
+      "at": {
+        "xM": 45.0,
+        "zM": 105.0,
+        "yM": {
+          "onTopOf": 1
+        }
+      },
+      "params": {
+        "columns": 4,
+        "spacingM": 5.0,
+        "architrave": false,
+        "column": {
+          "heightM": 16.0,
+          "diameterM": 2.4,
+          "color": "saeule"
+        }
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 250.0,
+        "zM": 90.0,
+        "yM": {
+          "onTopOf": 0
+        }
+      },
+      "params": {
+        "widthM": "throneHall",
+        "depthM": "throneHall",
+        "heightM": 10.0,
+        "bond": "Running",
+        "color": "kalkstein"
+      }
+    },
+    {
+      "primitive": "Colonnade",
+      "count": 4,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 14.0,
+        "axis": "z"
+      },
+      "at": {
+        "xM": 258.0,
+        "zM": 98.0,
+        "yM": {
+          "onTopOf": 3
+        }
+      },
+      "params": {
+        "columns": 6,
+        "spacingM": 10.0,
+        "architrave": false,
+        "column": {
+          "heightM": 18.0,
+          "diameterM": 2.0,
+          "color": "saeule"
+        }
+      }
+    }
+  ]
+}
