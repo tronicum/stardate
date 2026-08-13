@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "slug": "wieliczka",
+  "qid": "Q102980",
+  "tier": "C",
+  "name": "Wieliczka and Bochnia Royal Salt Mines",
+  "studsPerMetre": 0.25,
+  "uncitedBudget": 6,
+  "scaleNote": "0.25 Studs pro Meter. 327 m Tiefe sind die Staette, und die Tiefe ist die einzige Achse, ueber die dieses Blatt ehrlich ist. Der Block ist 100 x 100 m: bei 180 x 180 waren es 69 345 Steine fuer einen Koerper, dessen Aussage ist, dass er das Falsche zeigt.",
+  "palette": {
+    "salz": 71,
+    "gestein": 72
+  },
+  "dimensions": {
+    "depth": {
+      "m": 327,
+      "source": "Wikipedia, Wieliczka Salt Mine: 'The Wieliczka Salt Mine reaches a depth of 327 metres (1,073 ft)'."
+    },
+    "passages": {
+      "m": 287000,
+      "source": "Wikipedia, Wieliczka Salt Mine: it 'extends via horizontal passages and chambers for over 287 kilometres (178 miles)'."
+    },
+    "visitorRoute": {
+      "m": 3500,
+      "source": "Wikipedia, Wieliczka Salt Mine: 'a 3.5-kilometre (2.2-mile) visitors' route (less than 2 percent of the mine passages' total length)'."
+    },
+    "level": {
+      "m": 64,
+      "source": "Wikipedia, Wieliczka Salt Mine: 'the mine's 64-metre (210-foot) level'."
+    }
+  },
+  "note": "DER ATLAS KANN KEINEN HOHLRAUM BAUEN, UND WIELICZKA IST NICHTS ALS HOHLRAUM.\n\nJede andere Staette dieser Liste ist ein Koerper, der in der Luft steht. Ein Bergwerk ist das Gegenteil: 287 km Strecke, aus dem Fels HERAUSgeschlagen, und das Sehenswerte ist die Abwesenheit. Dieses Vokabular setzt Steine dorthin, wo eine Form IST, nie dorthin, wo sie NICHT ist -- es gibt kein Subtrahieren, kein Boolean, kein Aushoehlen. Was hier steht, ist der 327-m-Block, aus dem das Bergwerk geschnitten wurde, gebaendert auf seiner zitierten 64-m-Sohle.\n\nDamit ist dies der zweite ehrliche Fehlschlag nach Sydney, und er scheitert anders. Sydney scheitert an der GEOMETRIE -- eine Dome-Kappe kann sich nicht neigen. Wieliczka scheitert an der POLARITAET: dem Vokabular fehlt jede Operation, die Material entfernt, und daran aendert keine Menge weiterer Primitive etwas. Ein subtraktiver Schritt waere die groesste einzelne Erweiterung, die spex-build bekommen koennte.\n\nDas Mass des Fehlenden: 287 000 m Strecke gegen 3 500 m Besucherweg -- 'less than 2 percent'. Selbst der begehbare Teil ist zu 98 % ungebaut, bevor das Vokabularproblem ueberhaupt anfaengt.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 100.0,
+        "depthM": 100.0,
+        "heightM": 263.0,
+        "bond": "Running",
+        "color": "gestein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": {
+          "onTopOf": 0
+        }
+      },
+      "params": {
+        "widthM": 100.0,
+        "depthM": 100.0,
+        "heightM": "level",
+        "bond": "Running",
+        "color": "salz"
+      }
+    }
+  ]
+}

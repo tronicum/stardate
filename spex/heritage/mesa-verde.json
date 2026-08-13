@@ -1,0 +1,200 @@
+{
+  "version": 1,
+  "slug": "mesa-verde",
+  "qid": "Q216526",
+  "tier": "C",
+  "name": "Mesa Verde National Park — Cliff Palace",
+  "studsPerMetre": 1.0,
+  "uncitedBudget": 30,
+  "scaleNote": "1 Stud pro Meter. 150 Raeume muessen 150 abzaehlbare Dinge sein -- der Massstab kommt hier aus einer Anzahl und nicht aus einer Abmessung.",
+  "palette": {
+    "sandstein": 70,
+    "putz": 71,
+    "fels": 72
+  },
+  "dimensions": {
+    "rooms": {
+      "m": 150,
+      "source": "Wikipedia, Mesa Verde National Park: Cliff Palace has '23 kivas and 150 rooms'. EINE ANZAHL, keine Laenge."
+    },
+    "kivas": {
+      "m": 23,
+      "source": "Wikipedia, Mesa Verde National Park: '23 kivas and 150 rooms'. EINE ANZAHL, keine Laenge."
+    },
+    "dwellings": {
+      "m": 600,
+      "source": "Wikipedia, Mesa Verde National Park: der Park hat 'more than 600 cliff dwellings'. EINE ANZAHL, keine Laenge."
+    }
+  },
+  "note": "DAS GENAUE GEGENSTUECK ZUR IRON BRIDGE. Dort war die eine zitierte Angabe eine Laenge, und die Anzahlen (1 700 Teile, 384,6 t) liessen sich nicht bauen. Hier ist jede zitierte Angabe eine ANZAHL -- 150 Raeume, 23 Kivas, 600 Wohnanlagen -- und keine davon eine Laenge. Anzahlen KANN man bauen: `count` und `arrangeOn` sind genau die Operationen, die eine Anzahl braucht. Es ist das einzige Blatt, dessen Zitate die Massenverteilung direkt steuern, waehrend jede tatsaechliche Groesse die des Modellierers ist.\n\n150 Raeume und 23 Kivas stehen. Das ist die Arithmetik der Staette selbst, und es ist das erste Mal im Atlas, dass eine zitierte Zahl exakt eingeloest statt abgetastet wird -- Segovia bekam 24 von 167, Borobudur 18 von 72, Rapa Nui 7 von ueber 900. Cliff Palace bekommt 150 von 150.\n\nNicht gebaut ist die Felsnische. Mesa Verdes Wohnbauten sitzen unter einem Ueberhang, und ein Ueberhang ist ein Hohlraum mit Fels darueber -- dasselbe Polaritaetsproblem wie in Wieliczka, nur milder. Die Rueckwand steht, das Dach der Nische nicht.\n\nBEFUND AM WERKZEUG: gen-atlas meldet fuer dieses Blatt '0 cited dimension(s) used'. Der Zaehler erkennt eine Zitation nur, wenn sie als Groesse in `params` auftaucht -- eine Zahl, die als `count` wirkt, sieht er nicht. Ausgerechnet das Blatt, dessen ganze Behauptung ist, dass Anzahlen die Massenverteilung steuern, wird von der eigenen Buchhaltung als unbelegt gefuehrt. Die Zahlen 150, 23 und 600 stehen trotzdem mit Quelle in `dimensions`, und der Widerspruch steht hier statt in einer Statistik, die ihn verschweigt. Eine `count: {dim: ...}`-Referenz waere die Behebung.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 120.0,
+        "depthM": 6.0,
+        "heightM": 26.0,
+        "bond": "Running",
+        "color": "fels"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "count": 25,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 4.6,
+        "axis": "x"
+      },
+      "at": {
+        "xM": 2.0,
+        "zM": 7.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 4.0,
+        "depthM": 4.0,
+        "heightM": 3.0,
+        "bond": "Running",
+        "color": "putz"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "count": 25,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 4.6,
+        "axis": "x"
+      },
+      "at": {
+        "xM": 2.0,
+        "zM": 12.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 4.0,
+        "depthM": 4.0,
+        "heightM": 3.0,
+        "bond": "Running",
+        "color": "putz"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "count": 25,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 4.6,
+        "axis": "x"
+      },
+      "at": {
+        "xM": 2.0,
+        "zM": 7.0,
+        "yM": {
+          "onTopOf": 1
+        }
+      },
+      "params": {
+        "widthM": 4.0,
+        "depthM": 4.0,
+        "heightM": 3.0,
+        "bond": "Running",
+        "color": "putz"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "count": 25,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 4.6,
+        "axis": "x"
+      },
+      "at": {
+        "xM": 2.0,
+        "zM": 12.0,
+        "yM": {
+          "onTopOf": 2
+        }
+      },
+      "params": {
+        "widthM": 4.0,
+        "depthM": 4.0,
+        "heightM": 3.0,
+        "bond": "Running",
+        "color": "putz"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "count": 25,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 4.6,
+        "axis": "x"
+      },
+      "at": {
+        "xM": 2.0,
+        "zM": 7.0,
+        "yM": {
+          "onTopOf": 3
+        }
+      },
+      "params": {
+        "widthM": 4.0,
+        "depthM": 4.0,
+        "heightM": 3.0,
+        "bond": "Running",
+        "color": "putz"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "count": 25,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 4.6,
+        "axis": "x"
+      },
+      "at": {
+        "xM": 2.0,
+        "zM": 12.0,
+        "yM": {
+          "onTopOf": 4
+        }
+      },
+      "params": {
+        "widthM": 4.0,
+        "depthM": 4.0,
+        "heightM": 3.0,
+        "bond": "Running",
+        "color": "putz"
+      }
+    },
+    {
+      "primitive": "Column",
+      "count": 23,
+      "arrangeOn": {
+        "kind": "line",
+        "pitchM": 5.0,
+        "axis": "x"
+      },
+      "at": {
+        "xM": 3.0,
+        "zM": 19.0,
+        "yM": 0
+      },
+      "params": {
+        "diameterM": 4.0,
+        "heightM": 2.0,
+        "color": "sandstein"
+      }
+    }
+  ]
+}
