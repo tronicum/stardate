@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "slug": "fujian-tulou",
+  "qid": "Q1149822",
+  "tier": "C",
+  "name": "Fujian Tulou — Fusheng Lou",
+  "studsPerMetre": 1.0,
+  "uncitedBudget": 7,
+  "scaleNote": "1 stud per metre. A 77.42 m ring at 1 stud/m is 77 studs across, which is the smallest circle on which arrangeOn does not collapse neighbours onto the same studs.",
+  "palette": {
+    "stampflehm": 70,
+    "dach": 72,
+    "hof": 71
+  },
+  "dimensions": {
+    "diameter": {
+      "m": 77.42,
+      "source": "Wikipedia, Fujian tulou: Fusheng Lou's 'diameter was measured at 77.42 meters', the largest circular tulou."
+    },
+    "wallBase": {
+      "m": 2.0,
+      "source": "Wikipedia, Fujian tulou: wall thickness 'decreases with height' from approximately two metres at bottom to one metre at top."
+    },
+    "wallTop": {
+      "m": 1.0,
+      "source": "Wikipedia, Fujian tulou: '...from approximately two meters at bottom to one meter at top.'"
+    },
+    "height": {
+      "m": 21.5,
+      "source": "Wikipedia, Fujian tulou: Heguilou measures '21.5 meters' in height -- the only height the article gives for any tulou, and Heguilou is RECTANGULAR, not the circular Fusheng Lou built here."
+    },
+    "eaves": {
+      "m": 2.0,
+      "source": "Wikipedia, Fujian tulou: eaves typically 'extend about two meters'."
+    }
+  },
+  "note": "A COMMUNAL EARTH BUILDING IS THE CLOSEST THING ON THIS LIST TO WHAT THE PROJECT CLAIMS. A tulou is one wall, rammed in courses, enclosing a shared void -- modular, repetitive, and built by a community rather than a state. Great Zimbabwe is the other one.\n\nTHE HEIGHT IS BORROWED FROM A DIFFERENT BUILDING. 21.5 m is Heguilou's, and Heguilou is rectangular; Fusheng Lou's height is not in the article. The figure is cited with its own contradiction attached rather than quietly transplanted, because a reader deserves to know the roofline of this ring came from a building of another shape.\n\nThe wall tapers 2 m to 1 m over its height. This builds it as two concentric rings of straight runs -- `arrangeOn` bends instances, not walls, so a true circle of wall is not available and a 24-sided figure is what stands.\n\nDer Traufring sass zuerst auf Radius 39,7 und damit ausserhalb der Mauer -- 24 schwebende Steine. Eine Traufe kragt in der Wirklichkeit genau so aus; hier muss sie auf der Mauer stehen, weil dieses Vokabular kein Kragwerk hat. Sie ist stattdessen breiter als die Mauer.",
+  "massing": [
+    {
+      "primitive": "Column",
+      "count": 24,
+      "arrangeOn": {
+        "kind": "circle",
+        "radiusM": 37.7
+      },
+      "at": {
+        "xM": 38.7,
+        "zM": 38.7,
+        "yM": 0
+      },
+      "params": {
+        "diameterM": "wallBase",
+        "heightM": "height",
+        "color": "stampflehm"
+      }
+    },
+    {
+      "primitive": "Column",
+      "count": 24,
+      "arrangeOn": {
+        "kind": "circle",
+        "radiusM": 35.2
+      },
+      "at": {
+        "xM": 38.7,
+        "zM": 38.7,
+        "yM": 0
+      },
+      "params": {
+        "diameterM": "wallTop",
+        "heightM": "height",
+        "color": "stampflehm"
+      }
+    },
+    {
+      "primitive": "Column",
+      "count": 24,
+      "arrangeOn": {
+        "kind": "circle",
+        "radiusM": 37.7
+      },
+      "at": {
+        "xM": 38.7,
+        "zM": 38.7,
+        "yM": "height"
+      },
+      "params": {
+        "diameterM": 2.6,
+        "heightM": 1.5,
+        "color": "dach"
+      }
+    }
+  ]
+}

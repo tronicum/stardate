@@ -1,0 +1,82 @@
+{
+  "version": 1,
+  "slug": "bruegge-belfried",
+  "qid": "Q641087",
+  "tier": "C",
+  "name": "Belfry of Bruges",
+  "studsPerMetre": 1.0,
+  "uncitedBudget": 7,
+  "scaleNote": "1 stud per metre. 83 m over a market hall 84 m deep: the tower and the hall are the same size and that is the point of the silhouette.",
+  "palette": {
+    "backstein": 70,
+    "stein": 71
+  },
+  "dimensions": {
+    "height": {
+      "m": 83,
+      "source": "Wikipedia, Belfry of Bruges: '83 metres (272 ft)' -- the height after the wooden spire was lost to fire in 1741."
+    },
+    "hallWidth": {
+      "m": 44,
+      "source": "Wikipedia, Belfry of Bruges: the adjoining rectangular building is '44 metres (144 ft) broad but 84 metres (276 ft) deep'."
+    },
+    "hallDepth": {
+      "m": 84,
+      "source": "Wikipedia, Belfry of Bruges: '44 metres (144 ft) broad but 84 metres (276 ft) deep'."
+    },
+    "lean": {
+      "m": 0.87,
+      "source": "Wikipedia, Belfry of Bruges: the tower 'leans 87 centimetres (34 in) to the east'."
+    }
+  },
+  "note": "THE LEAN IS CITED AND NOT BUILT. 87 cm over 83 m is 0.6 degrees, and at 1 stud/m that is under one stud of displacement at the top -- below the grid this whole project is built on. It is in `dimensions` because it is a real measured property of the building, and it is absent from the model because a stud grid cannot express it. That pair is the honest way to carry a figure you cannot build.\n\n366 STEPS, NOT BUILT: 83 m over 366 steps is 0.23 m each, under a plate -- the same arithmetic that left Chichen Itza's 365 unbuilt.\n\nThe tower lost 19 m in 1741: it was '102 metres (335 ft)' with its wooden spire and is 83 m without. The Atlas builds the surviving 83.\n\nDer Turm stand im ersten Entwurf vier Meter tief in der Tuchhalle -- 288 Ueberlappungen. Turm und Halle beruehren sich in Bruegge, sie durchdringen sich nicht.",
+  "massing": [
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 0,
+        "zM": 0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": "hallWidth",
+        "depthM": "hallDepth",
+        "heightM": 16.0,
+        "bond": "Running",
+        "color": "backstein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 13.0,
+        "zM": -20.0,
+        "yM": 0
+      },
+      "params": {
+        "widthM": 18.0,
+        "depthM": 18.0,
+        "heightM": 56.0,
+        "bond": "Running",
+        "color": "backstein"
+      }
+    },
+    {
+      "primitive": "Wall",
+      "at": {
+        "xM": 15.5,
+        "zM": -17.5,
+        "yM": {
+          "onTopOf": 1
+        }
+      },
+      "params": {
+        "widthM": 13.0,
+        "depthM": 13.0,
+        "heightM": 27.0,
+        "bond": "Running",
+        "color": "stein"
+      }
+    }
+  ]
+}
