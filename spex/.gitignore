@@ -31,3 +31,4 @@ __pycache__/
 
 # Screenshot harness (scripts/viewer-shot) — playwright, installed on demand
 /scripts/viewer-shot/node_modules
+demos/atlas-*/

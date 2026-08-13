@@ -1536,6 +1536,15 @@ enum DemoKind {
     /// A real multi-frame animation (`spex frame-sequence`/`brick-assembly`/
     /// `brick-cinematic`) — `sequence.json` + `frame-NNN/` subdirectories.
     Sequence,
+    /// A real mesh bundle (`spex mesh-part`/`mesh-model`) — `mesh.json` plus
+    /// its binary buffers, which the viewer's second render mode reads.
+    ///
+    /// M74 is why this exists. The Atlas is eleven mesh bundles and the
+    /// gallery could not see one of them: `discover_demos` knew graphs, point
+    /// clouds and sequences, so a directory full of the piece's own scenes
+    /// listed as empty. The viewer has rendered these since M50; only the
+    /// index did not know they were there.
+    Mesh,
 }
 
 /// A demo found under a demos root — shared by the terminal listing
@@ -1590,6 +1599,16 @@ fn discover_demos(dir: &Path) -> Result<Vec<DemoEntry>> {
                 node_count: 0,
                 web_ready: true,
             });
+        } else if tileset_dir.join("mesh.json").exists() {
+            demos.push(DemoEntry {
+                name,
+                title: None,
+                kind: DemoKind::Mesh,
+                graph_path: None,
+                tileset_dir,
+                node_count: 0,
+                web_ready: true,
+            });
         } else if tileset_dir.join("tileset.json").exists() {
             demos.push(DemoEntry {
                 name,
@@ -1638,6 +1657,10 @@ fn cmd_demos(dir: &Path) -> Result<()> {
             }
             DemoKind::Sequence => {
                 println!("\n{}  (animation)", demo.name);
+                println!("  web:      spex serve {}", demo.tileset_dir.display());
+            }
+            DemoKind::Mesh => {
+                println!("\n{}  (mesh bundle)", demo.name);
                 println!("  web:      spex serve {}", demo.tileset_dir.display());
             }
         }
