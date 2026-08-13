@@ -1,0 +1,198 @@
+{
+ "akropolis": {
+  "name": "Acropolis, Athens — the Parthenon",
+  "qid": "Q131013",
+  "year": 1987,
+  "crit": [],
+  "states": [
+   "GR"
+  ]
+ },
+ "borobudur": {
+  "name": "Borobudur Temple Compounds",
+  "qid": "Q29070",
+  "year": 1991,
+  "crit": [
+   "i",
+   "ii",
+   "vi"
+  ],
+  "states": [
+   "ID"
+  ]
+ },
+ "chichen-itza": {
+  "name": "Chichén Itzá — El Castillo",
+  "qid": "Q5859",
+  "year": 1989,
+  "crit": [
+   "i",
+   "ii",
+   "iii"
+  ],
+  "states": [
+   "MX"
+  ]
+ },
+ "giza": {
+  "name": "Memphis and its Necropolis — the Pyramid Fields from Giza to Dahshur",
+  "qid": "Q1175856",
+  "year": 1979,
+  "crit": [
+   "i",
+   "iii",
+   "vi"
+  ],
+  "states": [
+   "EG"
+  ]
+ },
+ "grand-place": {
+  "name": "Grand-Place, Brussels",
+  "qid": "Q215429",
+  "year": 1998,
+  "crit": [],
+  "states": [
+   "BE"
+  ]
+ },
+ "great-zimbabwe": {
+  "name": "Great Zimbabwe National Monument",
+  "qid": "Q209217",
+  "year": 1986,
+  "crit": [
+   "i",
+   "iii",
+   "vi"
+  ],
+  "states": [
+   "ZW"
+  ]
+ },
+ "grosse-mauer": {
+  "name": "The Great Wall (Jinshanling section)",
+  "qid": "Q65961372",
+  "year": null,
+  "crit": [
+   "i",
+   "ii",
+   "iii",
+   "iv",
+   "vi"
+  ],
+  "states": [
+   "CN"
+  ]
+ },
+ "himeji": {
+  "name": "Himeji-jo",
+  "qid": "Q188754",
+  "year": 1993,
+  "crit": [
+   "i",
+   "iv"
+  ],
+  "states": [
+   "JP"
+  ]
+ },
+ "jelling": {
+  "name": "Jelling Mounds, Runic Stones and Church",
+  "qid": "Q4993586",
+  "year": 1994,
+  "crit": [],
+  "states": [
+   "DK"
+  ]
+ },
+ "koelner-dom": {
+  "name": "Cologne Cathedral",
+  "qid": "Q4176",
+  "year": 1996,
+  "crit": [],
+  "states": [
+   "DE"
+  ]
+ },
+ "kolosseum": {
+  "name": "Historic Centre of Rome — the Colosseum",
+  "qid": "Q18448486",
+  "year": 1980,
+  "crit": [],
+  "states": [
+   "IT",
+   "VA"
+  ]
+ },
+ "machu-picchu": {
+  "name": "Historic Sanctuary of Machu Picchu",
+  "qid": "Q3331815",
+  "year": 1983,
+  "crit": [
+   "i",
+   "iii",
+   "vii",
+   "ix"
+  ],
+  "states": [
+   "PE"
+  ]
+ },
+ "petra": {
+  "name": "Petra — Al-Khazneh",
+  "qid": "Q5788",
+  "year": 1985,
+  "crit": [
+   "i",
+   "iii",
+   "iv"
+  ],
+  "states": [
+   "JO"
+  ]
+ },
+ "pont-du-gard": {
+  "name": "Pont du Gard (Roman Aqueduct)",
+  "qid": "Q189764",
+  "year": 1985,
+  "crit": [
+   "i",
+   "iii",
+   "iv"
+  ],
+  "states": [
+   "FR"
+  ]
+ },
+ "segovia": {
+  "name": "Old Town of Segovia and its Aqueduct",
+  "qid": "Q15728389",
+  "year": 1985,
+  "crit": [],
+  "states": [
+   "ES"
+  ]
+ },
+ "sydney-opera": {
+  "name": "Sydney Opera House",
+  "qid": "Q45178",
+  "year": 2007,
+  "crit": [
+   "i"
+  ],
+  "states": [
+   "AU"
+  ]
+ },
+ "taj-mahal": {
+  "name": "Taj Mahal",
+  "qid": "Q9141",
+  "year": null,
+  "crit": [
+   "i"
+  ],
+  "states": [
+   "IN"
+  ]
+ }
+}
